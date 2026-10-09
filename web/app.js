@@ -18,6 +18,12 @@ const STRINGS = {
     needLocation: "Set your location first: Settings → Location.",
     location: "Location", locationHint: "Move the map until the cross marks your place.", locationSave: "Use this place",
     locationSet: "set", locationUnset: "not set", sleepTimer: "Sleep timer", minutes: "min",
+    alarm: "Alarm", alarmOn: "Alarm is on", alarmOff: "Alarm is off", wakesWith: "Wakes with",
+    wakesWithNothing: "Play a station once; the alarm wakes with the one heard last.",
+    bluetooth: "Bluetooth", btSub: "Speakers and phone", btVisible: "Let a phone connect", btVisibleFor: "Visible for",
+    btPhoneHint: "Then pick this device in the phone's Bluetooth settings and play music.",
+    btScan: "Search for speakers", btScanning: "Searching…", btConnected: "connected", btPaired: "paired", btNew: "new",
+    seconds: "s",
     receiverHint: "How FM and the free receiver listen. Switch and compare on the same station.",
     backendNames: { engine: "own receiver (waterfall, stereo)", rtl_fm: "rtl_fm (classic, mono)" },
     wmo: { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Overcast", 45: "Fog", 51: "Drizzle", 61: "Rain",
@@ -45,6 +51,12 @@ const STRINGS = {
     needLocation: "Lege zuerst deinen Standort fest: Einstellungen → Standort.",
     location: "Standort", locationHint: "Verschiebe die Karte, bis das Kreuz auf deinem Ort liegt.", locationSave: "Diesen Ort übernehmen",
     locationSet: "festgelegt", locationUnset: "nicht festgelegt", sleepTimer: "Sleep-Timer", minutes: "min",
+    alarm: "Wecker", alarmOn: "Wecker ist an", alarmOff: "Wecker ist aus", wakesWith: "Weckt mit",
+    wakesWithNothing: "Spiele einmal einen Sender; der Wecker weckt mit dem zuletzt gehörten.",
+    bluetooth: "Bluetooth", btSub: "Lautsprecher und Handy", btVisible: "Handy verbinden lassen", btVisibleFor: "Sichtbar für",
+    btPhoneHint: "Wähle danach dieses Gerät in den Bluetooth-Einstellungen des Handys und spiele Musik ab.",
+    btScan: "Lautsprecher suchen", btScanning: "Suche…", btConnected: "verbunden", btPaired: "gekoppelt", btNew: "neu",
+    seconds: "s",
     receiverHint: "Womit UKW und der freie Empfänger hören. Umschalten und am selben Sender vergleichen.",
     backendNames: { engine: "eigener Empfänger (Wasserfall, Stereo)", rtl_fm: "rtl_fm (klassisch, Mono)" },
     wmo: { 0: "Klar", 1: "Überwiegend klar", 2: "Teils bewölkt", 3: "Bedeckt", 45: "Nebel", 51: "Nieselregen", 61: "Regen",
@@ -70,6 +82,7 @@ const ICONS = {
   tuner: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v3M12 10V7M5.6 5.6l2 2M3 12h3M18.4 5.6l-2 2M21 12h-3"/>',
   adsb: '<path d="M12 3l2 7 7 4v2l-7-2v4l2 2v1l-4-1-4 1v-1l2-2v-4l-7 2v-2l7-4z"/>',
   weather: '<circle cx="8" cy="8" r="3"/><path d="M8 2v1M2 8h1M3.8 3.8l.7.7M12.2 3.8l-.7.7M8 20h9a4 4 0 000-8 6 6 0 00-11 2 3 3 0 002 6z"/>',
+  bluetooth: '<path d="M7 7l10 10-5 4V3l5 4L7 17"/>',
   settings: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
   star: '<path d="M12 4l2.5 5.2 5.5.8-4 4 1 5.6-5-2.7-5 2.7 1-5.6-4-4 5.5-.8z"/>',
 };
@@ -212,6 +225,7 @@ const home = {
         el.classList.toggle("running", running);
         return el;
       }),
+      ...(c.bluetooth ? [tile("bluetooth", t.bluetooth, null, () => show(bluetooth), t.btSub)] : []),
       tile("weather", t.weather, null, () => show(weather)),
       tile("settings", t.settings, null, () => show(settings)),
     ));
@@ -630,6 +644,89 @@ const locationPicker = {
   leave() { view.classList.remove("flush"); },
 };
 
+/* ---------- alarm clock ---------- */
+
+const alarm = {
+  title: t.alarm,
+  data: { enabled: false, time: "07:00" },
+  async render() {
+    this.data = await api("/api/alarm");
+    this.draw();
+  },
+  async change(minutes, enabled = this.data.enabled) {
+    const [hh, mm] = this.data.time.split(":").map(Number);
+    const total = (hh * 60 + mm + minutes + 1440) % 1440;
+    const time = `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+    Object.assign(this.data, { time, enabled });
+    this.draw();
+    await api("/api/alarm", { enabled, time });
+  },
+  draw() {
+    const step = (label, minutes) => h("button", { textContent: label, onclick: () => this.change(minutes) });
+    view.replaceChildren(
+      h("div", { className: "dial", textContent: this.data.time }),
+      h("div", { className: "steps" }, step("− 1 h", -60), step("− 5 min", -5), step("+ 5 min", 5), step("+ 1 h", 60)),
+      h("div", { className: "toolbar" }, h("button", {
+        className: this.data.enabled ? "primary" : "", textContent: this.data.enabled ? t.alarmOn : t.alarmOff,
+        onclick: () => this.change(0, !this.data.enabled),
+      })),
+      hint(this.data.wakes_with ? `${t.wakesWith}: ${this.data.wakes_with}` : t.wakesWithNothing));
+  },
+  back() { show(settings); return true; },
+};
+
+/* ---------- Bluetooth ---------- */
+
+const bluetooth = {
+  title: t.bluetooth,
+  status: { devices: [], visible: 0, scanning: false },
+  busy: null,
+  async render() {
+    this.draw();
+    this.refresh();
+  },
+  async refresh() {
+    clearTimeout(this.timer);
+    if (current !== this) return;
+    try { this.status = await api("/api/bluetooth"); } catch (e) { /* try again below */ }
+    this.draw();
+    this.timer = setTimeout(() => this.refresh(), 3000);
+  },
+  async act(action, body, busy) {
+    this.busy = busy;
+    this.error = null;
+    this.draw();
+    try { this.status = await api(`/api/bluetooth/${action}`, body); } catch (e) { this.error = e.message; }
+    this.busy = null;
+    this.draw();
+  },
+  draw() {
+    if (current !== this) return;
+    const s = this.status;
+    const top = view.scrollTop;
+    view.replaceChildren(
+      h("div", { className: "toolbar wrap" },
+        h("button", {
+          className: s.visible ? "primary" : "",
+          textContent: s.visible ? `${t.btVisibleFor} ${s.visible} ${t.seconds}` : t.btVisible,
+          onclick: () => this.act("visible", { on: !s.visible }),
+        }),
+        h("button", {
+          textContent: this.busy === "scan" ? t.btScanning : t.btScan, disabled: this.busy === "scan",
+          onclick: () => this.act("scan", {}, "scan"),
+        })),
+      ...(s.visible ? [hint(t.btPhoneHint)] : []),
+      ...(this.error ? [hint(this.error)] : []),
+      ...s.devices.map(d => stationRow({
+        title: d.name, active: d.connected,
+        info: this.busy === d.mac ? t.loading : d.connected ? t.btConnected : d.paired ? t.btPaired : t.btNew,
+        onPlay: () => this.act(d.connected ? "disconnect" : "connect", { mac: d.mac }, d.mac),
+      })));
+    view.scrollTop = top;
+  },
+  leave() { clearTimeout(this.timer); },
+};
+
 /* ---------- settings ---------- */
 
 const settings = {
@@ -648,7 +745,7 @@ const settings = {
     const SLEEP = [0, 15, 30, 60, 90];
     const left = state.sleep_until ? Math.max(1, Math.round((state.sleep_until - Date.now() / 1000) / 60)) : 0;
     view.replaceChildren(
-      h("div", { className: "toolbar" },
+      h("div", { className: "toolbar wrap" },
         h("button", {
           textContent: `${t.sleepTimer}: ${left ? left + " " + t.minutes : t.off}`,
           onclick: async () => {
@@ -657,6 +754,7 @@ const settings = {
             setTimeout(() => this.render(), 150);
           },
         }),
+        h("button", { textContent: `${t.alarm}: ${state.alarm || t.off}`, onclick: () => show(alarm) }),
         h("button", {
           textContent: `${t.location}: ${location ? t.locationSet : t.locationUnset}`, onclick: () => show(locationPicker),
         })),
@@ -679,7 +777,8 @@ const settings = {
 const tick = () => {
   const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const left = state.sleep_until ? Math.max(1, Math.round((state.sleep_until - Date.now() / 1000) / 60)) : 0;
-  $("clock").textContent = left ? `☾ ${left} ${t.minutes} · ${time}` : time;
+  $("clock").textContent = [state.alarm ? `⏰ ${state.alarm}` : null, left ? `☾ ${left} ${t.minutes}` : null, time]
+    .filter(Boolean).join(" · ");
 };
 
 function applyState(next) {
@@ -697,7 +796,7 @@ function applyState(next) {
 // deep links such as #fm or #tuner/2m open a view directly
 async function openLink() {
   const [name, band] = location.hash.slice(1).split("/");
-  const target = { webradio, dab, fm, tuner, adsb, weather, settings }[name] || home;
+  const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings }[name] || home;
   show(target);
   if (target === tuner && band) {
     const bands = await api("/api/tuner/bands");

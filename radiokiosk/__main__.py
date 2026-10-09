@@ -4,7 +4,8 @@ import asyncio
 
 from aiohttp import web
 
-from . import audio
+from . import audio, bluetooth
+from .alarm import Alarm
 from .config import WEB_DIR, load_config, save_setting
 from .core import Core
 from .sources.adsb import Adsb
@@ -32,6 +33,13 @@ def build(cfg):
     webradio, dab, fm, tuner, apps = Webradio(core), Dab(core), Fm(core), Tuner(core), Apps(core)
     adsb = Adsb(core)
     weather = Weather()
+    alarm = Alarm(core)
+    bt = bluetooth.Bluetooth()
+    core.players = {
+        "webradio": lambda last: webradio.play(last["station"]),
+        "dab": lambda last: dab.play(last["sid"]),
+        "fm": lambda last: fm.tune(last["mhz"]),
+    }
     core.sources.update(fm=fm, tuner=tuner)
     core.receiver_backends = available_backends()
     routes = web.RouteTableDef()
@@ -73,6 +81,36 @@ def build(cfg):
     async def sleep(request):
         core.sleep_in(max(0, min(600, float((await request.json())["minutes"]))))
         return ok()
+
+    @routes.get("/api/alarm")
+    async def alarm_get(request):
+        return web.json_response({**alarm.data, "wakes_with": (core.last or {}).get("title")})
+
+    @routes.post("/api/alarm")
+    async def alarm_set(request):
+        body = await request.json()
+        alarm.set(body["enabled"], body["time"])
+        core.update(alarm=alarm.data["time"] if alarm.data["enabled"] else None)
+        return ok()
+
+    @routes.get("/api/bluetooth")
+    async def bluetooth_get(request):
+        return web.json_response(await bt.status())
+
+    @routes.post("/api/bluetooth/{action}")
+    async def bluetooth_do(request):
+        action, body = request.match_info["action"], await request.json()
+        if action == "scan":
+            await bt.scan()
+        elif action == "connect":
+            await bt.connect(body["mac"])
+        elif action == "disconnect":
+            await bt.disconnect(body["mac"])
+        elif action == "visible":
+            await bt.set_visible(bool(body["on"]))
+        else:
+            raise web.HTTPNotFound()
+        return web.json_response(await bt.status())
 
     @routes.get("/api/settings")
     async def settings_get(request):
@@ -222,9 +260,14 @@ def build(cfg):
     async def on_startup(app):
         await core.refresh_volume()
         app["audio_watch"] = asyncio.create_task(audio.watch(core.refresh_volume))
+        app["alarm"] = asyncio.create_task(alarm.run())
+        core.update(alarm=alarm.data["time"] if alarm.data["enabled"] else None)
 
     async def on_cleanup(app):
         app["audio_watch"].cancel()
+        app["alarm"].cancel()
+        if bt.pairing:
+            await bt.set_visible(False)
         await core.close()
 
     app.on_startup.append(on_startup)

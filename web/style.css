@@ -129,6 +129,8 @@ footer button { background: var(--bg); }
 .pad .wide { grid-column: span 2; }
 
 @media (max-height: 500px) {
+  .tile { min-height: 104px; gap: 4px; padding: 8px; }
+  .tile svg { width: 36px; height: 36px; }
   .dial { font-size: 44px; margin: 0; }
   .waterfall { height: 96px; }
 }

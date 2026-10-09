@@ -9,6 +9,7 @@ import shutil
 import time
 
 from . import audio
+from .config import load_json, save_json
 from .gain import Gains
 from .mpv import Mpv
 from .sources.adsb import decoder as adsb_decoder
@@ -30,6 +31,8 @@ class Core:
             "volume": None, "muted": False, "detail": {}, "sleep_until": None,
         }
         self.sleep_task = None
+        self.players = {}     # kind -> coroutine function that plays a remembered station
+        self.last = load_json("last.json", None)
 
     def caps(self):
         sdr = sdr_present()
@@ -39,6 +42,7 @@ class Core:
             "dab": shutil.which("welle-cli") is not None,
             "fm": any(self.receiver_backends.values()),
             "adsb": adsb_decoder() is not None,
+            "bluetooth": shutil.which("bluetoothctl") is not None,
             "apps": [
                 {"id": a["id"], "name": a["name"], "needs_sdr": a.get("needs_sdr", False),
                  "available": shutil.which(a["command"][0]) is not None}
@@ -93,6 +97,16 @@ class Core:
             pass
         self.update(source=None, status="idle", title="", text="", error=None, detail={})
 
+    def remember(self, kind, title, **what):
+        """Note what is playing, so the alarm clock can bring it back."""
+        self.last = {"kind": kind, "title": title, **what}
+        save_json("last.json", self.last)
+
+    async def replay(self):
+        if not self.last or self.last["kind"] not in self.players:
+            raise RuntimeError("nothing has been played yet")
+        await self.players[self.last["kind"]](self.last)
+
     def sleep_in(self, minutes):
         """Stop whatever plays after `minutes`; 0 cancels the timer."""
         if self.sleep_task:
@@ -112,12 +126,12 @@ class Core:
         self.update(status="error", error=message)
 
     def _on_mpv(self, msg):
-        if self.state["source"] not in ("webradio", "dab", "fm", "tuner"):
+        if self.state["source"] not in ("webradio", "dab", "fm", "tuner", "alarm"):
             return
         if msg["event"] == "property-change":
             if msg["name"] == "core-idle" and msg.get("data") is False:
                 self.update(status="playing", error=None)
-            elif msg["name"] == "media-title" and self.active is not None:
+            elif msg["name"] == "media-title" and self.active is not None and self.state["source"] != "alarm":
                 self.active.on_title(msg.get("data") or "")
         elif msg["event"] == "end-file" and msg.get("reason") == "error" and self.state["status"] != "error":
             retry = getattr(self.active, "on_playback_error", None)

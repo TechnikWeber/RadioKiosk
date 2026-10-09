@@ -118,6 +118,7 @@ class Dab:
                     await self._tune(service["channel"])
                     await self._wait_for(sid)
                 self.playing, self.retries = sid, 0
+                self.core.remember("dab", service["name"], sid=sid)
                 await self.core.mpv.play(f"http://127.0.0.1:{self.port}/mp3/{sid}")
             except RuntimeError as e:
                 self.core.fail(str(e))

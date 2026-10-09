@@ -30,6 +30,7 @@ class Fm(Receiver):
             self.mhz = mhz
             name = self.names.get(f"{mhz:.1f}")
             title = f"{name} · {mhz:.2f} MHz" if name else f"{mhz:.2f} MHz"
+            self.core.remember("fm", title, mhz=mhz)
             await self._receive(int(mhz * 1e6), "wfm", "fm", title, {"mhz": mhz})
 
     def on_rds(self, info):

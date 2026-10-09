@@ -55,6 +55,7 @@ class Webradio:
             self.station = station
             self.core.update(source=self.name, status="loading", title=station["name"], text="",
                              error=None, detail={"id": station["id"]})
+            self.core.remember("webradio", station["name"], station=station)
             await self.core.mpv.play(station["url"])
 
     def on_title(self, title):

@@ -52,15 +52,18 @@ A small Python service controls the receivers and serves a web interface that a 
 | FM | stereo, station names and radio text (RDS), band scan, presets, spectrum and waterfall | built-in receiver or `rtl_fm`, `rtl_power`, `mpv` |
 | Receiver | free tuning in FM, AM and sideband with waterfall, squelch and a band plan: shortwave, amateur radio, PMR446, Freenet, CB | built-in receiver, `mpv` |
 | Aircraft | live map of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |
+| Bluetooth | connect a Bluetooth speaker, or let a phone play through this device | `bluetoothctl`, PipeWire |
 | Weather | current weather and a four-day forecast | Open-Meteo |
 | SDR++ | the full SDR program for everything else | started as a normal program |
-| Settings | audio output, sleep timer, location | PipeWire or PulseAudio |
+| Settings | audio output, sleep timer, alarm clock, location, receiver backend | PipeWire or PulseAudio |
 
 Only one receiver can use the stick at a time, so the service stops the running one before starting the next. Tiles whose program or hardware is missing are disabled.
 
 FM and the free receiver use RadioKiosk's own receiver, written in Python with NumPy: it demodulates, decodes RDS, draws the waterfall and retunes without restarting the stick. Under Settings you can switch each of the two to the classic `rtl_fm` program instead (mono, no waterfall, lighter on the processor) and compare.
 
 The tuner gain adjusts itself while listening, because the stick's own automatic gain overdrives on a good antenna. The values are remembered per band; reset them under Settings after changing the antenna.
+
+The alarm clock wakes with the station that was heard last; if that does not start, it falls back to a tone. The computer has to be running for it.
 
 Listening to radio services that are not meant for the public is restricted in many countries. The band plan therefore only contains broadcast, amateur radio and licence-free bands.
 

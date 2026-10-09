@@ -32,11 +32,11 @@ fi
 if command -v apt-get >/dev/null; then
   install() { sudo apt-get install -y "$@"; }
   sudo apt-get update
-  REQUIRED=(git python3 python3-aiohttp python3-numpy mpv rtl-sdr pulseaudio-utils)
+  REQUIRED=(git python3 python3-aiohttp python3-numpy mpv rtl-sdr pulseaudio-utils bluez)
   OPTIONAL=(welle.io sdrpp dump1090-mutability)
 elif command -v dnf >/dev/null; then
   install() { sudo dnf install -y "$@"; }
-  REQUIRED=(git python3 python3-aiohttp python3-numpy mpv rtl-sdr pulseaudio-utils)
+  REQUIRED=(git python3 python3-aiohttp python3-numpy mpv rtl-sdr pulseaudio-utils bluez)
   OPTIONAL=(welle-io sdrpp dump1090)
 else
   echo "Unsupported system: neither apt nor dnf found." >&2
