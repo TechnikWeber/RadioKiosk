@@ -144,8 +144,9 @@ class EngineBackend:
 
 BACKENDS = {"engine": EngineBackend, "rtl_fm": RtlFmBackend}
 CHOICES = ("auto", *BACKENDS)
-# Share of one processor core the engine's light profile may take for "auto" to pick it
-ENGINE_LOAD_LIMIT = 0.6
+# Share of one processor core the engine's light profile may take for "auto" to pick it.
+# A Raspberry Pi 3 measures 0.6 here and keeps pace with a real station.
+ENGINE_LOAD_LIMIT = 0.75
 _load = None
 
 
