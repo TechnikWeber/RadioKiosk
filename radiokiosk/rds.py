@@ -1,6 +1,6 @@
 """RDS decoder: station name and radio text from the 57 kHz subcarrier of FM broadcast.
 
-Input is the FM multiplex signal at 384 kHz; RDS sits on a 57 kHz carrier as
+Input is the FM multiplex signal at 384 or 192 kHz; RDS sits on a 57 kHz carrier as
 1187.5 bit/s biphase symbols. The chain: shift to baseband, find the carrier
 phase, matched filter, bit timing, differential decoding, then block
 synchronisation with the checkword syndromes from the RDS standard.
@@ -8,9 +8,8 @@ synchronisation with the checkword syndromes from the RDS standard.
 
 import numpy as np
 
-RATE = 384_000
-DECIMATION = 16
-SYMBOL_RATE = RATE / DECIMATION       # 24 kHz
+RATE = 384_000                        # multiplex rate unless told otherwise
+SYMBOL_RATE = 24_000                  # rate after shifting RDS to baseband
 BIT = SYMBOL_RATE / 1187.5            # samples per bit, not an integer
 PHASES = 20                           # timing resolution within one bit
 
@@ -43,10 +42,13 @@ def char(code):
 
 
 class Rds:
-    def __init__(self, lowpass):
-        self.oscillator = np.exp(-2j * np.pi * 57e3 * np.arange(128) / RATE).astype(np.complex64)
+    def __init__(self, lowpass, rate=RATE):
+        self.decimation = rate // SYMBOL_RATE
+        # 57 kHz repeats exactly every rate / 3000 samples
+        self.period = rate // 3000
+        self.oscillator = np.exp(-2j * np.pi * 57e3 * np.arange(self.period) / rate).astype(np.complex64)
         self.position = 0
-        self.taps = lowpass(2.4e3, RATE, 97).astype(np.float32)
+        self.taps = lowpass(2.4e3, rate, 6 * self.decimation + 1).astype(np.float32)
         self.tail = np.zeros(len(self.taps) - 1, np.complex64)
         self.carrier = 0j
         self.angle = 0.0
@@ -69,11 +71,11 @@ class Rds:
 
     def __call__(self, mpx):
         """Feed one block of multiplex samples; returns the station info when it changed."""
-        osc = self.oscillator[(self.position + np.arange(len(mpx))) % 128]
-        self.position = (self.position + len(mpx)) % 128
+        osc = self.oscillator[(self.position + np.arange(len(mpx))) % self.period]
+        self.position = (self.position + len(mpx)) % self.period
         data = np.concatenate([self.tail, mpx * osc])
         self.tail = data[len(mpx):]
-        base = np.convolve(data, self.taps, "valid")[::DECIMATION]
+        base = np.convolve(data, self.taps, "valid")[::self.decimation]
 
         # BPSK squared has a constant phase: twice the carrier phase
         self.carrier = 0.95 * self.carrier + 0.05 * np.mean(base * base)

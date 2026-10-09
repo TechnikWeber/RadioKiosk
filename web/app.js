@@ -536,7 +536,8 @@ const fm = {
     this.draw();
     // several quick taps should retune the stick once, not once per tap
     clearTimeout(this.timer);
-    this.timer = setTimeout(() => api("/api/fm/tune", { mhz: this.mhz }), 400);
+    // with the waterfall on, the receiver watches a wide band; without, only the station
+    this.timer = setTimeout(() => api("/api/fm/tune", { mhz: this.mhz, waterfall: waterfallOn("fm") }), 400);
   },
   draw() {
     const scanning = state.source === "fm" && state.detail.scan;
@@ -562,7 +563,7 @@ const fm = {
           onclick: () => toggleStar(entry),
         }),
         h("button", { textContent: t.scan, disabled: !!scanning, onclick: () => api("/api/fm/scan", {}) }),
-        waterfallButton("fm", () => this.draw()),
+        waterfallButton("fm", () => (state.source === "fm" ? this.tune(this.mhz) : this.draw())),
         state.backends.fm !== "engine" ? null : h("button", {
           textContent: `${t.sound}: ${t.soundModes[this.sound]}`,
           onclick: () => {
@@ -637,7 +638,8 @@ const tuner = {
     this.draw();
     clearTimeout(this.timer);
     this.timer = setTimeout(() => api("/api/tuner/tune",
-      { hz: this.hz, mode: this.mode, squelch: this.mode === "nfm" ? this.squelch : 0, zoom: this.zoom, label: this.label }), 400);
+      { hz: this.hz, mode: this.mode, squelch: this.mode === "nfm" ? this.squelch : 0, zoom: this.zoom, label: this.label,
+        waterfall: waterfallOn("tuner") }), 400);
   },
   draw() {
     $("heading").textContent = this.band ? tr(this.band.name) : this.title;
@@ -668,7 +670,7 @@ const tuner = {
             this.tune(this.hz, this.mode, this.label);
           },
         }) : null,
-        waterfallButton("tuner", () => this.draw()),
+        waterfallButton("tuner", () => this.tune(this.hz, this.mode, this.label)),
         state.backends.tuner !== "engine" || !waterfallOn("tuner") ? null : h("button", {
           textContent: `${t.zoom} ×${this.zoom}`,
           onclick: () => {
@@ -1035,6 +1037,7 @@ const settings = {
       h("p", { className: "hint", textContent: t.relevelHint }),
       h("div", { className: "toolbar" },
         h("button", { textContent: t.relevel, onclick: e => { e.target.disabled = true; api("/api/gain/reset", {}); } })),
+      h("p", { className: "label meter", textContent: `RadioKiosk ${receivers.version}` }),
     );
   },
 };

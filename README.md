@@ -12,7 +12,7 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 | ![Free receiver on the 2 m amateur band](docs/screenshots/receiver.png) | ![Live aircraft map with list](docs/screenshots/aircraft.png) |
 | ![Idle screen with time, weather and station](docs/screenshots/idle.png) | |
 
-> Early development. It runs on a Linux PC today; the kiosk setup for the Raspberry Pi (boot straight into the interface) is not finished yet.
+> Version 0.9: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
 
 ## Install
 
@@ -29,7 +29,7 @@ The installer works on Fedora and on Debian-based systems (Debian, Ubuntu, Raspb
 
 Afterwards open **RadioKiosk** from the application menu or go to <http://localhost:8080>. Run the same line again to update.
 
-Add `--kiosk` to open the interface full screen after every login, and `--with-sdrangel` for SDRangel as a second expert receiver:
+Add `--kiosk` to open the interface full screen after every login, `--rotate=180` to turn the screen (Raspberry Pi OS), and `--with-sdrangel` for SDRangel as a second expert receiver:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --with-sdrangel
@@ -37,12 +37,27 @@ curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/instal
 
 Programs your distribution does not package are skipped; their tiles stay disabled or hidden and everything else works.
 
+## Raspberry Pi
+
+Flash **Raspberry Pi OS (64-bit) with desktop**, boot it, connect it to your network and run the installer with `--kiosk`:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk
+```
+
+After the next start the Pi opens RadioKiosk full screen by itself. Things worth knowing:
+
+- **Screen upside down or on its side:** add `--rotate=180` (or `90`, `270`). The official 7 inch touch display, for example, ends up upside down in many cases and stands. The touch input turns with it. On other systems, use the display settings of your desktop.
+- **Power:** a Pi with display and SDR stick needs a strong supply. If `vcgencmd get_throttled` shows anything but `0x0`, the supply or its cable is too weak; sticks then hang and reception suffers.
+- **Pi 3:** the interface is there about two minutes after power-on. Web radio, FM and the aircraft map have been tested on it. Starting SDR++ took the test device off the network, so leave that tile alone on a Pi 3 for now.
+- **Aircraft:** Raspberry Pi OS has `readsb` instead of `dump1090`; the installer takes care of it.
+
 ## Supported hardware
 
 | Part | Supported | Tested |
 |---|---|---|
 | Computer | 64-bit Linux on x86 or ARM with Fedora, Debian, Ubuntu or Raspberry Pi OS | Fedora 44 on an x86 laptop |
-| Raspberry Pi | Pi 4 and Pi 5 are the target; a Pi 3 should manage web radio, DAB+ and FM | installer and interface on a Pi 3 B+ with Raspberry Pi OS 64-bit; reception not yet |
+| Raspberry Pi | Pi 3, 4 and 5 with Raspberry Pi OS 64-bit | Pi 3 B+ with the official 7 inch display: installer, kiosk start, web radio, FM, aircraft map |
 | SDR stick | RTL-SDR Blog V4 and V3, other RTL2832U sticks | RTL-SDR Blog V4 |
 | Display | any; the interface is built for touch from 800×480 upwards | 800×480 layout in a browser |
 | Audio | every output PipeWire or PulseAudio offers: headphone jack, USB, Bluetooth, HDMI | built-in audio |
@@ -73,7 +88,7 @@ With remote control switched on under Settings, phones and computers in the same
 
 Only one receiver can use the stick at a time, so the service stops the running one before starting the next. Tiles whose program or hardware is missing are disabled.
 
-FM and the free receiver use RadioKiosk's own receiver, written in Python with NumPy: it demodulates, decodes RDS, draws a waterfall and retunes without restarting the stick. The waterfall is off by default and can be switched on separately in the FM and the Receiver view. Under Settings you can switch each of the two to the classic `rtl_fm` program instead (mono, no waterfall, lighter on the processor) and compare.
+FM and the free receiver use RadioKiosk's own receiver, written in Python with NumPy: it demodulates, decodes RDS, draws a waterfall and retunes without restarting the stick. The waterfall is off by default and can be switched on separately in the FM and the Receiver view. Without it the receiver only takes in the station itself, which needs about a third of the processing; with it, it watches 1.5 MHz at once. Under Settings you can switch each of the two to the classic `rtl_fm` program instead (mono, no waterfall, lighter on the processor) and compare.
 
 The tuner gain adjusts itself while listening, because the stick's own automatic gain overdrives on a good antenna. The values are remembered per band; reset them under Settings after changing the antenna.
 

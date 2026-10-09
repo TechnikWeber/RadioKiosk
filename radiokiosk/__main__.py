@@ -6,7 +6,7 @@ import socket
 
 from aiohttp import web
 
-from . import audio, bluetooth
+from . import __version__, audio, bluetooth
 from .alarm import Alarm
 from .config import WEB_DIR, load_config, save_setting
 from .core import Core
@@ -153,6 +153,7 @@ def build(cfg):
                                   "fm_backend_used": fm.backend_id(), "tuner_backend_used": tuner.backend_id(),
                                   "fm_stereo": cfg["fm_stereo"],
                                   "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
+                                  "version": __version__,
                                   "backends": available_backends()})
 
     @routes.post("/api/settings")
@@ -250,7 +251,8 @@ def build(cfg):
 
     @routes.post("/api/fm/tune")
     async def fm_tune(request):
-        await fm.tune((await request.json())["mhz"])
+        body = await request.json()
+        await fm.tune(body["mhz"], body.get("waterfall", False))
         return ok()
 
     @routes.post("/api/fm/stereo")
@@ -284,7 +286,7 @@ def build(cfg):
     async def tuner_tune(request):
         body = await request.json()
         await tuner.tune(body["hz"], body["mode"], body.get("squelch", 0), body.get("zoom", 1),
-                         body.get("label", ""))
+                         body.get("label", ""), body.get("waterfall", False))
         return ok()
 
     @routes.post("/api/gain/reset")

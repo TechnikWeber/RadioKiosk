@@ -17,7 +17,7 @@ class Tuner(Receiver):
     def __init__(self, core):
         super().__init__(core)
 
-    async def tune(self, hz, mode, squelch=0, zoom=1, label=""):
+    async def tune(self, hz, mode, squelch=0, zoom=1, label="", wide=False):
         hz = int(min(1.75e9, max(100e3, float(hz))))
         if mode not in MODES:
             raise RuntimeError("unknown mode")
@@ -26,7 +26,8 @@ class Tuner(Receiver):
         async with self.core.lock:
             self.core.remember("tuner", label or self.format(hz), hz=hz, mode=mode, squelch=squelch)
             await self._receive(hz, mode, gain_key, label or self.format(hz),
-                                {"hz": hz, "mode": mode, "squelch": squelch, "zoom": zoom}, squelch, zoom)
+                                {"hz": hz, "mode": mode, "squelch": squelch, "zoom": zoom}, squelch, zoom,
+                                wide=wide)
 
     @staticmethod
     def format(hz):

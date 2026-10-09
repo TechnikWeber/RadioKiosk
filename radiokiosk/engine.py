@@ -11,17 +11,19 @@ processing never blocks the web service.
             S  spectrum, see SPECTRUM_HEADER, followed by WIDTH bytes (0..255 = -120..0 dBFS)
             E  error text
 
-One FFT per block does three jobs: it is the waterfall, and picking the bins
+Without --wide it runs the light profile (see below). One FFT per block does three jobs: it is the waterfall, and picking the bins
 around the tuned frequency and transforming them back is filter, frequency
 shift and sample rate reduction in a single step (overlap-save).
 """
 
 import argparse
+import collections
 import json
 import queue
 import struct
 import sys
 import threading
+import time
 
 import numpy as np
 
@@ -30,18 +32,20 @@ from .rds import Rds
 from .rtlsdr import RtlSdr
 from .util import sdr_devices
 
-# Rate and block sizes are powers of two times the audio rate: the FFTs stay
-# fast and every channel comes out at a whole multiple of 48 kHz.
-RATE = 1_536_000          # samples per second from the stick
-BLOCK = 32_768            # FFT size, about 47 Hz per bin
-OVERLAP = BLOCK // 4      # carried over from the previous block
-STEP = BLOCK - OVERLAP    # new samples per block (16 ms)
-BIN = RATE / BLOCK
+# Two ways to run. WIDE watches 1.5 MHz at once, which is what a waterfall wants.
+# LIGHT only takes in 288 kHz around the station: a fifth of the work, enough for
+# listening with stereo and RDS, and what slow processors can keep up with.
+# Both give 46.875 Hz per FFT bin and 16 ms of signal per block, and every channel
+# comes out at a whole multiple of the 48 kHz audio rate.
+Profile = collections.namedtuple("Profile", "rate block wfm_bins")
+WIDE = Profile(rate=1_536_000, block=32_768, wfm_bins=8192)    # FM channel at 384 kHz
+LIGHT = Profile(rate=288_000, block=6_144, wfm_bins=4096)      # FM channel at 192 kHz
+BIN = WIDE.rate / WIDE.block
+NARROW_BINS = 1024        # voice channels at 48 kHz
 AUDIO = 48_000
 WIDTH = 1024              # points per spectrum line
 SPECTRUM_EVERY = 6        # blocks per spectrum line (about 10 lines per second)
 ZOOMS = (1, 4, 16, 64)
-RETUNE_BEYOND = 550_000   # retune the stick when the wanted frequency leaves this window
 DIRECT_SAMPLING_BELOW = 24e6
 SPECTRUM_HEADER = "<dddfffB"   # start Hz, span Hz, tuned Hz, level dBFS, SNR dB, gain dB, flags
 FLAG_STEREO, FLAG_SQUELCHED = 1, 2
@@ -91,27 +95,30 @@ class Discriminator:
 
 
 class Wfm:
-    """Broadcast FM with stereo. Channel arrives at 384 kHz."""
-    bins = 8192
-    passband = (-100e3, 100e3, 30e3)
+    """Broadcast FM with stereo. Channel arrives at 384 kHz, or 192 kHz in the light profile."""
 
-    def __init__(self):
-        rate = RATE * self.bins // BLOCK
+    def __init__(self, profile=WIDE):
+        self.bins = profile.wfm_bins
+        rate = round(self.bins * BIN)
+        # the narrower channel of the light profile leaves less room at the edges
+        self.passband = (-100e3, 100e3, 30e3) if rate >= 384_000 else (-88e3, 88e3, 14e3)
         self.scale = rate / (2 * np.pi * 75e3)
         self.disc = Discriminator()
         # 50 µs de-emphasis as used in Europe; the 19 kHz pilot must not reach the speakers
         final = np.convolve(lowpass(17e3, AUDIO, 41), decay(50e-6, AUDIO))
         self.decimation = rate // AUDIO
-        self.sum_filters = Fir(lowpass(24e3, rate, 71)), Fir(final)
-        self.diff_filters = Fir(lowpass(24e3, rate, 71)), Fir(final)
-        # 19 kHz repeats exactly every 384 samples at this rate
-        self.oscillator = np.exp(2j * np.pi * 19e3 * np.arange(384) / rate).astype(np.complex64)
+        taps = 9 * self.decimation - 1
+        self.sum_filters = Fir(lowpass(24e3, rate, taps)), Fir(final)
+        self.diff_filters = Fir(lowpass(24e3, rate, taps)), Fir(final)
+        # 19 kHz repeats exactly every rate / 1000 samples
+        self.period = rate // 1000
+        self.oscillator = np.exp(2j * np.pi * 19e3 * np.arange(self.period) / rate).astype(np.complex64)
         self.position = 0
         self.pilot = 0j
         self.stereo = False
         self.quality = 0.0     # signal above noise in dB, set by the engine
         self.audio_mode = "auto"   # or "stereo" / "mono" to override the automatic choice
-        self.rds = Rds(lowpass)
+        self.rds = Rds(lowpass, rate)
         self.news = None       # station info, when it just changed
 
     def _audio(self, filters, x):
@@ -119,8 +126,8 @@ class Wfm:
 
     def __call__(self, x):
         mpx = self.disc(x) * self.scale
-        osc = self.oscillator[(self.position + np.arange(len(mpx))) % 384]
-        self.position = (self.position + len(mpx)) % 384
+        osc = self.oscillator[(self.position + np.arange(len(mpx))) % self.period]
+        self.position = (self.position + len(mpx)) % self.period
         # the pilot is A*sin(wt + p); its average against exp(-jwt) is A/2j * exp(jp)
         self.pilot = 0.8 * self.pilot + 0.2 * np.mean(mpx * np.conj(osc))
         level = abs(self.pilot)
@@ -140,7 +147,7 @@ class Wfm:
 
 class Nfm:
     """Narrow FM voice. Channel arrives at 48 kHz."""
-    bins = 1024
+    bins = NARROW_BINS
     passband = (-6e3, 6e3, 1.5e3)
 
     def __init__(self):
@@ -155,7 +162,7 @@ class Nfm:
 
 
 class Am:
-    bins = 1024
+    bins = NARROW_BINS
     passband = (-4.5e3, 4.5e3, 1e3)
 
     def __init__(self):
@@ -172,7 +179,7 @@ class Am:
 
 
 class Ssb:
-    bins = 1024
+    bins = NARROW_BINS
 
     def __init__(self, upper):
         self.passband = (150, 2900, 200) if upper else (-2900, -150, 200)
@@ -191,7 +198,8 @@ class Ssb:
         return audio * ramp
 
 
-MODES = {"wfm": Wfm, "nfm": Nfm, "am": Am, "usb": lambda: Ssb(True), "lsb": lambda: Ssb(False)}
+MODES = {"wfm": Wfm, "nfm": lambda profile: Nfm(), "am": lambda profile: Am(),
+         "usb": lambda profile: Ssb(True), "lsb": lambda profile: Ssb(False)}
 
 
 def send(kind, payload):
@@ -200,8 +208,12 @@ def send(kind, payload):
 
 
 class Engine:
-    def __init__(self, gain, fixed_gain):
-        self.sdr = RtlSdr(RATE)
+    def __init__(self, gain, fixed_gain, profile=WIDE):
+        self.profile = profile
+        self.size = profile.block               # FFT size
+        self.overlap = profile.block // 4       # carried over from the previous block
+        self.step = self.size - self.overlap    # new samples per block (16 ms)
+        self.sdr = RtlSdr(profile.rate)
         devices = sdr_devices()
         self.needs_direct_sampling = bool(devices) and not devices[0]["v4"]
         self.direct = False
@@ -215,9 +227,9 @@ class Engine:
         self.squelch = 0.0
         self.zoom = 1
         self.demod = None
-        self.block = np.zeros(BLOCK, np.complex64)
+        self.block = np.zeros(self.size, np.complex64)
         self.blocks = 0
-        self.power = np.zeros(BLOCK, np.float32)
+        self.power = np.zeros(self.size, np.float32)
         self.raw_level = []
         self.snr = 0.0
         self.level = -120.0
@@ -238,8 +250,8 @@ class Engine:
     def read_samples(self):
         try:
             while True:
-                raw = self.sdr.read(2 * STEP)
-                if len(raw) != 2 * STEP:
+                raw = self.sdr.read(2 * self.step)
+                if len(raw) != 2 * self.step:
                     continue
                 try:
                     self.samples.put_nowait(raw)
@@ -254,7 +266,12 @@ class Engine:
         hz, mode = int(command["hz"]), command["mode"]
         self.squelch = float(command.get("squelch", 0))
         self.zoom = command.get("zoom", 1) if command.get("zoom", 1) in ZOOMS else 1
-        if self.center is None or abs(hz - self.center) > RETUNE_BEYOND:
+        if mode != self.mode or hz != self.hz:
+            self.demod = MODES[mode](self.profile)   # a fresh demodulator also forgets the previous station's RDS
+            self.mode = mode
+        # retune the stick when the channel would no longer fit into what it currently sees
+        room = (self.size - self.demod.bins) / 2 * BIN * 0.9
+        if self.center is None or abs(hz - self.center) > room:
             direct = self.needs_direct_sampling and hz < DIRECT_SAMPLING_BELOW
             if direct != self.direct:
                 self.sdr.set_direct_sampling(direct)
@@ -262,9 +279,6 @@ class Engine:
             self.center = hz
             self.sdr.set_frequency(hz)
             self.power[:] = 0
-        if mode != self.mode or hz != self.hz:
-            self.demod = MODES[mode]()   # a fresh demodulator also forgets the previous station's RDS
-            self.mode = mode
         if mode == "wfm":
             self.demod.audio_mode = command.get("stereo", "auto")
         self.hz = hz
@@ -272,12 +286,12 @@ class Engine:
         bins = self.demod.bins
         self.offset_bins = round((hz - self.center) / BIN)
         centred = np.arange(-bins // 2, bins // 2)
-        self.select = np.fft.ifftshift((self.offset_bins + centred) % BLOCK)
-        self.mask = np.fft.ifftshift(band_mask(centred * BIN, *self.demod.passband)) * (bins / BLOCK)
-        self.skip = OVERLAP * bins // BLOCK
+        self.select = np.fft.ifftshift((self.offset_bins + centred) % self.size)
+        self.mask = np.fft.ifftshift(band_mask(centred * BIN, *self.demod.passband)) * (bins / self.size)
+        self.skip = self.overlap * bins // self.size
         low, high, _ = self.demod.passband
-        self.channel = slice(BLOCK // 2 + self.offset_bins + int(low / BIN),
-                             BLOCK // 2 + self.offset_bins + int(high / BIN) + 1)
+        self.channel = slice(self.size // 2 + self.offset_bins + int(low / BIN),
+                             self.size // 2 + self.offset_bins + int(high / BIN) + 1)
 
     # --- per block -------------------------------------------------------
 
@@ -286,8 +300,8 @@ class Engine:
         probe = u8[::8]
         self.raw_level.append((float(np.sqrt(np.mean((probe.astype(np.float32) - 127.5) ** 2))),
                                np.count_nonzero((probe == 0) | (probe == 255)) / len(probe)))
-        self.block[:OVERLAP] = self.block[STEP:]
-        self.block[OVERLAP:] = ((u8.astype(np.float32) - 127.5) * (1 / 127.5)).view(np.complex64)
+        self.block[:self.overlap] = self.block[self.step:]
+        self.block[self.overlap:] = ((u8.astype(np.float32) - 127.5) * (1 / 127.5)).view(np.complex64)
         spectrum = np.fft.fft(self.block)
         self.power += spectrum.real ** 2 + spectrum.imag ** 2
 
@@ -311,7 +325,7 @@ class Engine:
             self.adjust_gain()
 
     def send_spectrum(self):
-        power = np.fft.fftshift(self.power) / (SPECTRUM_EVERY * BLOCK ** 2)
+        power = np.fft.fftshift(self.power) / (SPECTRUM_EVERY * self.size ** 2)
         self.power[:] = 0
         floor = float(np.median(power[::16])) + 1e-20
         signal = float(power[self.channel].mean()) + 1e-20
@@ -319,18 +333,17 @@ class Engine:
         self.snr = 10 * np.log10(signal / floor)
         self.squelched = self.mode == "nfm" and self.squelch > 0 and self.snr < self.squelch
 
-        span = BLOCK // self.zoom
-        start = min(max(BLOCK // 2 + self.offset_bins - span // 2, 0), BLOCK - span)
+        span = self.size // self.zoom
+        start = min(max(self.size // 2 + self.offset_bins - span // 2, 0), self.size - span)
         view = power[start:start + span]
-        if span >= WIDTH:
-            group = span // WIDTH
-            view = view[:group * WIDTH].reshape(WIDTH, group).max(axis=1)
+        if span % WIDTH == 0:
+            view = view.reshape(WIDTH, span // WIDTH).max(axis=1)
         else:
             view = np.interp(np.linspace(0, span - 1, WIDTH), np.arange(span), view)
         line = np.clip((10 * np.log10(view + 1e-20) + 120) * (255 / 120), 0, 255).astype(np.uint8)
         flags = (FLAG_STEREO if self.demod.stereo else 0) | (FLAG_SQUELCHED if self.squelched else 0)
         gain = 0.0 if self.direct else TUNER_GAINS[self.gain_index]
-        header = struct.pack(SPECTRUM_HEADER, self.center + (start - BLOCK // 2) * BIN, span * BIN,
+        header = struct.pack(SPECTRUM_HEADER, self.center + (start - self.size // 2) * BIN, span * BIN,
                              self.hz, self.level, self.snr, gain, flags)
         send(b"S", header + line.tobytes())
 
@@ -371,13 +384,28 @@ class Engine:
             self.process(raw)
 
 
+def load(profile=LIGHT, blocks=12):
+    """Share of this processor one FM station takes in `profile`: 1.0 means it just keeps pace."""
+    step = profile.block * 3 // 4
+    rng = np.random.default_rng(0)
+    block = (rng.random(profile.block) + 1j * rng.random(profile.block)).astype(np.complex64)
+    demod = Wfm(profile)
+    start = time.perf_counter()
+    for _ in range(blocks):
+        spectrum = np.fft.fft(block)
+        power = spectrum.real ** 2 + spectrum.imag ** 2
+        demod(np.fft.ifft(spectrum[:demod.bins])[demod.bins // 4:])
+    return (time.perf_counter() - start) / (blocks * step / profile.rate)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--gain", type=float, default=28.0, help="tuner gain in dB to start with")
     parser.add_argument("--fixed-gain", action="store_true", help="never adjust the gain automatically")
+    parser.add_argument("--wide", action="store_true", help="watch 1.5 MHz for the waterfall instead of 288 kHz")
     args = parser.parse_args()
     try:
-        Engine(args.gain, args.fixed_gain).run()
+        Engine(args.gain, args.fixed_gain, WIDE if args.wide else LIGHT).run()
     except (RuntimeError, BrokenPipeError) as e:
         if isinstance(e, RuntimeError):
             send(b"E", str(e).encode())

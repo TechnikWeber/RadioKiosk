@@ -5,6 +5,7 @@
 #
 # Options (append after "bash -s --" when piping):
 #   --kiosk           open the interface full screen after every login
+#   --rotate=DEGREES  turn the screen by 90, 180 or 270 degrees (Raspberry Pi OS desktop)
 #   --with-sdrangel   also install SDRangel as an additional expert receiver
 #
 # Run it as your normal user; it asks for sudo when it installs packages.
@@ -14,9 +15,11 @@ REPO="https://github.com/TechnikWeber/RadioKiosk.git"
 DIR="${RADIOKIOSK_DIR:-$HOME/.local/share/radiokiosk}"
 WITH_SDRANGEL=0
 KIOSK=0
+ROTATE=""
 for arg in "$@"; do
   case "$arg" in
     --kiosk) KIOSK=1 ;;
+    --rotate=90|--rotate=180|--rotate=270) ROTATE="${arg#--rotate=}" ;;
     --with-sdrangel) WITH_SDRANGEL=1 ;;
     *) echo "Unknown option: $arg" >&2; exit 2 ;;
   esac
@@ -119,6 +122,28 @@ if [ "$KIOSK" -eq 1 ]; then
   say "Opening the interface after every login"
   mkdir -p "$HOME/.config/autostart"
   cp "$HOME/.local/share/applications/radiokiosk.desktop" "$HOME/.config/autostart/radiokiosk.desktop"
+fi
+
+# Screens built into a case are often mounted upside down or on their side. On
+# Raspberry Pi OS the desktop (labwc) takes its screen layout from kanshi; other
+# desktops have their own display settings, which this script leaves alone.
+if [ -n "$ROTATE" ]; then
+  say "Turning the screen by $ROTATE degrees"
+  export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+  if [ -z "${WAYLAND_DISPLAY:-}" ]; then   # started over SSH: use the desktop session that is running
+    for socket in "$XDG_RUNTIME_DIR"/wayland-[0-9]; do
+      [ -S "$socket" ] && export WAYLAND_DISPLAY="$(basename "$socket")"
+    done
+  fi
+  OUTPUT="$(wlr-randr 2>/dev/null | awk 'NR==1 {print $1}')" || true
+  if command -v kanshi >/dev/null && [ -n "$OUTPUT" ]; then
+    mkdir -p "$HOME/.config/kanshi"
+    [ -f "$HOME/.config/kanshi/config" ] && cp "$HOME/.config/kanshi/config" "$HOME/.config/kanshi/config.before-radiokiosk"
+    printf 'profile {\n\toutput %s transform %s\n}\n' "$OUTPUT" "$ROTATE" > "$HOME/.config/kanshi/config"
+    wlr-randr --output "$OUTPUT" --transform "$ROTATE"
+  else
+    warn "could not turn the screen: this needs a running Raspberry Pi OS desktop (wlr-randr and kanshi). Use your desktop's display settings instead."
+  fi
 fi
 
 say "Done"

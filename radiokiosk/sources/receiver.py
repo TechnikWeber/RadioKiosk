@@ -10,7 +10,6 @@ import asyncio
 import json
 import struct
 import sys
-import time
 from pathlib import Path
 
 from aiohttp import web
@@ -40,6 +39,7 @@ class EngineBackend:
         self.generation = 0
         self.rds = {}
         self.tuned = None
+        self.wide = False     # the profile the running engine was started with
 
     @staticmethod
     def available():
@@ -48,11 +48,12 @@ class EngineBackend:
     def running(self):
         return self.proc is not None and self.proc.returncode is None
 
-    async def _start(self, gain_key):
+    async def _start(self, gain_key, wide=False):
         gains = self.core.gains
+        self.wide = wide
         self.proc = await spawn(
             sys.executable, "-m", "radiokiosk.engine", "--gain", str(gains.known(gain_key, 28.0)),
-            *(["--fixed-gain"] if gains.forced is not None else []),
+            *(["--fixed-gain"] if gains.forced is not None else []), *(["--wide"] if wide else []),
             cwd=PROJECT_DIR, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE)
         self.audio = asyncio.Queue(maxsize=200)
         asyncio.create_task(self._pump(self.proc, self.audio))
@@ -64,9 +65,11 @@ class EngineBackend:
         command = {"hz": hz, "mode": mode, "squelch": squelch, "zoom": zoom, "stereo": stereo}
         self.proc.stdin.write(json.dumps(command).encode() + b"\n")
 
-    async def receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1, stereo="auto"):
+    async def receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1, stereo="auto", wide=False):
         self.gain_key = gain_key
         name = self.owner.name
+        if self.running() and wide != self.wide:
+            await self.stop()   # the waterfall was switched: the engine needs its other profile
         if self.running():
             # the engine retunes on the fly, playback just continues
             same = hz == self.tuned
@@ -74,7 +77,7 @@ class EngineBackend:
             self._tune(hz, mode, squelch, zoom, stereo)
             return
         self.core.update(source=name, status="loading", title=title, text="", error=None, detail=detail)
-        await self._start(gain_key)
+        await self._start(gain_key, wide)
         self._tune(hz, mode, squelch, zoom, stereo)
         self.generation += 1
         port = self.core.cfg["port"]
@@ -141,27 +144,22 @@ class EngineBackend:
 
 BACKENDS = {"engine": EngineBackend, "rtl_fm": RtlFmBackend}
 CHOICES = ("auto", *BACKENDS)
-# The engine runs one 32768 point FFT plus demodulation per 16 ms of signal. Up to
-# this FFT time it keeps pace with room to spare; a Raspberry Pi 3 needs 17 ms.
-ENGINE_FFT_LIMIT_MS = 4.0
-_fft_ms = None
+# Share of one processor core the engine's light profile may take for "auto" to pick it
+ENGINE_LOAD_LIMIT = 0.6
+_load = None
 
 
 def engine_fits():
-    """Is this processor fast enough for the own receiver? Measured once."""
-    global _fft_ms
-    if _fft_ms is None:
+    """Is this processor fast enough for the own receiver? Measured once, in its light profile."""
+    global _load
+    if _load is None:
         try:
-            import numpy as np
-            block = np.ones(32768, np.complex64)
-            np.fft.fft(block)
-            start = time.perf_counter()
-            for _ in range(3):
-                np.fft.fft(block)
-            _fft_ms = (time.perf_counter() - start) / 3 * 1000
+            from .. import engine
+            engine.load()                 # first run warms up
+            _load = engine.load()
         except ImportError:
-            _fft_ms = float("inf")
-    return _fft_ms <= ENGINE_FFT_LIMIT_MS
+            _load = float("inf")
+    return _load <= ENGINE_LOAD_LIMIT
 
 
 def available_backends():
@@ -184,14 +182,14 @@ class Receiver:
             wanted = "engine" if usable["engine"] and engine_fits() else "rtl_fm"
         return wanted if usable.get(wanted) else next((n for n, ok in usable.items() if ok), wanted)
 
-    async def _receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1, stereo="auto"):
+    async def _receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1, stereo="auto", wide=False):
         """Caller holds core.lock."""
         await self.core.take(self)
         backend = self.backends[self.backend_id()]
         if self.active is not None and self.active is not backend:
             await self.active.stop()
         self.active = backend
-        await backend.receive(hz, mode, gain_key, title, detail, squelch, zoom, stereo)
+        await backend.receive(hz, mode, gain_key, title, detail, squelch, zoom, stereo, wide)
 
     async def stream(self, request):
         if self.active is None:

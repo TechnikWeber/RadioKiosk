@@ -44,7 +44,7 @@ def rds_bits(pi, name, text, repeats=6):
     return bits
 
 
-def fm_multiplex(bits, noise=0.02, seed=1):
+def fm_multiplex(bits, noise=0.02, seed=1, RATE=RATE):
     """What an FM demodulator outputs for a stereo station that also sends RDS."""
     differential = np.cumsum(bits) % 2
     per_bit = RATE / 1187.5

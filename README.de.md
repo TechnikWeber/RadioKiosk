@@ -12,7 +12,7 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 | ![Freier Empfänger auf dem 2-m-Amateurfunkband](docs/screenshots/receiver.png) | ![Live-Flugzeugkarte mit Liste](docs/screenshots/aircraft.png) |
 | ![Ruhebildschirm mit Uhrzeit, Wetter und Sender](docs/screenshots/idle.png) | |
 
-> Frühe Entwicklung. Es läuft heute auf einem Linux-PC; die Kiosk-Einrichtung für den Raspberry Pi (Start direkt in die Oberfläche) ist noch nicht fertig.
+> Version 0.9: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
 
 ## Installation
 
@@ -29,7 +29,7 @@ Der Installer läuft auf Fedora und auf Debian-basierten Systemen (Debian, Ubunt
 
 Anschließend öffnest du **RadioKiosk** im Anwendungsmenü oder rufst <http://localhost:8080> auf. Zum Aktualisieren führst du dieselbe Zeile noch einmal aus.
 
-Mit `--kiosk` öffnet sich die Oberfläche nach jeder Anmeldung im Vollbild, mit `--with-sdrangel` kommt SDRangel als zweiter Experten-Empfänger dazu:
+Mit `--kiosk` öffnet sich die Oberfläche nach jeder Anmeldung im Vollbild, `--rotate=180` dreht den Bildschirm (Raspberry Pi OS), und mit `--with-sdrangel` kommt SDRangel als zweiter Experten-Empfänger dazu:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --with-sdrangel
@@ -37,12 +37,27 @@ curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/instal
 
 Programme, die deine Distribution nicht als Paket anbietet, werden übersprungen; ihre Kacheln bleiben deaktiviert oder unsichtbar, alles andere funktioniert.
 
+## Raspberry Pi
+
+Spiele **Raspberry Pi OS (64-bit) mit Desktop** auf, starte den Pi, verbinde ihn mit deinem Netz und führe den Installer mit `--kiosk` aus:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk
+```
+
+Nach dem nächsten Start öffnet der Pi RadioKiosk von selbst im Vollbild. Wissenswert:
+
+- **Bild steht auf dem Kopf oder auf der Seite:** Hänge `--rotate=180` an (oder `90`, `270`). Das offizielle 7-Zoll-Touch-Display steht zum Beispiel in vielen Gehäusen und Ständern auf dem Kopf. Die Touch-Eingabe dreht sich mit. Auf anderen Systemen nimmst du die Anzeige-Einstellungen deines Desktops.
+- **Strom:** Ein Pi mit Display und SDR-Stick braucht ein kräftiges Netzteil. Zeigt `vcgencmd get_throttled` etwas anderes als `0x0`, ist das Netzteil oder sein Kabel zu schwach; Sticks hängen sich dann auf und der Empfang leidet.
+- **Pi 3:** Die Oberfläche ist etwa zwei Minuten nach dem Einschalten da. Getestet sind dort Webradio, UKW und die Flugzeugkarte. Der Start von SDR++ hat das Testgerät vom Netz genommen; lass diese Kachel auf einem Pi 3 vorerst in Ruhe.
+- **Flugzeuge:** Raspberry Pi OS hat `readsb` statt `dump1090`; darum kümmert sich der Installer.
+
 ## Unterstützte Hardware
 
 | Teil | Unterstützt | Getestet |
 |---|---|---|
 | Rechner | 64-bit-Linux auf x86 oder ARM mit Fedora, Debian, Ubuntu oder Raspberry Pi OS | Fedora 44 auf einem x86-Laptop |
-| Raspberry Pi | Pi 4 und Pi 5 sind das Ziel; ein Pi 3 sollte Webradio, DAB+ und UKW schaffen | Installer und Oberfläche auf einem Pi 3 B+ mit Raspberry Pi OS 64-bit; Empfang noch nicht |
+| Raspberry Pi | Pi 3, 4 und 5 mit Raspberry Pi OS 64-bit | Pi 3 B+ mit dem offiziellen 7-Zoll-Display: Installer, Kiosk-Start, Webradio, UKW, Flugzeugkarte |
 | SDR-Stick | RTL-SDR Blog V4 und V3, andere RTL2832U-Sticks | RTL-SDR Blog V4 |
 | Display | beliebig; die Oberfläche ist für Touch ab 800×480 gebaut | 800×480-Layout im Browser |
 | Ton | jede Ausgabe, die PipeWire oder PulseAudio anbietet: Klinke, USB, Bluetooth, HDMI | eingebauter Ton |
@@ -73,7 +88,7 @@ Ist in den Einstellungen die Fernbedienung eingeschaltet, können Handys und Rec
 
 Den Stick kann immer nur ein Empfänger nutzen, deshalb beendet der Dienst den laufenden, bevor er den nächsten startet. Kacheln, deren Programm oder Hardware fehlt, sind deaktiviert.
 
-UKW und der freie Empfänger nutzen den eigenen Empfänger von RadioKiosk, geschrieben in Python mit NumPy: Er demoduliert, dekodiert RDS, zeichnet einen Wasserfall und stimmt um, ohne den Stick neu zu starten. Der Wasserfall ist standardmäßig aus und lässt sich in der UKW- und in der Empfänger-Ansicht getrennt einschalten. In den Einstellungen lässt sich jede der beiden Kacheln stattdessen auf das klassische Programm `rtl_fm` umstellen (Mono, kein Wasserfall, schont den Prozessor) und vergleichen.
+UKW und der freie Empfänger nutzen den eigenen Empfänger von RadioKiosk, geschrieben in Python mit NumPy: Er demoduliert, dekodiert RDS, zeichnet einen Wasserfall und stimmt um, ohne den Stick neu zu starten. Der Wasserfall ist standardmäßig aus und lässt sich in der UKW- und in der Empfänger-Ansicht getrennt einschalten. Ohne ihn nimmt der Empfänger nur den Sender selbst auf und braucht etwa ein Drittel der Rechenleistung; mit ihm beobachtet er 1,5 MHz auf einmal. In den Einstellungen lässt sich jede der beiden Kacheln stattdessen auf das klassische Programm `rtl_fm` umstellen (Mono, kein Wasserfall, schont den Prozessor) und vergleichen.
 
 Die Tuner-Verstärkung regelt sich beim Hören selbst nach, weil die Automatik des Sticks an einer guten Antenne übersteuert. Die Werte werden je Band gemerkt; nach einem Antennenwechsel setzt du sie in den Einstellungen zurück.
 

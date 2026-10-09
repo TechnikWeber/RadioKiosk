@@ -21,17 +21,21 @@ class Fm(Receiver):
         self.names = load_json("fm_names.json", {})   # "91.8" -> station name from RDS
         self.scanner = None
         self.mhz = None
+        self.wide = False
         self.probing = False
 
-    async def tune(self, mhz):
+    async def tune(self, mhz, wide=None):
+        """`wide` asks for the waterfall's wide view; None keeps what the last call wanted."""
         mhz = round(min(108.0, max(87.5, float(mhz))), 2)
+        self.wide = self.wide if wide is None else bool(wide)
         async with self.core.lock:
             self.mhz = mhz
             name = self.names.get(f"{mhz:.1f}")
             title = f"{name} · {mhz:.2f} MHz" if name else f"{mhz:.2f} MHz"
             self.core.remember("fm", title, mhz=mhz)
             stereo = self.core.cfg["fm_stereo"]
-            await self._receive(int(mhz * 1e6), "wfm", "fm", title, {"mhz": mhz, "stereo": stereo}, stereo=stereo)
+            await self._receive(int(mhz * 1e6), "wfm", "fm", title, {"mhz": mhz, "stereo": stereo}, stereo=stereo,
+                                wide=self.wide)
 
     def on_rds(self, info):
         if self.probing or self.mhz is None:

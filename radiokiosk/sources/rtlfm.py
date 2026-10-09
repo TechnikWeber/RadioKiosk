@@ -43,7 +43,7 @@ class RtlFmBackend:
     def available():
         return shutil.which("rtl_fm") is not None
 
-    async def receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1, stereo="auto"):
+    async def receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1, stereo="auto", wide=False):
         if self.proc is not None:
             await kill(self.proc)
             await asyncio.sleep(0.3)  # reopening the stick immediately can hang it
