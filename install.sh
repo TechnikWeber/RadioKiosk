@@ -62,7 +62,7 @@ if ! command -v sdrpp >/dev/null && command -v apt-get >/dev/null; then
   case "$(dpkg --print-architecture)" in arm64) ARCH=aarch64 ;; *) ARCH="$(dpkg --print-architecture)" ;; esac
   DEB="sdrpp_${ID}_${VERSION_CODENAME}_${ARCH}.deb"
   TMP="$(mktemp -d)"
-  if curl -fsSL -o "$TMP/$DEB" "https://github.com/AlexandreRouma/SDRPlusPlus/releases/download/nightly/$DEB" \
+  if curl -fsSL --retry 5 --retry-all-errors --retry-delay 3 -o "$TMP/$DEB" "https://github.com/AlexandreRouma/SDRPlusPlus/releases/download/nightly/$DEB" \
       && sudo apt-get install -y "$TMP/$DEB"; then
     MISSING=("${MISSING[@]/sdrpp}")
   fi
