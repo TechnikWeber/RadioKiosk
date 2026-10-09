@@ -23,7 +23,7 @@ const STRINGS = {
     output: "Audio output", save: "Save", remove: "Remove",
     tuner: "Receiver", tunerSub: "Shortwave, 2 m, 70 cm …", squelch: "Squelch", off: "off",
     signal: "Signal", gainLabel: "Gain", stereo: "Stereo", muted: "squelched", zoom: "Zoom",
-    waterfall: "Waterfall", on: "on",
+    waterfall: "Waterfall", on: "on", tooSmall: "needs more memory",
     adsb: "Aircraft", adsbSub: "Live map (ADS-B)", aircraftSeen: "aircraft received", withPosition: "with position",
     weather: "Weather", wind: "Wind", rain: "Rain", today: "Today",
     needLocation: "Set your location first: Settings → Location.",
@@ -65,7 +65,7 @@ const STRINGS = {
     output: "Tonausgabe", save: "Speichern", remove: "Entfernen",
     tuner: "Empfänger", tunerSub: "Kurzwelle, 2 m, 70 cm …", squelch: "Rauschsperre", off: "aus",
     signal: "Signal", gainLabel: "Verstärkung", stereo: "Stereo", muted: "Rauschsperre zu", zoom: "Zoom",
-    waterfall: "Wasserfall", on: "an",
+    waterfall: "Wasserfall", on: "an", tooSmall: "braucht mehr Arbeitsspeicher",
     adsb: "Flugzeuge", adsbSub: "Live-Karte (ADS-B)", aircraftSeen: "Flugzeuge empfangen", withPosition: "mit Position",
     weather: "Wetter", wind: "Wind", rain: "Regen", today: "Heute",
     needLocation: "Lege zuerst deinen Standort fest: Einstellungen → Standort.",
@@ -376,7 +376,8 @@ const home = {
       tile("adsb", t.adsb, c.adsb ? sdrProblem : `dump1090 ${t.notInstalled}`, () => show(adsb), t.adsbSub),
       ...c.apps.map(a => {
         const running = state.source === "app" && state.detail.app === a.id;
-        const el = tile("app", a.name, a.available ? (a.needs_sdr ? sdrProblem : null) : t.notInstalled,
+        const el = tile("app", a.name,
+          !a.available ? t.notInstalled : a.too_small ? t.tooSmall : a.needs_sdr ? sdrProblem : null,
           () => running ? api("/api/stop", {}) : api(`/api/apps/${a.id}/start`, {}),
           running ? `${t.running} – ${t.quit}` : t.expert);
         el.classList.toggle("running", running);

@@ -32,10 +32,12 @@ DEFAULTS = {
     "gain": "auto",
     "apps": [
         # SDR++ gets its own settings folder, so a private SDR++ setup stays untouched.
-        {"id": "sdrpp", "name": "SDR++", "needs_sdr": True,
+        # Next to the kiosk browser it needs more than the 1 GB of a Raspberry Pi 3:
+        # there it sent the whole system into swapping for half an hour.
+        {"id": "sdrpp", "name": "SDR++", "needs_sdr": True, "min_memory_mb": 1500,
          "command": ["sdrpp", "--autostart", "--root", str(CONFIG_DIR / "sdrpp")]},
         # optional apps only get a tile when they are installed
-        {"id": "sdrangel", "name": "SDRangel", "needs_sdr": True, "optional": True,
+        {"id": "sdrangel", "name": "SDRangel", "needs_sdr": True, "optional": True, "min_memory_mb": 3000,
          "command": ["sdrangel"]},
     ],
 }

@@ -49,7 +49,7 @@ Nach dem nächsten Start öffnet der Pi RadioKiosk von selbst im Vollbild. Wisse
 
 - **Bild steht auf dem Kopf oder auf der Seite:** Hänge `--rotate=180` an (oder `90`, `270`). Das offizielle 7-Zoll-Touch-Display steht zum Beispiel in vielen Gehäusen und Ständern auf dem Kopf. Die Touch-Eingabe dreht sich mit. Auf anderen Systemen nimmst du die Anzeige-Einstellungen deines Desktops.
 - **Strom:** Ein Pi mit Display und SDR-Stick braucht ein kräftiges Netzteil. Zeigt `vcgencmd get_throttled` etwas anderes als `0x0`, ist das Netzteil oder sein Kabel zu schwach; Sticks hängen sich dann auf und der Empfang leidet.
-- **Pi 3:** Die Oberfläche ist etwa zwei Minuten nach dem Einschalten da. Getestet sind dort Webradio, UKW und die Flugzeugkarte. Der Start von SDR++ hat das Testgerät vom Netz genommen; lass diese Kachel auf einem Pi 3 vorerst in Ruhe.
+- **Pi 3:** Die Oberfläche ist etwa zwei Minuten nach dem Einschalten da. Getestet sind dort Webradio, UKW und die Flugzeugkarte. SDR++ braucht neben dem Browser mehr als dessen 1 GB Arbeitsspeicher, deshalb ist diese Kachel dort deaktiviert.
 - **Flugzeuge:** Raspberry Pi OS hat `readsb` statt `dump1090`; darum kümmert sich der Installer.
 
 ## Unterstützte Hardware

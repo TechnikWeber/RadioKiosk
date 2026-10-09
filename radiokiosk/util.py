@@ -62,3 +62,14 @@ def die_with_parent():
 
 async def spawn(*args, **kwargs):
     return await asyncio.create_subprocess_exec(*args, preexec_fn=die_with_parent, **kwargs)
+
+
+def memory_mb():
+    """Installed memory, or a large number where it cannot be read."""
+    try:
+        for line in Path("/proc/meminfo").read_text().splitlines():
+            if line.startswith("MemTotal:"):
+                return int(line.split()[1]) // 1024
+    except (OSError, ValueError):
+        pass
+    return 1 << 20

@@ -38,6 +38,8 @@ class Apps:
         app = next((a for a in self.core.cfg["apps"] if a["id"] == app_id), None)
         if app is None:
             raise RuntimeError("unknown app")
+        if memory_mb() < app.get("min_memory_mb", 0):
+            raise RuntimeError("this computer has too little memory for that program")
         await self.core.stop()
         if app_id == "sdrpp":
             seed_sdrpp(self.core.gains.known("fm", 29.7))

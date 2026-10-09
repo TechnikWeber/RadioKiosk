@@ -49,7 +49,7 @@ After the next start the Pi opens RadioKiosk full screen by itself. Things worth
 
 - **Screen upside down or on its side:** add `--rotate=180` (or `90`, `270`). The official 7 inch touch display, for example, ends up upside down in many cases and stands. The touch input turns with it. On other systems, use the display settings of your desktop.
 - **Power:** a Pi with display and SDR stick needs a strong supply. If `vcgencmd get_throttled` shows anything but `0x0`, the supply or its cable is too weak; sticks then hang and reception suffers.
-- **Pi 3:** the interface is there about two minutes after power-on. Web radio, FM and the aircraft map have been tested on it. Starting SDR++ took the test device off the network, so leave that tile alone on a Pi 3 for now.
+- **Pi 3:** the interface is there about two minutes after power-on. Web radio, FM and the aircraft map have been tested on it. SDR++ needs more than its 1 GB of memory next to the browser, so that tile is disabled there.
 - **Aircraft:** Raspberry Pi OS has `readsb` instead of `dump1090`; the installer takes care of it.
 
 ## Supported hardware

@@ -14,7 +14,7 @@ from .favorites import Favorites
 from .gain import Gains
 from .mpv import Mpv
 from .sources.adsb import decoder as adsb_decoder
-from .util import sdr_present
+from .util import memory_mb, sdr_present
 
 
 class Core:
@@ -47,7 +47,8 @@ class Core:
             "bluetooth": shutil.which("bluetoothctl") is not None,
             "apps": [
                 {"id": a["id"], "name": a["name"], "needs_sdr": a.get("needs_sdr", False),
-                 "available": shutil.which(a["command"][0]) is not None}
+                 "available": shutil.which(a["command"][0]) is not None,
+                 "too_small": memory_mb() < a.get("min_memory_mb", 0)}
                 for a in self.cfg["apps"]
                 if not a.get("optional") or shutil.which(a["command"][0])
             ],
