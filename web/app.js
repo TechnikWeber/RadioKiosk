@@ -24,6 +24,13 @@ const STRINGS = {
     tuner: "Receiver", tunerSub: "Shortwave, 2 m, 70 cm …", squelch: "Squelch", off: "off",
     signal: "Signal", gainLabel: "Gain", stereo: "Stereo", muted: "squelched", zoom: "Zoom",
     waterfall: "Waterfall", on: "on", tooSmall: "needs more memory",
+    device: "Device", brightness: "Brightness", wifi: "Wi-Fi", wifiPassword: "Password for", connect: "Connect",
+    connecting: "Connecting…", connected: "connected", update: "Update RadioKiosk", updating: "Updating…",
+    upToDate: "Already up to date", updated: "Updated – restarting", restart: "Restart", shutDown: "Shut down",
+    sure: "Tap again to confirm", liveStream: "Listen along on other devices (remote control must be on):",
+    scanChannels: "Scan", stopScan: "Stop scan", onAir: "On the air nearby (EiBi schedule)",
+    record: "Record", recordingTo: "Recording to Music/RadioKiosk",
+    warn: { undervoltage: "The power supply is too weak: reception suffers and the SDR stick may hang." },
     adsb: "Aircraft", adsbSub: "Live map (ADS-B)", aircraftSeen: "aircraft received", withPosition: "with position",
     weather: "Weather", wind: "Wind", rain: "Rain", today: "Today",
     needLocation: "Set your location first: Settings → Location.",
@@ -66,6 +73,13 @@ const STRINGS = {
     tuner: "Empfänger", tunerSub: "Kurzwelle, 2 m, 70 cm …", squelch: "Rauschsperre", off: "aus",
     signal: "Signal", gainLabel: "Verstärkung", stereo: "Stereo", muted: "Rauschsperre zu", zoom: "Zoom",
     waterfall: "Wasserfall", on: "an", tooSmall: "braucht mehr Arbeitsspeicher",
+    device: "Gerät", brightness: "Helligkeit", wifi: "WLAN", wifiPassword: "Passwort für", connect: "Verbinden",
+    connecting: "Verbinde…", connected: "verbunden", update: "RadioKiosk aktualisieren", updating: "Aktualisiere…",
+    upToDate: "Bereits aktuell", updated: "Aktualisiert – starte neu", restart: "Neu starten", shutDown: "Ausschalten",
+    sure: "Zum Bestätigen noch einmal tippen", liveStream: "Auf anderen Geräten mithören (Fernbedienung muss an sein):",
+    scanChannels: "Suchlauf", stopScan: "Suchlauf stoppen", onAir: "Gerade in der Nähe auf Sendung (EiBi-Fahrplan)",
+    record: "Aufnehmen", recordingTo: "Aufnahme läuft nach Musik/RadioKiosk",
+    warn: { undervoltage: "Das Netzteil ist zu schwach: Der Empfang leidet und der SDR-Stick kann sich aufhängen." },
     adsb: "Flugzeuge", adsbSub: "Live-Karte (ADS-B)", aircraftSeen: "Flugzeuge empfangen", withPosition: "mit Position",
     weather: "Wetter", wind: "Wind", rain: "Regen", today: "Heute",
     needLocation: "Lege zuerst deinen Standort fest: Einstellungen → Standort.",
@@ -102,6 +116,13 @@ const t = STRINGS[lang];
 
 // The service reports problems in English; these are their German counterparts.
 const MESSAGES_DE = [
+  [/^the SDR stick hung and was restarted.*$/, "Der SDR-Stick hing und wurde neu gestartet – bitte noch einmal versuchen"],
+  [/^the SDR stick does not respond$/, "Der SDR-Stick reagiert nicht"],
+  [/^nothing is playing$/, "Es läuft gerade nichts"],
+  [/^the scan needs the own receiver$/, "Der Suchlauf braucht den eigenen Empfänger"],
+  [/^could not connect to this network.*$/, "Verbindung mit diesem Netz fehlgeschlagen – falsches Passwort?"],
+  [/^update failed.*$/, "Aktualisierung fehlgeschlagen – besteht eine Internetverbindung?"],
+  [/^this computer has too little memory for that program$/, "Dieser Rechner hat zu wenig Arbeitsspeicher für dieses Programm"],
   [/^no data from the SDR stick.*$/, "Der SDR-Stick liefert keine Daten – falls das anhält, neu einstecken"],
   [/^cannot open the SDR stick.*$/, "Der SDR-Stick lässt sich nicht öffnen – nutzt ihn ein anderes Programm?"],
   [/^the SDR stick stopped delivering data.*$/, "Der SDR-Stick liefert keine Daten mehr – bitte neu einstecken"],
@@ -149,7 +170,7 @@ const icon = name => `<svg viewBox="0 0 24 24">${ICONS[name]}</svg>`;
 
 const $ = id => document.getElementById(id);
 const view = $("view");
-let state = { caps: { apps: [] }, detail: {}, backends: {} };
+let state = { caps: { apps: [] }, detail: {}, backends: {}, warnings: [] };
 let current = null;   // the visible view: { title, render(), onState?() }
 
 function h(tag, props = {}, ...children) {
@@ -634,9 +655,30 @@ const tuner = {
   select(preset) {
     this.tune(preset.hz, preset.mode || this.band.mode, preset.name ? tr(preset.name) : "");
   },
+  onair: [],
+  // every channel between the band's lowest and highest preset, or just the presets if that is too many
+  channels() {
+    const all = this.band.presets.map(p => p.hz), step = this.band.step;
+    const low = Math.min(...all), high = Math.max(...all), count = Math.round((high - low) / step) + 1;
+    return count <= 240 ? Array.from({ length: count }, (_, i) => low + i * step) : all;
+  },
+  scan() {
+    const scanning = state.source === "tuner" && state.detail.scan;
+    if (scanning) return this.tune(this.hz, this.mode, this.label);   // tuning by hand ends the scan
+    clearTimeout(this.timer);
+    api("/api/tuner/scan", { channels: this.channels(), mode: this.mode, squelch: this.squelch || 6,
+      waterfall: waterfallOn("tuner") }).catch(e => { this.error = e.message; this.draw(); });
+  },
+  async loadOnAir() {
+    // the schedule only covers long, medium and shortwave
+    this.onair = this.hz < 30e6 && this.mode !== "nfm" ? await api(`/api/tuner/onair?hz=${this.hz}`).catch(() => []) : [];
+    if (current === this && this.band) this.draw();
+  },
   tune(hz, mode = this.mode, label = "") {
-    Object.assign(this, { hz: Math.round(Math.min(1.75e9, Math.max(1e5, hz))), mode, label });
+    Object.assign(this, { hz: Math.round(Math.min(1.75e9, Math.max(1e5, hz))), mode, label, error: null });
     this.draw();
+    clearTimeout(this.onairTimer);
+    this.onairTimer = setTimeout(() => this.loadOnAir(), 900);
     clearTimeout(this.timer);
     this.timer = setTimeout(() => api("/api/tuner/tune",
       { hz: this.hz, mode: this.mode, squelch: this.mode === "nfm" ? this.squelch : 0, zoom: this.zoom, label: this.label,
@@ -671,6 +713,11 @@ const tuner = {
             this.tune(this.hz, this.mode, this.label);
           },
         }) : null,
+        state.backends.tuner !== "engine" || this.band.presets.length < 2 ? null : h("button", {
+          className: state.source === "tuner" && state.detail.scan ? "on" : "",
+          textContent: state.source === "tuner" && state.detail.scan ? t.stopScan : t.scanChannels,
+          onclick: () => this.scan(),
+        }),
         waterfallButton("tuner", () => this.tune(this.hz, this.mode, this.label)),
         state.backends.tuner !== "engine" || !waterfallOn("tuner") ? null : h("button", {
           textContent: `${t.zoom} ×${this.zoom}`,
@@ -680,12 +727,26 @@ const tuner = {
           },
         }),
       ),
+      ...(this.error ? [hint(say(this.error))] : []),
+      ...(this.onair.length ? [h("p", { className: "label", textContent: t.onAir })] : []),
+      ...this.onair.map(e => stationRow({
+        title: e.station, info: `${e.khz} kHz · ${e.language}${e.target ? " → " + e.target : ""}`,
+        active: e.khz * 1000 === this.hz, onPlay: () => this.tune(e.khz * 1000, "am", e.station),
+      })),
       ...this.band.presets.map(p => stationRow({
         title: tr(p.name), info: `${formatHz(p.hz).replace(/<\/?small>/g, "")} · ${MODE_NAMES[p.mode || this.band.mode]}`,
         active: p.hz === this.hz, onPlay: () => this.select(p),
       })),
     );
     view.scrollTop = top;
+  },
+  onState() {
+    // while the service scans, the display follows it
+    if (this.band && state.source === "tuner" && state.detail.scan && state.detail.hz !== this.hz) {
+      this.hz = state.detail.hz;
+      this.label = "";
+    }
+    if (this.band && this.entry === null) this.draw();
   },
   drawBands() {
     const custom = { id: "custom", name: t.favorites, mode: "nfm", step: 12500, presets: this.favorites };
@@ -968,6 +1029,114 @@ const bluetooth = {
   leave() { clearTimeout(this.timer); },
 };
 
+/* ---------- device ---------- */
+
+const deviceView = {
+  title: t.device,
+  info: null,
+  note: "",
+  confirm: null,
+  async render() {
+    this.info = await api("/api/device");
+    this.draw();
+  },
+  draw() {
+    const d = this.info;
+    // switching the computer off takes two taps
+    const twice = (id, label, action) => h("button", {
+      className: this.confirm === id ? "primary" : "", textContent: this.confirm === id ? t.sure : label,
+      onclick: () => {
+        if (this.confirm === id) action();
+        this.confirm = this.confirm === id ? null : id;
+        this.draw();
+      },
+    });
+    const bright = delta => h("button", { textContent: delta > 0 ? "+" : "−", onclick: async () => {
+      d.brightness = (await api("/api/device/brightness", { percent: d.brightness + delta })).brightness;
+      setPref("brightness", d.brightness);
+      this.draw();
+    } });
+    view.replaceChildren(
+      ...(d.brightness === null ? [] : [
+        h("p", { className: "label", textContent: `${t.brightness}: ${d.brightness} %` }),
+        h("div", { className: "steps" }, bright(-25), bright(-5), bright(5), bright(25))]),
+      h("div", { className: "toolbar wrap" },
+        d.wifi ? h("button", { textContent: t.wifi, onclick: () => show(wifiView) }) : null,
+        ...d.receivers.map(r => h("button", {
+          className: r.on ? "on" : "", textContent: `${r.name}: ${r.on ? t.on : t.off}`,
+          onclick: async () => { await api("/api/device/receiver", { id: r.id, on: !r.on }); this.render(); },
+        })),
+        d.update ? h("button", { textContent: t.update, onclick: async e => {
+          e.target.disabled = true;
+          this.note = t.updating;
+          this.draw();
+          try {
+            this.note = (await api("/api/device/update", {})).changed ? t.updated : t.upToDate;
+          } catch (error) { this.note = say(error.message); }
+          this.draw();
+        } }) : null),
+      ...(this.note ? [hint(this.note)] : []),
+      ...(d.power ? [h("div", { className: "toolbar wrap" },
+        twice("reboot", t.restart, () => api("/api/device/power", { action: "reboot" })),
+        twice("poweroff", t.shutDown, () => api("/api/device/power", { action: "poweroff" })))] : []),
+      h("p", { className: "label meter", textContent: `RadioKiosk ${d.version}` }));
+  },
+  back() { show(settings); return true; },
+};
+
+const wifiView = {
+  title: t.wifi,
+  networks: null,
+  chosen: null,      // the network a password is being typed for
+  password: "",
+  note: "",
+  async render() {
+    this.chosen = null;
+    this.draw();
+    this.networks = await api("/api/wifi").catch(() => []);
+    if (current === this) this.draw();
+  },
+  async connect(name, password) {
+    this.note = t.connecting;
+    this.chosen = null;
+    this.draw();
+    try {
+      await api("/api/wifi", { name, password });
+      this.note = "";
+    } catch (e) { this.note = say(e.message); }
+    this.render();
+  },
+  draw() {
+    if (this.chosen) {
+      const input = h("input", { type: "text", value: this.password, autocapitalize: "off", autocomplete: "off" });
+      const go = () => this.connect(this.chosen, input.value);
+      input.oninput = () => { this.password = input.value; };
+      input.onkeydown = e => { if (e.key === "Enter") go(); };
+      if (keyboardWanted()) input.inputMode = "none";
+      view.replaceChildren(
+        h("p", { className: "label", textContent: `${t.wifiPassword} ${this.chosen}` }),
+        h("div", { className: "toolbar" }, input, h("button", { className: "primary", textContent: t.connect, onclick: go })),
+        ...(keyboardWanted() ? [keyboard(input, go)] : []));
+      return;
+    }
+    view.replaceChildren(
+      ...(this.note ? [hint(this.note)] : []),
+      ...(this.networks === null ? [hint(t.loading)] : this.networks.map(n => stationRow({
+        title: n.name, info: `${n.signal} %${n.connected ? " · " + t.connected : ""}`, active: n.connected,
+        onPlay: () => {
+          if (n.connected) return;
+          if (!n.secured) return this.connect(n.name, "");
+          Object.assign(this, { chosen: n.name, password: "" });
+          this.draw();
+        },
+      }))));
+  },
+  back() {
+    if (this.chosen) { this.chosen = null; this.draw(); } else show(deviceView);
+    return true;
+  },
+};
+
 /* ---------- settings ---------- */
 
 const settings = {
@@ -999,6 +1168,7 @@ const settings = {
           },
         }),
         h("button", { textContent: `${t.alarm}: ${state.alarm || t.off}`, onclick: () => show(alarm) }),
+        h("button", { textContent: t.device, onclick: () => show(deviceView) }),
         h("button", {
           textContent: `${t.idle}: ${Number(pref("idle", "2")) ? pref("idle", "2") + " " + t.minutes : t.off}`,
           onclick: () => {
@@ -1032,7 +1202,9 @@ const settings = {
         onPlay: async () => { await api("/api/audio", { name: s.name }); this.render(); },
       })),
       ...(receivers.remote ? [h("p", { className: "hint" },
-        t.remoteHint, h("br"), h("b", { textContent: receivers.addresses.join("  ·  ") }), h("br"), t.remoteWarning)] : []),
+        t.remoteHint, h("br"), h("b", { textContent: receivers.addresses.join("  ·  ") }), h("br"), t.remoteWarning,
+        ...(receivers.stream ? [h("br"), h("br"), t.liveStream, h("br"),
+          h("b", { textContent: receivers.addresses[receivers.addresses.length - 1] + "/live.mp3" })] : []))] : []),
       h("p", { className: "hint", textContent: t.receiverHint }),
       h("div", { className: "toolbar wrap" }, backendButton("fm_backend", t.fm), backendButton("tuner_backend", t.tuner)),
       h("p", { className: "hint", textContent: t.relevelHint }),
@@ -1070,13 +1242,35 @@ function drawIdle() {
   }
 }
 
+// The idle screen also dims the display where its brightness can be set; the first touch brings it back.
+let dimmedFrom = null;
+async function dim(on) {
+  try {
+    if (on && dimmedFrom === null) {
+      const { brightness } = await api("/api/device");
+      if (brightness === null) return;
+      dimmedFrom = brightness;
+      await api("/api/device/brightness", { percent: Math.max(5, Math.round(brightness * 0.3)) });
+    } else if (!on && dimmedFrom !== null) {
+      const restore = dimmedFrom;
+      dimmedFrom = null;
+      await api("/api/device/brightness", { percent: restore });
+    }
+  } catch (e) { /* no adjustable backlight */ }
+}
+
 function showIdle() {
   idle.hidden = false;
   drawIdle();
+  dim(true);
 }
 
 for (const event of ["pointerdown", "keydown"]) {
-  addEventListener(event, () => { lastTouch = Date.now(); idle.hidden = true; }, true);
+  addEventListener(event, () => {
+    lastTouch = Date.now();
+    if (!idle.hidden) dim(false);
+    idle.hidden = true;
+  }, true);
 }
 setInterval(() => {
   const minutes = Number(pref("idle", "2"));
@@ -1102,6 +1296,11 @@ function applyState(next) {
   $("now-text").textContent = failed ? say(state.error) : state.status === "loading" ? t.loading : say(state.text) || "";
   $("vol").textContent = state.volume ?? "";
   $("stop").disabled = !state.source;
+  $("rec").disabled = !state.recording && !(["webradio", "dab", "fm", "tuner"].includes(state.source) && state.status === "playing");
+  $("rec").classList.toggle("on", !!state.recording);
+  if (state.recording && !failed) $("now-text").textContent = `● ${t.recordingTo}`;
+  $("warn").hidden = !state.warnings.length;
+  $("warn").textContent = state.warnings.map(w => t.warn[w] || w).join(" ");
   tick();
   if (current && current.onState) current.onState();
 }
@@ -1110,7 +1309,8 @@ function applyState(next) {
 async function openLink() {
   const [name, band] = location.hash.slice(1).split("/");
   if (name === "idle") showIdle();
-  const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView }[name] || home;
+  const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
+    wifi: wifiView }[name] || home;
   if (target === webradio && band === "search") Object.assign(webradio, { tab: "search", typing: true });
   show(target);
   if (target === tuner && band) {
@@ -1120,6 +1320,7 @@ async function openLink() {
   }
 }
 
+let loadedVersion = null;
 function connect() {
   const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
   ws.binaryType = "arraybuffer";
@@ -1129,14 +1330,21 @@ function connect() {
       return;
     }
     const first = current === null;
-    applyState(JSON.parse(e.data));
+    applyState({ warnings: [], ...JSON.parse(e.data) });
     if (first) api("/api/favorites").then(list => { favorites = list; openLink(); });
+  };
+  // after an update the service comes back with new files: load them
+  ws.onopen = async () => {
+    const { version } = await api("/api/settings");
+    if (loadedVersion && version !== loadedVersion) location.reload();
+    loadedVersion = version;
   };
   ws.onclose = () => setTimeout(connect, 1500);
 }
 
 $("back").onclick = () => { if (!(current.back && current.back())) show(home); };
 $("stop").onclick = () => api("/api/stop", {});
+$("rec").onclick = () => api("/api/record", { on: !state.recording }).catch(() => {});
 $("vol-down").onclick = () => api("/api/volume", { value: (state.volume ?? 50) - 5 });
 $("vol-up").onclick = () => api("/api/volume", { value: (state.volume ?? 50) + 5 });
 

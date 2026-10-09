@@ -30,6 +30,13 @@ DEFAULTS = {
     "fm_stereo": "auto",
     # "auto" measures a suitable tuner gain per band; a number in dB forces that gain.
     "gain": "auto",
+    # receivers a phone can play through; each gets a switch where its program is installed
+    "receivers": [
+        {"id": "airplay", "name": "AirPlay", "command": ["shairport-sync", "-o", "pa", "-a", "RadioKiosk"]},
+        {"id": "spotify", "name": "Spotify Connect",
+         "command": ["librespot", "--name", "RadioKiosk", "--backend", "pulseaudio"]},
+    ],
+    "receivers_on": [],
     "apps": [
         # SDR++ gets its own settings folder, so a private SDR++ setup stays untouched.
         # Next to the kiosk browser it needs more than the 1 GB of a Raspberry Pi 3:

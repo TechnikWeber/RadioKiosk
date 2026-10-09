@@ -80,7 +80,7 @@ class RtlFmBackend:
         response = web.StreamResponse(headers={"Content-Type": "application/octet-stream"})
         await response.prepare(request)
         silence = bytes(self.rate // 10 * 2)
-        sent = 0
+        sent = waited = 0
         try:
             while True:
                 try:
@@ -88,8 +88,9 @@ class RtlFmBackend:
                 except asyncio.TimeoutError:
                     # a closed squelch makes rtl_fm write nothing; keep the player fed
                     chunk = silence if sent or self.squelch else b""
-                    if proc.returncode is not None:
-                        break
+                    waited += 0.2
+                    if proc.returncode is not None or (not sent and not self.squelch and waited > 10):
+                        break   # exited, or a hung stick: rtl_fm then waits forever
                 else:
                     if not chunk:
                         break

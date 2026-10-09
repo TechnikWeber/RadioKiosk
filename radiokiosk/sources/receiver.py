@@ -21,7 +21,9 @@ from .rtlfm import RtlFmBackend
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 MPV_OPTIONS = ("demuxer=rawaudio,demuxer-rawaudio-format=s16le,demuxer-rawaudio-rate=48000,"
                "demuxer-rawaudio-channels=stereo,cache=no")
-GAIN_OFFSET = struct.calcsize("<dddff")   # position of the gain inside a spectrum header
+SNR_OFFSET = struct.calcsize("<dddf")     # positions inside a spectrum header
+GAIN_OFFSET = struct.calcsize("<dddff")
+SILENT_FOR = 10   # seconds without any output before the stick counts as hung
 
 
 class EngineBackend:
@@ -40,6 +42,8 @@ class EngineBackend:
         self.rds = {}
         self.tuned = None
         self.wide = False     # the profile the running engine was started with
+        self.snr = 0.0        # signal above noise in dB, as the engine last reported it
+        self.frames = 0
 
     @staticmethod
     def available():
@@ -56,7 +60,17 @@ class EngineBackend:
             *(["--fixed-gain"] if gains.forced is not None else []), *(["--wide"] if wide else []),
             cwd=PROJECT_DIR, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE)
         self.audio = asyncio.Queue(maxsize=200)
+        self.frames = 0
         asyncio.create_task(self._pump(self.proc, self.audio))
+        asyncio.create_task(self._watch(self.proc))
+
+    async def _watch(self, proc):
+        """A hung stick blocks the engine without any error; notice the silence."""
+        await asyncio.sleep(SILENT_FOR)
+        if proc is self.proc and proc.returncode is None and self.frames == 0:
+            self.proc = None
+            proc.kill()
+            self.core.fail("the SDR stick does not respond")
 
     def _tune(self, hz, mode, squelch=0, zoom=1, stereo="auto"):
         if hz != self.tuned:
@@ -100,10 +114,12 @@ class EngineBackend:
                 head = await proc.stdout.readexactly(5)
                 payload = await proc.stdout.readexactly(int.from_bytes(head[1:], "little"))
                 if head[:1] == b"A":
+                    self.frames += 1
                     if audio.full():
                         audio.get_nowait()
                     audio.put_nowait(payload)
                 elif head[:1] == b"S":
+                    self.snr = struct.unpack_from("<f", payload, SNR_OFFSET)[0]
                     self.gain = struct.unpack_from("<f", payload, GAIN_OFFSET)[0]
                     self.core.broadcast_bytes(payload)
                 elif head[:1] == b"R":

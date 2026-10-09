@@ -39,16 +39,21 @@ if command -v apt-get >/dev/null; then
   install() { sudo apt-get install -y "$@"; }
   sudo apt-get update
   REQUIRED=(git python3 python3-aiohttp python3-numpy mpv rtl-sdr pulseaudio-utils bluez)
-  OPTIONAL=(welle.io readsb sdrpp)
+  OPTIONAL=(welle.io readsb sdrpp shairport-sync)
+  FFMPEG=ffmpeg
 elif command -v dnf >/dev/null; then
   install() { sudo dnf install -y "$@"; }
   REQUIRED=(git python3 python3-aiohttp python3-numpy mpv rtl-sdr pulseaudio-utils bluez)
-  OPTIONAL=(welle-io sdrpp dump1090)
+  OPTIONAL=(welle-io sdrpp dump1090 shairport-sync)
+  FFMPEG=ffmpeg-free
 else
   echo "Unsupported system: neither apt nor dnf found." >&2
   exit 1
 fi
 [ "$WITH_SDRANGEL" -eq 1 ] && OPTIONAL+=(sdrangel)
+# ffmpeg encodes the network stream. Fedora offers two packages that exclude each
+# other, so only install one where none is present.
+command -v ffmpeg >/dev/null || OPTIONAL+=("$FFMPEG")
 
 say "Installing required packages"
 install "${REQUIRED[@]}"
@@ -73,9 +78,13 @@ if ! command -v sdrpp >/dev/null && command -v apt-get >/dev/null; then
 fi
 
 # The readsb package starts its own service, which would occupy the stick all the time.
-if systemctl list-unit-files readsb.service >/dev/null 2>&1; then
-  sudo systemctl disable --now readsb.service 2>/dev/null || true
-fi
+# shairport-sync's own service would play past RadioKiosk's audio output; RadioKiosk
+# starts both itself when they are wanted.
+for unit in readsb.service shairport-sync.service; do
+  if systemctl list-unit-files "$unit" >/dev/null 2>&1; then
+    sudo systemctl disable --now "$unit" 2>/dev/null || true
+  fi
+done
 
 say "Keeping the kernel's TV driver away from the SDR stick"
 echo 'blacklist dvb_usb_rtl28xxu' | sudo tee /etc/modprobe.d/blacklist-rtlsdr.conf >/dev/null
@@ -141,6 +150,18 @@ if [ -n "$ROTATE" ]; then
     [ -f "$HOME/.config/kanshi/config" ] && cp "$HOME/.config/kanshi/config" "$HOME/.config/kanshi/config.before-radiokiosk"
     printf 'profile {\n\toutput %s transform %s\n}\n' "$OUTPUT" "$ROTATE" > "$HOME/.config/kanshi/config"
     wlr-randr --output "$OUTPUT" --transform "$ROTATE"
+    # The boot screen is drawn before the desktop exists; it takes its orientation
+    # from the kernel command line.
+    case "$ROTATE" in
+      180) ORIENTATION=upside_down ;;
+      90) ORIENTATION=right_side_up ;;
+      *) ORIENTATION=left_side_up ;;
+    esac
+    CMDLINE=/boot/firmware/cmdline.txt
+    if [ -f "$CMDLINE" ] && ! grep -q "video=$OUTPUT:" "$CMDLINE"; then
+      sudo cp "$CMDLINE" "$CMDLINE.before-radiokiosk"
+      sudo sed -i "1 s/\$/ video=$OUTPUT:panel_orientation=$ORIENTATION/" "$CMDLINE"
+    fi
   else
     warn "could not turn the screen: this needs a running Raspberry Pi OS desktop (wlr-randr and kanshi). Use your desktop's display settings instead."
   fi

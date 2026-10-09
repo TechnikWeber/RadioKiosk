@@ -47,7 +47,7 @@ curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/instal
 
 After the next start the Pi opens RadioKiosk full screen by itself. Things worth knowing:
 
-- **Screen upside down or on its side:** add `--rotate=180` (or `90`, `270`). The official 7 inch touch display, for example, ends up upside down in many cases and stands. The touch input turns with it. On other systems, use the display settings of your desktop.
+- **Screen upside down or on its side:** add `--rotate=180` (or `90`, `270`). This turns the desktop and, after the next restart, the boot screen. The official 7 inch touch display, for example, ends up upside down in many cases and stands. The touch input turns with it. On other systems, use the display settings of your desktop.
 - **Power:** a Pi with display and SDR stick needs a strong supply. If `vcgencmd get_throttled` shows anything but `0x0`, the supply or its cable is too weak; sticks then hang and reception suffers.
 - **Pi 3:** the interface is there about two minutes after power-on. Web radio, FM with station names and the aircraft map have been tested on it. The waterfall is too much for its processor; leave it switched off there. SDR++ needs more than its 1 GB of memory next to the browser, so that tile is disabled there.
 - **Aircraft:** Raspberry Pi OS has `readsb` instead of `dump1090`; the installer takes care of it.
@@ -73,18 +73,23 @@ A small Python service controls the receivers and serves a web interface that a 
 | Web radio | station search, popular stations, station logos | radio-browser.info, `mpv` |
 | DAB+ | station scan, station list, scrolling text, pictures the stations send | `welle-cli`, `mpv` |
 | FM | stereo, station names and radio text (RDS), band scan, presets, spectrum and waterfall | built-in receiver or `rtl_fm`, `rtl_power`, `mpv` |
-| Receiver | free tuning in FM, AM and sideband with waterfall, squelch and a band plan: shortwave, amateur radio, PMR446, Freenet, CB | built-in receiver, `mpv` |
+| Receiver | free tuning in FM, AM and sideband with waterfall, squelch, channel scan and a band plan: shortwave, amateur radio, PMR446, Freenet, CB; on shortwave it lists who is on the air right now | built-in receiver, `mpv`, EiBi schedule |
 | Aircraft | live map and list of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |
 | Bluetooth | connect a Bluetooth speaker, or let a phone play through this device | `bluetoothctl`, PipeWire |
 | Weather | current weather and a four-day forecast | Open-Meteo |
 | SDR++ | the full SDR program for everything else | started as a normal program |
 | Settings | language, audio output, sleep timer, alarm clock, idle screen, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
+| Device | screen brightness, Wi-Fi, update, restart and shut down, AirPlay and Spotify Connect receivers | NetworkManager, systemd, `shairport-sync`, `librespot` |
 
 Every station can get a star, whatever its source. Favorites appear as a row on the start screen and start with one tap; remove single ones or all of them under the star at the end of that row, for example after moving to another place.
 
 The interface is English by default and can be switched to German under Settings.
 
 With remote control switched on under Settings, phones and computers in the same network can open the interface in a browser. There is no login, so use it only in a network you trust.
+
+The record button in the bottom bar saves what is playing to `Music/RadioKiosk`. With remote control on, other devices in the network can also listen along at `http://<address>:8080/live.mp3`.
+
+RadioKiosk warns when a Raspberry Pi reports too little voltage, and it restarts an SDR stick that has hung on the USB bus instead of asking you to replug it.
 
 Only one receiver can use the stick at a time, so the service stops the running one before starting the next. Tiles whose program or hardware is missing are disabled.
 
@@ -140,4 +145,4 @@ Optional file `~/.config/radiokiosk/config.json`:
 
 ## License
 
-[MIT](LICENSE). The bundled map library Leaflet is BSD-2-Clause licensed, see `web/vendor/leaflet/LICENSE`.
+[MIT](LICENSE). Shortwave schedules come from [EiBi](http://www.eibispace.de/) by Eike Bierwirth, who offers them free of charge. The bundled map library Leaflet is BSD-2-Clause licensed, see `web/vendor/leaflet/LICENSE`.

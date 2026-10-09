@@ -5,16 +5,32 @@ for ownership before it starts; the core stops whatever ran before.
 """
 
 import asyncio
+import re
 import shutil
+import subprocess
 import time
+from pathlib import Path
 
-from . import audio
+from . import audio, health
 from .config import load_json, save_json
 from .favorites import Favorites
 from .gain import Gains
 from .mpv import Mpv
 from .sources.adsb import decoder as adsb_decoder
 from .util import memory_mb, sdr_present
+
+
+# errors that mean the stick itself is stuck rather than the reception being poor
+SDR_HANG = ("no data from the SDR stick", "stopped delivering data", "does not respond")
+MPV_SOURCES = ("webradio", "dab", "fm", "tuner")
+
+
+def music_dir():
+    try:
+        out = subprocess.run(["xdg-user-dir", "MUSIC"], capture_output=True, text=True, timeout=3).stdout.strip()
+    except (OSError, subprocess.TimeoutExpired):
+        out = ""
+    return Path(out if out and out != str(Path.home()) else Path.home() / "Music") / "RadioKiosk"
 
 
 class Core:
@@ -31,7 +47,9 @@ class Core:
         self.state = {
             "source": None, "status": "idle", "title": "", "text": "", "error": None,
             "volume": None, "muted": False, "detail": {}, "sleep_until": None,
+            "recording": None, "warnings": [],
         }
+        self.last_reset = 0
         self.sleep_task = None
         self.players = {}     # kind -> coroutine function that plays a remembered station
         self.last = load_json("last.json", None)
@@ -45,6 +63,7 @@ class Core:
             "fm": any(self.receiver_backends.values()),
             "adsb": adsb_decoder() is not None,
             "bluetooth": shutil.which("bluetoothctl") is not None,
+            "stream": shutil.which("ffmpeg") is not None,
             "apps": [
                 {"id": a["id"], "name": a["name"], "needs_sdr": a.get("needs_sdr", False),
                  "available": shutil.which(a["command"][0]) is not None,
@@ -83,8 +102,38 @@ class Core:
         except Exception:
             self.clients.discard(ws)
 
+    async def record(self, on):
+        """Save what is playing to the music folder, exactly as it arrives."""
+        if not on:
+            await self._end_recording()
+            return
+        if self.state["source"] not in MPV_SOURCES or self.state["status"] != "playing":
+            raise RuntimeError("nothing is playing")
+        folder = music_dir()
+        folder.mkdir(parents=True, exist_ok=True)
+        title = re.sub(r"[^\w .-]+", "_", self.state["title"]).strip(" ._")[:60] or "radio"
+        name = f"{time.strftime('%Y-%m-%d_%H-%M-%S')}_{title}.mkv"
+        await self.mpv.command("set_property", "stream-record", str(folder / name))
+        self.update(recording=name)
+
+    async def _end_recording(self):
+        if self.state["recording"]:
+            try:
+                await self.mpv.command("set_property", "stream-record", "")
+            except Exception:
+                pass
+            self.update(recording=None)
+
+    async def watch_health(self):
+        while True:
+            warnings = ["undervoltage"] if health.undervoltage() else []
+            self.update(warnings=warnings)
+            await asyncio.sleep(60)
+
     async def take(self, source):
         """Make `source` the active one, stopping the previous owner first."""
+        if self.active is not source:
+            await self._end_recording()
         if self.active is not None and self.active is not source:
             previous, self.active = self.active, None
             await previous.stop()
@@ -96,6 +145,7 @@ class Core:
         self.active = source
 
     async def stop(self):
+        await self._end_recording()
         previous, self.active = self.active, None
         if previous is not None:
             await previous.stop()
@@ -132,10 +182,15 @@ class Core:
         await self.stop()
 
     def fail(self, message):
+        # A hung stick only comes back when it is replugged. A USB reset does the same.
+        if any(sign in message for sign in SDR_HANG) and time.time() - self.last_reset > 20:
+            self.last_reset = time.time()
+            if health.reset_sdr():
+                message = "the SDR stick hung and was restarted – please try again"
         self.update(status="error", error=message)
 
     def _on_mpv(self, msg):
-        if self.state["source"] not in ("webradio", "dab", "fm", "tuner", "alarm"):
+        if self.state["source"] not in (*MPV_SOURCES, "alarm"):
             return
         if msg["event"] == "property-change":
             if msg["name"] == "core-idle" and msg.get("data") is False:

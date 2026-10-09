@@ -16,6 +16,8 @@
     <time id="clock"></time>
   </header>
 
+  <div id="warn" hidden></div>
+
   <main id="view"></main>
 
   <footer id="bar">
@@ -29,6 +31,9 @@
     <output id="vol"></output>
     <button id="vol-up" class="icon" aria-label="Volume up">
       <svg viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></svg>
+    </button>
+    <button id="rec" class="icon" aria-label="Record" disabled>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/></svg>
     </button>
     <button id="stop" class="icon" aria-label="Stop">
       <svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1"/></svg>

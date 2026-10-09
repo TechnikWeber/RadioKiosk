@@ -190,3 +190,9 @@ main.flush { padding: 0; overflow: hidden; position: relative; }
 .map-list { position: absolute; top: 0; right: 0; bottom: 0; z-index: 500; width: min(300px, 45%); padding: 8px 8px 76px; overflow-y: auto; background: var(--bg); border-left: 1px solid var(--line); }
 .map-list[hidden] { display: none; }
 .map-action.on { border-color: var(--accent); color: var(--accent); }
+
+/* warnings and recording */
+#warn { padding: 6px 12px; background: #5a2a00; color: #ffd9a8; font-size: 15px; }
+#warn[hidden] { display: none; }
+#rec.on { color: var(--danger); border-color: var(--danger); }
+#rec.on svg { fill: currentColor; }

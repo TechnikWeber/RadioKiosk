@@ -47,7 +47,7 @@ curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/instal
 
 Nach dem nächsten Start öffnet der Pi RadioKiosk von selbst im Vollbild. Wissenswert:
 
-- **Bild steht auf dem Kopf oder auf der Seite:** Hänge `--rotate=180` an (oder `90`, `270`). Das offizielle 7-Zoll-Touch-Display steht zum Beispiel in vielen Gehäusen und Ständern auf dem Kopf. Die Touch-Eingabe dreht sich mit. Auf anderen Systemen nimmst du die Anzeige-Einstellungen deines Desktops.
+- **Bild steht auf dem Kopf oder auf der Seite:** Hänge `--rotate=180` an (oder `90`, `270`). Das dreht den Desktop und nach dem nächsten Neustart auch den Startbildschirm. Das offizielle 7-Zoll-Touch-Display steht zum Beispiel in vielen Gehäusen und Ständern auf dem Kopf. Die Touch-Eingabe dreht sich mit. Auf anderen Systemen nimmst du die Anzeige-Einstellungen deines Desktops.
 - **Strom:** Ein Pi mit Display und SDR-Stick braucht ein kräftiges Netzteil. Zeigt `vcgencmd get_throttled` etwas anderes als `0x0`, ist das Netzteil oder sein Kabel zu schwach; Sticks hängen sich dann auf und der Empfang leidet.
 - **Pi 3:** Die Oberfläche ist etwa zwei Minuten nach dem Einschalten da. Getestet sind dort Webradio, UKW mit Sendernamen und die Flugzeugkarte. Der Wasserfall ist für seinen Prozessor zu viel; lass ihn dort ausgeschaltet. SDR++ braucht neben dem Browser mehr als dessen 1 GB Arbeitsspeicher, deshalb ist diese Kachel dort deaktiviert.
 - **Flugzeuge:** Raspberry Pi OS hat `readsb` statt `dump1090`; darum kümmert sich der Installer.
@@ -73,18 +73,23 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Webradio | Sendersuche, beliebte Sender, Senderlogos | radio-browser.info, `mpv` |
 | DAB+ | Sendersuchlauf, Senderliste, Lauftext, Bilder, die die Sender mitschicken | `welle-cli`, `mpv` |
 | UKW | Stereo, Sendernamen und Radiotext (RDS), Sendersuchlauf, Speicherplätze, Spektrum und Wasserfall | eingebauter Empfänger oder `rtl_fm`, `rtl_power`, `mpv` |
-| Empfänger | freies Abstimmen in FM, AM und Seitenband mit Wasserfall, Rauschsperre und Bandplan: Kurzwelle, Amateurfunk, PMR446, Freenet, CB | eingebauter Empfänger, `mpv` |
+| Empfänger | freies Abstimmen in FM, AM und Seitenband mit Wasserfall, Rauschsperre, Kanal-Suchlauf und Bandplan: Kurzwelle, Amateurfunk, PMR446, Freenet, CB; auf Kurzwelle zeigt er, wer gerade sendet | eingebauter Empfänger, `mpv`, EiBi-Fahrplan |
 | Flugzeuge | Live-Karte und Liste der Flugzeuge in deiner Umgebung (ADS-B) | `dump1090` oder `readsb`, Leaflet, OpenStreetMap |
 | Bluetooth | Bluetooth-Lautsprecher verbinden oder ein Handy über dieses Gerät abspielen lassen | `bluetoothctl`, PipeWire |
 | Wetter | aktuelles Wetter und Vorhersage für vier Tage | Open-Meteo |
 | SDR++ | das vollwertige SDR-Programm für alles Weitere | startet als normales Programm |
 | Einstellungen | Sprache, Tonausgabe, Sleep-Timer, Wecker, Ruhebildschirm, Bildschirmtastatur, Standort, Fernbedienung, Empfangsart | PipeWire oder PulseAudio |
+| Gerät | Bildschirmhelligkeit, WLAN, Aktualisieren, Neustart und Ausschalten, AirPlay- und Spotify-Connect-Empfänger | NetworkManager, systemd, `shairport-sync`, `librespot` |
 
 Jeder Sender kann einen Stern bekommen, egal aus welcher Quelle. Favoriten erscheinen als Zeile auf dem Startbildschirm und starten mit einem Tipp; einzelne oder alle entfernst du über den Stern am Ende dieser Zeile, etwa nach einem Ortswechsel.
 
 Die Oberfläche ist standardmäßig englisch und lässt sich in den Einstellungen auf Deutsch umstellen.
 
 Ist in den Einstellungen die Fernbedienung eingeschaltet, können Handys und Rechner im selben Netz die Oberfläche im Browser öffnen. Es gibt keine Anmeldung, nutze das also nur in einem Netz, dem du vertraust.
+
+Der Aufnahmeknopf in der unteren Leiste speichert, was gerade läuft, nach `Musik/RadioKiosk`. Bei eingeschalteter Fernbedienung können andere Geräte im Netz außerdem unter `http://<Adresse>:8080/live.mp3` mithören.
+
+RadioKiosk warnt, wenn ein Raspberry Pi zu wenig Spannung meldet, und startet einen SDR-Stick, der sich am USB aufgehängt hat, selbst neu, statt dich zum Umstecken aufzufordern.
 
 Den Stick kann immer nur ein Empfänger nutzen, deshalb beendet der Dienst den laufenden, bevor er den nächsten startet. Kacheln, deren Programm oder Hardware fehlt, sind deaktiviert.
 
@@ -140,4 +145,4 @@ Optionale Datei `~/.config/radiokiosk/config.json`:
 
 ## Lizenz
 
-[MIT](LICENSE). Die mitgelieferte Kartenbibliothek Leaflet steht unter der BSD-2-Clause-Lizenz, siehe `web/vendor/leaflet/LICENSE`.
+[MIT](LICENSE). Die Kurzwellen-Sendepläne stammen von [EiBi](http://www.eibispace.de/) von Eike Bierwirth, der sie kostenlos anbietet. Die mitgelieferte Kartenbibliothek Leaflet steht unter der BSD-2-Clause-Lizenz, siehe `web/vendor/leaflet/LICENSE`.

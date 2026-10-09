@@ -6,7 +6,7 @@ import socket
 
 from aiohttp import web
 
-from . import __version__, audio, bluetooth
+from . import __version__, audio, bluetooth, device, network_audio
 from .alarm import Alarm
 from .config import WEB_DIR, load_config, save_setting
 from .core import Core
@@ -17,6 +17,7 @@ from .sources.fm import Fm
 from .sources.receiver import CHOICES, available_backends
 from .sources.tuner import BANDS, Tuner
 from .sources.webradio import Webradio
+from .schedule import Schedule
 from .weather import Weather, place_name
 
 
@@ -59,6 +60,8 @@ def build(cfg):
     adsb = Adsb(core)
     weather = Weather()
     alarm = Alarm(core)
+    schedule = Schedule()
+    receivers = network_audio.Receivers(cfg)
     bt = bluetooth.Bluetooth()
     core.players = {
         "webradio": lambda last: webradio.play(last["station"]),
@@ -113,6 +116,64 @@ def build(cfg):
         core.sleep_in(max(0, min(600, float((await request.json())["minutes"]))))
         return ok()
 
+    @routes.post("/api/record")
+    async def record(request):
+        await core.record(bool((await request.json())["on"]))
+        return ok()
+
+    @routes.get("/live.mp3")
+    async def live(request):
+        return await network_audio.live_stream(request)
+
+    @routes.get("/api/device")
+    async def device_get(request):
+        return web.json_response({
+            "brightness": device.brightness(), "power": await device.can_power_off(),
+            "wifi": device.has_wifi(), "update": device.can_update(), "version": __version__,
+            "receivers": receivers.list(),
+        })
+
+    @routes.post("/api/device/{action}")
+    async def device_do(request):
+        action, body = request.match_info["action"], await request.json()
+        if action == "brightness":
+            return ok(brightness=device.set_brightness(body["percent"]))
+        if action == "power":
+            await core.stop()
+            await device.power(body["action"])
+            return ok()
+        if action == "update":
+            return ok(changed=await device.update())
+        if action == "receiver":
+            await receivers.set(body["id"], bool(body["on"]))
+            save_setting(cfg, "receivers_on", [r["id"] for r in receivers.list() if r["on"]])
+            return ok()
+        raise web.HTTPNotFound()
+
+    @routes.get("/api/wifi")
+    async def wifi_get(request):
+        return web.json_response(await device.wifi_networks())
+
+    @routes.post("/api/wifi")
+    async def wifi_connect(request):
+        body = await request.json()
+        await device.wifi_connect(body["name"], body.get("password", ""))
+        return ok()
+
+    @routes.get("/api/tuner/onair")
+    async def tuner_onair(request):
+        """Shortwave broadcasters transmitting near a frequency right now."""
+        if not await schedule.ready():
+            return web.json_response([])
+        khz = float(request.query["hz"]) / 1000
+        return web.json_response(schedule.on_air(khz - 250, khz + 250)[:60])
+
+    @routes.post("/api/tuner/scan")
+    async def tuner_scan(request):
+        body = await request.json()
+        await tuner.scan(body["channels"], body["mode"], body.get("squelch", 6), body.get("waterfall", False))
+        return ok()
+
     @routes.get("/api/alarm")
     async def alarm_get(request):
         return web.json_response({"enabled": alarm.data["enabled"], "time": alarm.data["time"],
@@ -153,7 +214,7 @@ def build(cfg):
                                   "fm_backend_used": fm.backend_id(), "tuner_backend_used": tuner.backend_id(),
                                   "fm_stereo": cfg["fm_stereo"],
                                   "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
-                                  "version": __version__,
+                                  "version": __version__, "stream": network_audio.can_stream(),
                                   "backends": available_backends()})
 
     @routes.post("/api/settings")
@@ -324,11 +385,15 @@ def build(cfg):
         await core.refresh_volume()
         app["audio_watch"] = asyncio.create_task(audio.watch(core.refresh_volume))
         app["alarm"] = asyncio.create_task(alarm.run())
+        app["health"] = asyncio.create_task(core.watch_health())
+        await receivers.start_enabled()
         core.update(alarm=alarm.data["time"] if alarm.data["enabled"] else None)
 
     async def on_cleanup(app):
         app["audio_watch"].cancel()
         app["alarm"].cancel()
+        app["health"].cancel()
+        await receivers.close()
         if bt.pairing:
             await bt.set_visible(False)
         await core.close()
