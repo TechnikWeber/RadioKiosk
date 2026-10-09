@@ -87,6 +87,11 @@ class Core:
         if self.active is not None and self.active is not source:
             previous, self.active = self.active, None
             await previous.stop()
+            # silence the old station now: if the new one fails to start, it must not keep playing
+            try:
+                await self.mpv.stop()
+            except Exception:
+                pass
         self.active = source
 
     async def stop(self):
