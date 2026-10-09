@@ -17,6 +17,9 @@ DEFAULTS = {
     # [latitude, longitude] of the receiver, for the aircraft map and the weather
     "location": None,
     "dab_port": 7979,
+    # receiver backend per tile: "engine" (own receiver with waterfall) or "rtl_fm" (classic)
+    "fm_backend": "engine",
+    "tuner_backend": "engine",
     # "auto" measures a suitable tuner gain per band; a number in dB forces that gain.
     "gain": "auto",
     "apps": [

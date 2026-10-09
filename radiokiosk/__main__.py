@@ -11,6 +11,7 @@ from .sources.adsb import Adsb
 from .sources.apps import Apps
 from .sources.dab import Dab
 from .sources.fm import Fm
+from .sources.receiver import BACKENDS, available_backends
 from .sources.tuner import BANDS, Tuner
 from .sources.webradio import Webradio
 from .weather import Weather
@@ -31,6 +32,8 @@ def build(cfg):
     webradio, dab, fm, tuner, apps = Webradio(core), Dab(core), Fm(core), Tuner(core), Apps(core)
     adsb = Adsb(core)
     weather = Weather()
+    core.sources.update(fm=fm, tuner=tuner)
+    core.receiver_backends = available_backends()
     routes = web.RouteTableDef()
     ok = lambda **data: web.json_response({"ok": True, **data})
 
@@ -69,6 +72,20 @@ def build(cfg):
     @routes.post("/api/sleep")
     async def sleep(request):
         core.sleep_in(max(0, min(600, float((await request.json())["minutes"]))))
+        return ok()
+
+    @routes.get("/api/settings")
+    async def settings_get(request):
+        return web.json_response({"fm_backend": fm.backend_id(), "tuner_backend": tuner.backend_id(),
+                                  "backends": available_backends()})
+
+    @routes.post("/api/settings")
+    async def settings_set(request):
+        body = await request.json()
+        if body["key"] not in ("fm_backend", "tuner_backend") or body["value"] not in BACKENDS:
+            raise ValueError("unknown setting")
+        await core.stop()
+        save_setting(cfg, body["key"], body["value"])
         return ok()
 
     @routes.get("/api/location")

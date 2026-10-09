@@ -18,6 +18,8 @@ const STRINGS = {
     needLocation: "Set your location first: Settings → Location.",
     location: "Location", locationHint: "Move the map until the cross marks your place.", locationSave: "Use this place",
     locationSet: "set", locationUnset: "not set", sleepTimer: "Sleep timer", minutes: "min",
+    receiverHint: "How FM and the free receiver listen. Switch and compare on the same station.",
+    backendNames: { engine: "own receiver (waterfall, stereo)", rtl_fm: "rtl_fm (classic, mono)" },
     wmo: { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Overcast", 45: "Fog", 51: "Drizzle", 61: "Rain",
            66: "Freezing rain", 71: "Snow", 80: "Showers", 85: "Snow showers", 95: "Thunderstorm" },
     fmScanning: "Scanning the band…", fmFound: "Found", fmSaved: "Saved",
@@ -43,6 +45,8 @@ const STRINGS = {
     needLocation: "Lege zuerst deinen Standort fest: Einstellungen → Standort.",
     location: "Standort", locationHint: "Verschiebe die Karte, bis das Kreuz auf deinem Ort liegt.", locationSave: "Diesen Ort übernehmen",
     locationSet: "festgelegt", locationUnset: "nicht festgelegt", sleepTimer: "Sleep-Timer", minutes: "min",
+    receiverHint: "Womit UKW und der freie Empfänger hören. Umschalten und am selben Sender vergleichen.",
+    backendNames: { engine: "eigener Empfänger (Wasserfall, Stereo)", rtl_fm: "rtl_fm (klassisch, Mono)" },
     wmo: { 0: "Klar", 1: "Überwiegend klar", 2: "Teils bewölkt", 3: "Bedeckt", 45: "Nebel", 51: "Nieselregen", 61: "Regen",
            66: "Gefrierender Regen", 71: "Schnee", 80: "Schauer", 85: "Schneeschauer", 95: "Gewitter" },
     fmScanning: "Suche Sender im Band…", fmFound: "Gefunden", fmSaved: "Gespeichert",
@@ -73,7 +77,7 @@ const icon = name => `<svg viewBox="0 0 24 24">${ICONS[name]}</svg>`;
 
 const $ = id => document.getElementById(id);
 const view = $("view");
-let state = { caps: { apps: [] }, detail: {} };
+let state = { caps: { apps: [] }, detail: {}, backends: {} };
 let current = null;   // the visible view: { title, render(), onState?() }
 
 function h(tag, props = {}, ...children) {
@@ -345,8 +349,7 @@ const fm = {
     const saved = this.presets.includes(this.mhz);
     view.replaceChildren(
       h("div", { className: "dial", innerHTML: `${this.mhz.toFixed(2)} <small>MHz</small>` }),
-      this.meter,
-      this.fall.el,
+      ...(state.backends.fm === "engine" ? [this.meter, this.fall.el] : []),
       h("div", { className: "steps" }, step("− 1", -1), step("− 0.1", -0.1), step("+ 0.1", 0.1), step("+ 1", 1)),
       h("div", { className: "toolbar" },
         h("button", { className: "primary", textContent: "▶", onclick: () => this.tune(this.mhz) }),
@@ -429,8 +432,7 @@ const tuner = {
     const top = view.scrollTop;
     view.replaceChildren(
       h("div", { className: "dial", innerHTML: formatHz(this.hz), onclick: () => { this.entry = ""; this.draw(); } }),
-      this.meter,
-      this.fall.el,
+      ...(state.backends.tuner === "engine" ? [this.meter, this.fall.el] : []),
       h("div", { className: "steps five" }, ...Object.keys(MODE_NAMES).map(m => h("button", {
         className: m === this.mode ? "on" : "", textContent: MODE_NAMES[m], onclick: () => this.tune(this.hz, m, this.label),
       }))),
@@ -450,7 +452,7 @@ const tuner = {
             this.tune(this.hz, this.mode, this.label);
           },
         }) : null,
-        h("button", {
+        state.backends.tuner !== "engine" ? null : h("button", {
           textContent: `${t.zoom} ×${this.zoom}`,
           onclick: () => {
             this.zoom = ZOOMS[(ZOOMS.indexOf(this.zoom) + 1) % ZOOMS.length];
@@ -630,7 +632,16 @@ const locationPicker = {
 const settings = {
   title: t.settings,
   async render() {
-    const [sinks, { location }] = await Promise.all([api("/api/audio"), api("/api/location")]);
+    const [sinks, { location }, receivers] = await Promise.all(
+      [api("/api/audio"), api("/api/location"), api("/api/settings")]);
+    const backendButton = (key, label) => h("button", {
+      textContent: `${label}: ${t.backendNames[receivers[key]]}`,
+      disabled: !(receivers.backends.engine && receivers.backends.rtl_fm),
+      onclick: async () => {
+        await api("/api/settings", { key, value: receivers[key] === "engine" ? "rtl_fm" : "engine" });
+        this.render();
+      },
+    });
     const SLEEP = [0, 15, 30, 60, 90];
     const left = state.sleep_until ? Math.max(1, Math.round((state.sleep_until - Date.now() / 1000) / 60)) : 0;
     view.replaceChildren(
@@ -651,6 +662,8 @@ const settings = {
         title: s.label, info: t.kinds[s.kind], active: s.active,
         onPlay: async () => { await api("/api/audio", { name: s.name }); this.render(); },
       })),
+      h("p", { className: "hint", textContent: t.receiverHint }),
+      h("div", { className: "toolbar wrap" }, backendButton("fm_backend", t.fm), backendButton("tuner_backend", t.tuner)),
       h("p", { className: "hint", textContent: t.relevelHint }),
       h("div", { className: "toolbar" },
         h("button", { textContent: t.relevel, onclick: e => { e.target.disabled = true; api("/api/gain/reset", {}); } })),

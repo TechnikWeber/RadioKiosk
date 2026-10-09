@@ -27,6 +27,8 @@ class Dab:
         self.scan_task = None
         self.poll_task = None
         self.scan_state = {"scanning": False, "channel": "", "found": 0}
+        self.playing = None
+        self.retries = 0
 
     async def _tune(self, channel):
         await kill(self.proc)
@@ -115,6 +117,7 @@ class Dab:
                 if self.channel != service["channel"] or self.proc is None or self.proc.returncode is not None:
                     await self._tune(service["channel"])
                     await self._wait_for(sid)
+                self.playing, self.retries = sid, 0
                 await self.core.mpv.play(f"http://127.0.0.1:{self.port}/mp3/{sid}")
             except RuntimeError as e:
                 self.core.fail(str(e))
@@ -136,18 +139,40 @@ class Dab:
         raise RuntimeError("no reception on block " + self.channel)
 
     async def _poll_text(self, sid):
-        """Show the station's scrolling text (DLS)."""
+        """Show the station's scrolling text (DLS), or a warning while reception is poor."""
+        last_errors = 0
         while True:
             await asyncio.sleep(2)
             mux = await self._mux() or {}
             for s in mux.get("services", []):
                 if s.get("sid") == sid:
+                    errors = s.get("errorcounters", {}).get("frameerrors", 0)
                     text = (s.get("dls", {}).get("label") or "").strip()
+                    if errors - last_errors > 20:
+                        # audio drops out at this rate; say why instead of showing stale text
+                        snr = mux.get("demodulator", {}).get("snr", 0)
+                        text = f"weak reception (SNR {snr:.0f} dB)"
+                    last_errors = errors
                     if text:
                         self.core.update(text=text)
 
     def on_title(self, title):
         pass
+
+    def on_playback_error(self):
+        """With weak reception the stream starts as garbage; try again a few times."""
+        if self.playing is None or self.retries >= 6:
+            self.core.fail(f"reception on block {self.channel} is too weak")
+            return True
+        self.retries += 1
+        self.core.update(status="loading")
+        asyncio.create_task(self._retry(self.playing))
+        return True
+
+    async def _retry(self, sid):
+        await asyncio.sleep(2)
+        if self.playing == sid and self.core.active is self:
+            await self.core.mpv.play(f"http://127.0.0.1:{self.port}/mp3/{sid}")
 
     def _cancel_tasks(self):
         for task in (self.scan_task, self.poll_task):
@@ -158,5 +183,5 @@ class Dab:
     async def stop(self):
         self._cancel_tasks()
         await kill(self.proc)
-        self.proc = self.channel = None
+        self.proc = self.channel = self.playing = None
         self.scan_state["scanning"] = False

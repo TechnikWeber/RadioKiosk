@@ -11,7 +11,6 @@ import time
 from . import audio
 from .gain import Gains
 from .mpv import Mpv
-from . import rtlsdr
 from .sources.adsb import decoder as adsb_decoder
 from .util import sdr_present
 
@@ -25,7 +24,7 @@ class Core:
         self.lock = asyncio.Lock()
         self.mpv = Mpv(self._on_mpv)
         self.gains = Gains(cfg)
-        self.receiver_available = rtlsdr.available()
+        self.receiver_backends = {}   # filled by the service: which backends are installed
         self.state = {
             "source": None, "status": "idle", "title": "", "text": "", "error": None,
             "volume": None, "muted": False, "detail": {}, "sleep_until": None,
@@ -38,7 +37,7 @@ class Core:
             "mpv": Mpv.available(),
             "sdr": sdr,
             "dab": shutil.which("welle-cli") is not None,
-            "fm": self.receiver_available,
+            "fm": any(self.receiver_backends.values()),
             "adsb": adsb_decoder() is not None,
             "apps": [
                 {"id": a["id"], "name": a["name"], "needs_sdr": a.get("needs_sdr", False),
@@ -49,7 +48,8 @@ class Core:
         }
 
     def snapshot(self):
-        return {**self.state, "caps": self.caps()}
+        backends = {name: self.sources[name].backend_id() for name in ("fm", "tuner") if name in self.sources}
+        return {**self.state, "caps": self.caps(), "backends": backends}
 
     def update(self, **changes):
         if all(self.state.get(k) == v for k, v in changes.items()):
@@ -120,6 +120,9 @@ class Core:
             elif msg["name"] == "media-title" and self.active is not None:
                 self.active.on_title(msg.get("data") or "")
         elif msg["event"] == "end-file" and msg.get("reason") == "error" and self.state["status"] != "error":
+            retry = getattr(self.active, "on_playback_error", None)
+            if retry and retry():
+                return
             self.fail(msg.get("file_error") or "playback failed")
 
     async def refresh_volume(self):
