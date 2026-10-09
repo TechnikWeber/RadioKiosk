@@ -43,7 +43,7 @@ const STRINGS = {
     btScan: "Search for speakers", btScanning: "Searching…", btConnected: "connected", btPaired: "paired", btNew: "new",
     seconds: "s",
     receiverHint: "How FM and the free receiver listen. Switch and compare on the same station.",
-    backendNames: { engine: "own receiver (waterfall, stereo)", rtl_fm: "rtl_fm (classic, mono)" },
+    backendNames: { auto: "automatic", engine: "own receiver (waterfall, stereo)", rtl_fm: "rtl_fm (classic, mono)" },
     wmo: { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Overcast", 45: "Fog", 51: "Drizzle", 61: "Rain",
            66: "Freezing rain", 71: "Snow", 80: "Showers", 85: "Snow showers", 95: "Thunderstorm" },
     fmScanning: "Scanning the band…", fmFound: "Found", fmSaved: "Saved",
@@ -84,7 +84,7 @@ const STRINGS = {
     btScan: "Lautsprecher suchen", btScanning: "Suche…", btConnected: "verbunden", btPaired: "gekoppelt", btNew: "neu",
     seconds: "s",
     receiverHint: "Womit UKW und der freie Empfänger hören. Umschalten und am selben Sender vergleichen.",
-    backendNames: { engine: "eigener Empfänger (Wasserfall, Stereo)", rtl_fm: "rtl_fm (klassisch, Mono)" },
+    backendNames: { auto: "automatisch", engine: "eigener Empfänger (Wasserfall, Stereo)", rtl_fm: "rtl_fm (klassisch, Mono)" },
     wmo: { 0: "Klar", 1: "Überwiegend klar", 2: "Teils bewölkt", 3: "Bedeckt", 45: "Nebel", 51: "Nieselregen", 61: "Regen",
            66: "Gefrierender Regen", 71: "Schnee", 80: "Schauer", 85: "Schneeschauer", 95: "Gewitter" },
     fmScanning: "Suche Sender im Band…", fmFound: "Gefunden", fmSaved: "Gespeichert",
@@ -960,10 +960,13 @@ const settings = {
     const [sinks, { location: position, name: place }, receivers] = await Promise.all(
       [api("/api/audio"), api("/api/location"), api("/api/settings")]);
     const backendButton = (key, label) => h("button", {
-      textContent: `${label}: ${t.backendNames[receivers[key]]}`,
+      // "automatic" also says what it picked on this computer
+      textContent: `${label}: ${t.backendNames[receivers[key]]}`
+        + (receivers[key] === "auto" ? ` → ${t.backendNames[receivers[key + "_used"]].split(" (")[0]}` : ""),
       disabled: !(receivers.backends.engine && receivers.backends.rtl_fm),
       onclick: async () => {
-        await api("/api/settings", { key, value: receivers[key] === "engine" ? "rtl_fm" : "engine" });
+        const choices = Object.keys(t.backendNames);
+        await api("/api/settings", { key, value: choices[(choices.indexOf(receivers[key]) + 1) % choices.length] });
         this.render();
       },
     });

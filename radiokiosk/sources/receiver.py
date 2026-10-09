@@ -2,13 +2,15 @@
 
 "engine" is RadioKiosk's own receiver (waterfall, stereo, RDS, retunes on the
 fly); "rtl_fm" is the classic command line program. Which one a source uses
-is a setting, so both can be compared on the same station.
+is a setting, so both can be compared on the same station. The default "auto"
+takes the own receiver where the processor is fast enough for it.
 """
 
 import asyncio
 import json
 import struct
 import sys
+import time
 from pathlib import Path
 
 from aiohttp import web
@@ -138,6 +140,28 @@ class EngineBackend:
 
 
 BACKENDS = {"engine": EngineBackend, "rtl_fm": RtlFmBackend}
+CHOICES = ("auto", *BACKENDS)
+# The engine runs one 32768 point FFT plus demodulation per 16 ms of signal. Up to
+# this FFT time it keeps pace with room to spare; a Raspberry Pi 3 needs 17 ms.
+ENGINE_FFT_LIMIT_MS = 4.0
+_fft_ms = None
+
+
+def engine_fits():
+    """Is this processor fast enough for the own receiver? Measured once."""
+    global _fft_ms
+    if _fft_ms is None:
+        try:
+            import numpy as np
+            block = np.ones(32768, np.complex64)
+            np.fft.fft(block)
+            start = time.perf_counter()
+            for _ in range(3):
+                np.fft.fft(block)
+            _fft_ms = (time.perf_counter() - start) / 3 * 1000
+        except ImportError:
+            _fft_ms = float("inf")
+    return _fft_ms <= ENGINE_FFT_LIMIT_MS
 
 
 def available_backends():
@@ -154,8 +178,10 @@ class Receiver:
 
     def backend_id(self):
         """The backend chosen in the settings, or whichever one is installed."""
-        wanted = self.core.cfg.get(f"{self.name}_backend", "engine")
+        wanted = self.core.cfg.get(f"{self.name}_backend", "auto")
         usable = available_backends()
+        if wanted == "auto":
+            wanted = "engine" if usable["engine"] and engine_fits() else "rtl_fm"
         return wanted if usable.get(wanted) else next((n for n, ok in usable.items() if ok), wanted)
 
     async def _receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1, stereo="auto"):

@@ -118,7 +118,7 @@ Optionale Datei `~/.config/radiokiosk/config.json`:
 | `port` | `8080` | Port der Weboberfläche |
 | `country` | `DE` | Ländercode für die Liste beliebter Webradio-Sender |
 | `location` | nicht gesetzt | `[Breite, Länge]` für Flugzeug-Karte und Wetter; einfacher in den Einstellungen festzulegen |
-| `fm_backend`, `tuner_backend` | `engine` | Empfänger für die Kacheln UKW und Empfänger: `engine` (eingebaut) oder `rtl_fm`; auch in den Einstellungen |
+| `fm_backend`, `tuner_backend` | `auto` | Empfänger für die Kacheln UKW und Empfänger: `engine` (eingebaut), `rtl_fm` oder `auto`, das den eingebauten nimmt, wo der Prozessor schnell genug ist; auch in den Einstellungen |
 | `fm_stereo` | `auto` | UKW-Ton: `auto` (Stereo nur bei starkem Signal), `stereo` oder `mono`; auch als Knopf in der UKW-Ansicht |
 | `gain` | `auto` | Tuner-Verstärkung: `auto` regelt sie beim Hören nach, eine Zahl in dB erzwingt sie |
 | `apps` | SDR++, SDRangel | externe Programme, die als Kachel erscheinen |

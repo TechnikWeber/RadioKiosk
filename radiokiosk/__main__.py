@@ -14,7 +14,7 @@ from .sources.adsb import Adsb
 from .sources.apps import Apps
 from .sources.dab import SLIDES, Dab
 from .sources.fm import Fm
-from .sources.receiver import BACKENDS, available_backends
+from .sources.receiver import CHOICES, available_backends
 from .sources.tuner import BANDS, Tuner
 from .sources.webradio import Webradio
 from .weather import Weather, place_name
@@ -149,7 +149,8 @@ def build(cfg):
 
     @routes.get("/api/settings")
     async def settings_get(request):
-        return web.json_response({"fm_backend": fm.backend_id(), "tuner_backend": tuner.backend_id(),
+        return web.json_response({"fm_backend": cfg["fm_backend"], "tuner_backend": cfg["tuner_backend"],
+                                  "fm_backend_used": fm.backend_id(), "tuner_backend_used": tuner.backend_id(),
                                   "fm_stereo": cfg["fm_stereo"],
                                   "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
                                   "backends": available_backends()})
@@ -157,7 +158,7 @@ def build(cfg):
     @routes.post("/api/settings")
     async def settings_set(request):
         body = await request.json()
-        allowed = {"fm_backend": tuple(BACKENDS), "tuner_backend": tuple(BACKENDS), "remote": (True, False)}
+        allowed = {"fm_backend": CHOICES, "tuner_backend": CHOICES, "remote": (True, False)}
         if body["value"] not in allowed.get(body["key"], ()):
             raise ValueError("unknown setting")
         if body["key"] != "remote":

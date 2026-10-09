@@ -5,6 +5,7 @@ CSV line per decoded message, which every dump1090 flavour and readsb support.
 """
 
 import asyncio
+import os
 import shutil
 import time
 
@@ -25,7 +26,9 @@ class Adsb:
     def __init__(self, core):
         self.core = core
         self.proc = None
+        self.feeder = None     # rtl_sdr, when the decoder cannot open the stick itself
         self.reader = None
+        self.piped = False
         self.connection = None
         self.aircraft = {}
 
@@ -38,9 +41,14 @@ class Adsb:
             await self.core.take(self)
             self.aircraft = {}
             args = [binary, "--net", "--net-sbs-port", str(SBS_PORT)]
-            if binary == "readsb":
-                args += ["--device-type", "rtlsdr"]   # readsb only opens a stick when told which kind
             help_text = await self._help(binary)
+            self.piped = False
+            if binary == "readsb":
+                # readsb only opens a stick when told which kind. Debian builds it without
+                # RTL-SDR support; then rtl_sdr delivers the samples through a pipe.
+                self.piped = "rtlsdr" not in (await self._help(binary, "--device-type", "x"))
+                args[1:1] = (["--device-type", "ifile", "--ifile", "-", "--iformat", "UC8"] if self.piped
+                             else ["--device-type", "rtlsdr"])
             if "--net-http-port" in help_text:
                 # the classic dump1090 serves its own map on 8080 by default, which is our port
                 args += ["--net-http-port", str(SBS_PORT + 1)]
@@ -50,22 +58,31 @@ class Adsb:
             self.reader = asyncio.create_task(self._run(args))
 
     @staticmethod
-    async def _help(binary):
+    async def _help(binary, *args):
         proc = await asyncio.create_subprocess_exec(
-            binary, "--help", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+            binary, *(args or ["--help"]), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
         out, _ = await proc.communicate()
         return out.decode(errors="replace")
 
     async def _run(self, args):
         # right after another receiver let go of the stick, opening it can fail once
         for attempt in range(3):
+            source = asyncio.subprocess.DEVNULL
+            if self.piped:
+                source, sink = os.pipe()
+                self.feeder = await spawn("rtl_sdr", "-f", "1090000000", "-s", "2400000", "-g", "49.6", "-",
+                                          stdout=sink, stderr=asyncio.subprocess.DEVNULL)
+                os.close(sink)
             proc = self.proc = await spawn(
-                *args, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
+                *args, stdin=source, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
+            if self.piped:
+                os.close(source)
             # keep the writer too: dropping it would close the connection
             stream, self.connection = await self._connect(proc)
             if stream is not None:
                 break
             await kill(proc)
+            await kill(self.feeder)
             await asyncio.sleep(1)
         else:
             self.core.fail("the ADS-B decoder could not open the SDR stick")
@@ -114,3 +131,5 @@ class Adsb:
             self.reader.cancel()
         proc, self.proc = self.proc, None
         await kill(proc)
+        feeder, self.feeder = self.feeder, None
+        await kill(feeder)

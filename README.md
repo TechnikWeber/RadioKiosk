@@ -118,7 +118,7 @@ Optional file `~/.config/radiokiosk/config.json`:
 | `port` | `8080` | port of the web interface |
 | `country` | `DE` | country code for the list of popular web radio stations |
 | `location` | not set | `[latitude, longitude]` for the aircraft map and the weather; easier to set under Settings |
-| `fm_backend`, `tuner_backend` | `engine` | receiver for the FM and Receiver tiles: `engine` (built-in) or `rtl_fm`; also under Settings |
+| `fm_backend`, `tuner_backend` | `auto` | receiver for the FM and Receiver tiles: `engine` (built-in), `rtl_fm`, or `auto`, which takes the built-in one where the processor is fast enough; also under Settings |
 | `fm_stereo` | `auto` | FM sound: `auto` (stereo only on a strong signal), `stereo` or `mono`; also a button in the FM view |
 | `gain` | `auto` | tuner gain: `auto` adjusts it while listening, a number in dB forces it |
 | `apps` | SDR++, SDRangel | external programs shown as tiles |

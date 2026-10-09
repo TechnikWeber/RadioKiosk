@@ -22,9 +22,10 @@ DEFAULTS = {
     "location": None,
     "location_name": None,   # looked up automatically
     "dab_port": 7979,
-    # receiver backend per tile: "engine" (own receiver with waterfall) or "rtl_fm" (classic)
-    "fm_backend": "engine",
-    "tuner_backend": "engine",
+    # receiver backend per tile: "engine" (own receiver with waterfall), "rtl_fm" (classic),
+    # or "auto": the own receiver where the processor is fast enough
+    "fm_backend": "auto",
+    "tuner_backend": "auto",
     # FM sound: "auto" picks stereo only on a strong signal, "stereo" and "mono" force it
     "fm_stereo": "auto",
     # "auto" measures a suitable tuner gain per band; a number in dB forces that gain.
