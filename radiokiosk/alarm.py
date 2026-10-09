@@ -36,10 +36,13 @@ class Alarm:
     async def ring(self):
         try:
             await self.core.replay()
-        except Exception:
+            await asyncio.sleep(FALLBACK_AFTER)
+            # idle means somebody already switched the alarm off; only a station
+            # that is still loading or failed needs the tone
+            if self.core.state["status"] not in ("loading", "error"):
+                return
+        except RuntimeError:
             pass
-        await asyncio.sleep(FALLBACK_AFTER)
-        if self.core.state["status"] != "playing":
-            await self.core.stop()
-            self.core.update(source="alarm", status="playing", title="Alarm", text="", error=None, detail={})
-            await self.core.mpv.play(FALLBACK_TONE)
+        await self.core.stop()
+        self.core.update(source="alarm", status="playing", title="Alarm", text="", error=None, detail={})
+        await self.core.mpv.play(FALLBACK_TONE)
