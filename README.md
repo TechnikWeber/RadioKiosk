@@ -12,7 +12,7 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 | ![Free receiver on the 2 m amateur band](docs/screenshots/receiver.png) | ![Live aircraft map with list](docs/screenshots/aircraft.png) |
 | ![Idle screen with time, weather and station](docs/screenshots/idle.png) | |
 
-> Version 0.9: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
+> Version 0.10: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
 
 ## Install
 

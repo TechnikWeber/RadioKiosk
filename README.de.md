@@ -12,7 +12,7 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 | ![Freier Empfänger auf dem 2-m-Amateurfunkband](docs/screenshots/receiver.png) | ![Live-Flugzeugkarte mit Liste](docs/screenshots/aircraft.png) |
 | ![Ruhebildschirm mit Uhrzeit, Wetter und Sender](docs/screenshots/idle.png) | |
 
-> Version 0.9: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
+> Version 0.10: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
 
 ## Installation
 
