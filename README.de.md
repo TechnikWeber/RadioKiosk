@@ -49,7 +49,7 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 |---|---|---|
 | Webradio | Sendersuche, beliebte Sender, Favoriten | radio-browser.info, `mpv` |
 | DAB+ | Sendersuchlauf, Senderliste, Lauftext | `welle-cli`, `mpv` |
-| UKW | Stereo, Sendersuchlauf, Speicherplätze, Spektrum und Wasserfall | eingebauter Empfänger, `rtl_power`, `mpv` |
+| UKW | Stereo, Sendernamen und Radiotext (RDS), Sendersuchlauf, Speicherplätze, Spektrum und Wasserfall | eingebauter Empfänger oder `rtl_fm`, `rtl_power`, `mpv` |
 | Empfänger | freies Abstimmen in FM, AM und Seitenband mit Wasserfall, Rauschsperre und Bandplan: Kurzwelle, Amateurfunk, PMR446, Freenet, CB | eingebauter Empfänger, `mpv` |
 | Flugzeuge | Live-Karte der Flugzeuge in deiner Umgebung (ADS-B) | `dump1090` oder `readsb`, Leaflet, OpenStreetMap |
 | Wetter | aktuelles Wetter und Vorhersage für vier Tage | Open-Meteo |
@@ -58,7 +58,7 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 
 Den Stick kann immer nur ein Empfänger nutzen, deshalb beendet der Dienst den laufenden, bevor er den nächsten startet. Kacheln, deren Programm oder Hardware fehlt, sind deaktiviert.
 
-UKW und der freie Empfänger nutzen den eigenen Empfänger von RadioKiosk, geschrieben in Python mit NumPy: Er demoduliert, zeichnet den Wasserfall und stimmt um, ohne den Stick neu zu starten.
+UKW und der freie Empfänger nutzen den eigenen Empfänger von RadioKiosk, geschrieben in Python mit NumPy: Er demoduliert, dekodiert RDS, zeichnet den Wasserfall und stimmt um, ohne den Stick neu zu starten. In den Einstellungen lässt sich jede der beiden Kacheln stattdessen auf das klassische Programm `rtl_fm` umstellen (Mono, kein Wasserfall, schont den Prozessor) und vergleichen.
 
 Die Tuner-Verstärkung regelt sich beim Hören selbst nach, weil die Automatik des Sticks an einer guten Antenne übersteuert. Die Werte werden je Band gemerkt; nach einem Antennenwechsel setzt du sie in den Einstellungen zurück.
 
@@ -90,6 +90,7 @@ Optionale Datei `~/.config/radiokiosk/config.json`:
 | `port` | `8080` | Port der Weboberfläche |
 | `country` | `DE` | Ländercode für die Liste beliebter Webradio-Sender |
 | `location` | nicht gesetzt | `[Breite, Länge]` für Flugzeug-Karte und Wetter; einfacher in den Einstellungen festzulegen |
+| `fm_backend`, `tuner_backend` | `engine` | Empfänger für die Kacheln UKW und Empfänger: `engine` (eingebaut) oder `rtl_fm`; auch in den Einstellungen |
 | `gain` | `auto` | Tuner-Verstärkung: `auto` regelt sie beim Hören nach, eine Zahl in dB erzwingt sie |
 | `apps` | SDR++, SDRangel | externe Programme, die als Kachel erscheinen |
 

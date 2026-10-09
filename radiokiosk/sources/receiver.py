@@ -37,6 +37,7 @@ class EngineBackend:
         self.gain = None
         self.generation = 0
         self.rds = {}
+        self.tuned = None
 
     @staticmethod
     def available():
@@ -56,6 +57,7 @@ class EngineBackend:
 
     def _tune(self, hz, mode, squelch=0, zoom=1):
         self.rds = {}
+        self.tuned = hz
         command = {"hz": hz, "mode": mode, "squelch": squelch, "zoom": zoom}
         self.proc.stdin.write(json.dumps(command).encode() + b"\n")
 
@@ -98,8 +100,10 @@ class EngineBackend:
                     self.gain = struct.unpack_from("<f", payload, GAIN_OFFSET)[0]
                     self.core.broadcast_bytes(payload)
                 elif head[:1] == b"R":
-                    self.rds = json.loads(payload)
-                    self.owner.on_rds(self.rds)
+                    info = json.loads(payload)
+                    if info.pop("hz") == self.tuned:   # not a late message from the previous station
+                        self.rds = info
+                        self.owner.on_rds(info)
                 elif head[:1] == b"E":
                     self.core.fail(payload.decode())
         except (asyncio.IncompleteReadError, ConnectionError):

@@ -318,6 +318,7 @@ const fm = {
   mhz: 98.5,
   presets: [],
   stations: [],
+  names: {},
   meter: h("p", { className: "label meter" }),
   fall: null,
   onSpectrum(s) {
@@ -326,7 +327,8 @@ const fm = {
   },
   async render() {
     this.fall = this.fall || makeWaterfall(hz => this.tune(Math.round(hz / 1e5) / 10));
-    [this.presets, this.stations] = await Promise.all([api("/api/fm/presets"), api("/api/fm/stations")]);
+    [this.presets, this.stations, this.names] = await Promise.all(
+      [api("/api/fm/presets"), api("/api/fm/stations"), api("/api/fm/names")]);
     if (state.source === "fm" && state.detail.mhz) this.mhz = state.detail.mhz;
     this.draw();
   },
@@ -343,7 +345,8 @@ const fm = {
     const chips = (label, list) => list.length ? [
       h("p", { className: "label", textContent: label }),
       h("div", { className: "chips" }, ...list.map(mhz => h("button", {
-        className: mhz === this.mhz ? "on" : "", textContent: mhz.toFixed(1), onclick: () => this.tune(mhz),
+        className: mhz === this.mhz ? "on" : "", onclick: () => this.tune(mhz),
+        textContent: this.names[mhz.toFixed(1)] ? `${this.names[mhz.toFixed(1)]} · ${mhz.toFixed(1)}` : mhz.toFixed(1),
       }))),
     ] : [];
     const saved = this.presets.includes(this.mhz);

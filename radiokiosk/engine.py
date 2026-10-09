@@ -6,6 +6,7 @@ processing never blocks the web service.
   stdin   one JSON object per line: {"hz": ..., "mode": ..., "squelch": dB, "zoom": n}
   stdout  frames of [1 byte kind][uint32 length][payload]
             A  audio, 48 kHz stereo signed 16 bit
+            R  station name and radio text (RDS) as JSON, whenever they change
             S  spectrum, see SPECTRUM_HEADER, followed by WIDTH bytes (0..255 = -120..0 dBFS)
             E  error text
 
@@ -24,6 +25,7 @@ import threading
 import numpy as np
 
 from .gain import TUNER_GAINS
+from .rds import Rds
 from .rtlsdr import RtlSdr
 from .util import sdr_devices
 
@@ -42,6 +44,7 @@ RETUNE_BEYOND = 550_000   # retune the stick when the wanted frequency leaves th
 DIRECT_SAMPLING_BELOW = 24e6
 SPECTRUM_HEADER = "<dddfffB"   # start Hz, span Hz, tuned Hz, level dBFS, SNR dB, gain dB, flags
 FLAG_STEREO, FLAG_SQUELCHED = 1, 2
+STEREO_ABOVE = 34         # dB of signal above the noise needed to switch to stereo
 
 
 def lowpass(cutoff, rate, taps):
@@ -105,6 +108,9 @@ class Wfm:
         self.position = 0
         self.pilot = 0j
         self.stereo = False
+        self.quality = 0.0     # signal above noise in dB, set by the engine
+        self.rds = Rds(lowpass)
+        self.news = None       # station info, when it just changed
 
     def _audio(self, filters, x):
         return filters[1](filters[0](x)[::self.decimation])
@@ -116,7 +122,10 @@ class Wfm:
         # the pilot is A*sin(wt + p); its average against exp(-jwt) is A/2j * exp(jp)
         self.pilot = 0.8 * self.pilot + 0.2 * np.mean(mpx * np.conj(osc))
         level = abs(self.pilot)
-        self.stereo = level > (0.012 if self.stereo else 0.025)
+        # Stereo adds about 20 dB of hiss, so it is only worth it on a strong signal
+        self.stereo = (level > (0.012 if self.stereo else 0.025)
+                       and self.quality > (STEREO_ABOVE - 4 if self.stereo else STEREO_ABOVE))
+        self.news = self.rds(mpx)
         mono = self._audio(self.sum_filters, mpx)
         if not self.stereo:
             return np.stack([mono, mono], axis=1) * 0.8
@@ -250,8 +259,8 @@ class Engine:
             self.center = hz
             self.sdr.set_frequency(hz)
             self.power[:] = 0
-        if mode != self.mode:
-            self.demod = MODES[mode]()
+        if mode != self.mode or hz != self.hz:
+            self.demod = MODES[mode]()   # a fresh demodulator also forgets the previous station's RDS
             self.mode = mode
         self.hz = hz
         self.blocks = 0
@@ -280,7 +289,10 @@ class Engine:
         channel = np.fft.ifft(spectrum[self.select] * self.mask)[self.skip:]
         # shifting by whole bins restarts its phase every block; undo that so blocks join seamlessly
         channel *= np.complex64(np.exp(-0.5j * np.pi * ((3 * self.offset_bins * self.blocks) % 4)))
+        self.demod.quality = self.snr
         audio = self.demod(channel)
+        if getattr(self.demod, "news", None):
+            send(b"R", json.dumps({**self.demod.news, "hz": self.hz}).encode())
         if audio.ndim == 1:
             audio = np.stack([audio, audio], axis=1)
         if self.squelched:

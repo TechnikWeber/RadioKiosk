@@ -156,6 +156,10 @@ def build(cfg):
         await fm.tune((await request.json())["mhz"])
         return ok()
 
+    @routes.get("/api/fm/names")
+    async def fm_names(request):
+        return web.json_response(fm.names)
+
     @routes.get("/api/fm/stations")
     async def fm_stations(request):
         return web.json_response(fm.stations)

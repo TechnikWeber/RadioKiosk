@@ -49,7 +49,7 @@ A small Python service controls the receivers and serves a web interface that a 
 |---|---|---|
 | Web radio | station search, popular stations, favorites | radio-browser.info, `mpv` |
 | DAB+ | station scan, station list, scrolling text | `welle-cli`, `mpv` |
-| FM | stereo, band scan, presets, spectrum and waterfall | built-in receiver, `rtl_power`, `mpv` |
+| FM | stereo, station names and radio text (RDS), band scan, presets, spectrum and waterfall | built-in receiver or `rtl_fm`, `rtl_power`, `mpv` |
 | Receiver | free tuning in FM, AM and sideband with waterfall, squelch and a band plan: shortwave, amateur radio, PMR446, Freenet, CB | built-in receiver, `mpv` |
 | Aircraft | live map of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |
 | Weather | current weather and a four-day forecast | Open-Meteo |
@@ -58,7 +58,7 @@ A small Python service controls the receivers and serves a web interface that a 
 
 Only one receiver can use the stick at a time, so the service stops the running one before starting the next. Tiles whose program or hardware is missing are disabled.
 
-FM and the free receiver use RadioKiosk's own receiver, written in Python with NumPy: it demodulates, draws the waterfall and retunes without restarting the stick.
+FM and the free receiver use RadioKiosk's own receiver, written in Python with NumPy: it demodulates, decodes RDS, draws the waterfall and retunes without restarting the stick. Under Settings you can switch each of the two to the classic `rtl_fm` program instead (mono, no waterfall, lighter on the processor) and compare.
 
 The tuner gain adjusts itself while listening, because the stick's own automatic gain overdrives on a good antenna. The values are remembered per band; reset them under Settings after changing the antenna.
 
@@ -90,6 +90,7 @@ Optional file `~/.config/radiokiosk/config.json`:
 | `port` | `8080` | port of the web interface |
 | `country` | `DE` | country code for the list of popular web radio stations |
 | `location` | not set | `[latitude, longitude]` for the aircraft map and the weather; easier to set under Settings |
+| `fm_backend`, `tuner_backend` | `engine` | receiver for the FM and Receiver tiles: `engine` (built-in) or `rtl_fm`; also under Settings |
 | `gain` | `auto` | tuner gain: `auto` adjusts it while listening, a number in dB forces it |
 | `apps` | SDR++, SDRangel | external programs shown as tiles |
 

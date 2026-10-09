@@ -19,12 +19,32 @@ class Fm(Receiver):
         super().__init__(core)
         self.presets = load_json("fm_presets.json", [])
         self.stations = load_json("fm_stations.json", [])
+        self.names = load_json("fm_names.json", {})   # "91.8" -> station name from RDS
         self.scanner = None
+        self.mhz = None
+        self.probing = False
 
     async def tune(self, mhz):
         mhz = round(min(108.0, max(87.5, float(mhz))), 2)
         async with self.core.lock:
-            await self._receive(int(mhz * 1e6), "wfm", "fm", f"{mhz:.2f} MHz", {"mhz": mhz})
+            self.mhz = mhz
+            name = self.names.get(f"{mhz:.1f}")
+            title = f"{name} · {mhz:.2f} MHz" if name else f"{mhz:.2f} MHz"
+            await self._receive(int(mhz * 1e6), "wfm", "fm", title, {"mhz": mhz})
+
+    def on_rds(self, info):
+        if self.probing or self.mhz is None:
+            return
+        if info.get("ps"):
+            self._remember(self.mhz, info["ps"])
+            self.core.update(title=f"{info['ps']} · {self.mhz:.2f} MHz")
+        if info.get("text"):
+            self.core.update(text=info["text"])
+
+    def _remember(self, mhz, name):
+        if self.names.get(f"{mhz:.1f}") != name:
+            self.names[f"{mhz:.1f}"] = name
+            save_json("fm_names.json", self.names)
 
     async def scan(self):
         await self.core.stop()
@@ -40,14 +60,30 @@ class Fm(Receiver):
                 out, _ = await asyncio.wait_for(self.scanner.communicate(), 30)
                 self.stations = self._find_stations(out.decode())
                 save_json("fm_stations.json", self.stations)
+                await self._name_stations()
             except (RuntimeError, asyncio.TimeoutError) as e:
                 self.core.fail(str(e) or "scan timed out")
                 return
             finally:
                 await kill(self.scanner)
                 self.scanner = None
+                self.probing = False
+                await self.backends["engine"].stop()
             self.core.active = None
             self.core.update(source=None, status="idle", detail={})
+
+    async def _name_stations(self):
+        """Listen to every found station for a moment to read its name from RDS."""
+        engine = self.backends["engine"]
+        if not engine.available():
+            return
+        self.probing = True
+        await asyncio.sleep(0.5)   # let rtl_power release the stick
+        for station in self.stations:
+            self.core.update(detail={"scan": True, "naming": station["mhz"]})
+            name = await engine.probe(int(station["mhz"] * 1e6), 5)
+            if name:
+                self._remember(station["mhz"], name)
 
     @staticmethod
     def _find_stations(csv):
@@ -82,4 +118,5 @@ class Fm(Receiver):
 
     async def stop(self):
         await kill(self.scanner)
+        self.mhz = None
         await super().stop()
