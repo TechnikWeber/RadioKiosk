@@ -23,6 +23,7 @@ const STRINGS = {
     output: "Audio output", save: "Save", remove: "Remove",
     tuner: "Receiver", tunerSub: "Shortwave, 2 m, 70 cm …", squelch: "Squelch", off: "off",
     signal: "Signal", gainLabel: "Gain", stereo: "Stereo", muted: "squelched", zoom: "Zoom",
+    waterfall: "Waterfall", on: "on",
     adsb: "Aircraft", adsbSub: "Live map (ADS-B)", aircraftSeen: "aircraft received", withPosition: "with position",
     weather: "Weather", wind: "Wind", rain: "Rain", today: "Today",
     needLocation: "Set your location first: Settings → Location.",
@@ -64,6 +65,7 @@ const STRINGS = {
     output: "Tonausgabe", save: "Speichern", remove: "Entfernen",
     tuner: "Empfänger", tunerSub: "Kurzwelle, 2 m, 70 cm …", squelch: "Rauschsperre", off: "aus",
     signal: "Signal", gainLabel: "Verstärkung", stereo: "Stereo", muted: "Rauschsperre zu", zoom: "Zoom",
+    waterfall: "Wasserfall", on: "an",
     adsb: "Flugzeuge", adsbSub: "Live-Karte (ADS-B)", aircraftSeen: "Flugzeuge empfangen", withPosition: "mit Position",
     weather: "Wetter", wind: "Wind", rain: "Regen", today: "Heute",
     needLocation: "Lege zuerst deinen Standort fest: Einstellungen → Standort.",
@@ -301,6 +303,15 @@ const meterText = s => [
   `${t.signal} ${Math.max(0, s.snr).toFixed(0)} dB`, `${t.gainLabel} ${s.gain.toFixed(0)} dB`,
   s.stereo ? t.stereo : null, s.squelched ? t.muted : null,
 ].filter(Boolean).join(" · ");
+
+// The waterfall is off unless switched on, separately for each tile: for listening to
+// the radio it is a distraction, for hunting signals it is the point.
+const waterfallOn = tile => pref(`waterfall_${tile}`, "off") === "on";
+const waterfallButton = (tile, redraw) => state.backends[tile] !== "engine" ? null : h("button", {
+  className: waterfallOn(tile) ? "on" : "",
+  textContent: `${t.waterfall}: ${waterfallOn(tile) ? t.on : t.off}`,
+  onclick: () => { setPref(`waterfall_${tile}`, waterfallOn(tile) ? "off" : "on"); redraw(); },
+});
 
 // Spectrum trace on top, waterfall below. The element keeps its picture while views redraw around it.
 function makeWaterfall(onTune) {
@@ -542,7 +553,7 @@ const fm = {
     const saved = isStarred(entry);
     view.replaceChildren(
       h("div", { className: "dial", innerHTML: `${this.mhz.toFixed(2)} <small>MHz</small>` }),
-      ...(state.backends.fm === "engine" ? [this.meter, this.fall.el] : []),
+      ...(state.backends.fm === "engine" ? [this.meter, waterfallOn("fm") ? this.fall.el : null] : []).filter(Boolean),
       h("div", { className: "steps" }, step("− 1", -1), step("− 0.1", -0.1), step("+ 0.1", 0.1), step("+ 1", 1)),
       h("div", { className: "toolbar wrap" },
         h("button", { className: "primary", textContent: "▶", onclick: () => this.tune(this.mhz) }),
@@ -551,6 +562,7 @@ const fm = {
           onclick: () => toggleStar(entry),
         }),
         h("button", { textContent: t.scan, disabled: !!scanning, onclick: () => api("/api/fm/scan", {}) }),
+        waterfallButton("fm", () => this.draw()),
         state.backends.fm !== "engine" ? null : h("button", {
           textContent: `${t.sound}: ${t.soundModes[this.sound]}`,
           onclick: () => {
@@ -636,12 +648,12 @@ const tuner = {
     const top = view.scrollTop;
     view.replaceChildren(
       h("div", { className: "dial", innerHTML: formatHz(this.hz), onclick: () => { this.entry = ""; this.draw(); } }),
-      ...(state.backends.tuner === "engine" ? [this.meter, this.fall.el] : []),
+      ...(state.backends.tuner === "engine" ? [this.meter, waterfallOn("tuner") ? this.fall.el : null] : []).filter(Boolean),
       h("div", { className: "steps five" }, ...Object.keys(MODE_NAMES).map(m => h("button", {
         className: m === this.mode ? "on" : "", textContent: MODE_NAMES[m], onclick: () => this.tune(this.hz, m, this.label),
       }))),
       h("div", { className: "steps" }, step("◀◀", -10), step("◀", -1), step("▶", 1), step("▶▶", 10)),
-      h("div", { className: "toolbar" },
+      h("div", { className: "toolbar wrap" },
         h("button", {
           className: "star" + (isFavorite ? " on" : ""), innerHTML: icon("star"),
           onclick: () => toggleStar({
@@ -656,7 +668,8 @@ const tuner = {
             this.tune(this.hz, this.mode, this.label);
           },
         }) : null,
-        state.backends.tuner !== "engine" ? null : h("button", {
+        waterfallButton("tuner", () => this.draw()),
+        state.backends.tuner !== "engine" || !waterfallOn("tuner") ? null : h("button", {
           textContent: `${t.zoom} ×${this.zoom}`,
           onclick: () => {
             this.zoom = ZOOMS[(ZOOMS.indexOf(this.zoom) + 1) % ZOOMS.length];

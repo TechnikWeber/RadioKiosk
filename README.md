@@ -73,7 +73,7 @@ With remote control switched on under Settings, phones and computers in the same
 
 Only one receiver can use the stick at a time, so the service stops the running one before starting the next. Tiles whose program or hardware is missing are disabled.
 
-FM and the free receiver use RadioKiosk's own receiver, written in Python with NumPy: it demodulates, decodes RDS, draws the waterfall and retunes without restarting the stick. Under Settings you can switch each of the two to the classic `rtl_fm` program instead (mono, no waterfall, lighter on the processor) and compare.
+FM and the free receiver use RadioKiosk's own receiver, written in Python with NumPy: it demodulates, decodes RDS, draws a waterfall and retunes without restarting the stick. The waterfall is off by default and can be switched on separately in the FM and the Receiver view. Under Settings you can switch each of the two to the classic `rtl_fm` program instead (mono, no waterfall, lighter on the processor) and compare.
 
 The tuner gain adjusts itself while listening, because the stick's own automatic gain overdrives on a good antenna. The values are remembered per band; reset them under Settings after changing the antenna.
 
