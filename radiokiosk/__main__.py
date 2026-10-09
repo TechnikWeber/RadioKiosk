@@ -88,6 +88,11 @@ def build(cfg):
             core.clients.discard(socket)
         return socket
 
+    @routes.get("/api/clients")
+    async def clients(request):
+        """How many interfaces are connected; the kiosk start uses it to see whether the browser came up."""
+        return web.json_response({"count": len(core.clients)})
+
     @routes.get("/api/state")
     async def state(request):
         return web.json_response(core.snapshot())

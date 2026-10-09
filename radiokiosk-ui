@@ -13,12 +13,32 @@ fi
 # Chromium assumes X11 unless told otherwise
 PLATFORM=""
 [ -n "$WAYLAND_DISPLAY" ] && PLATFORM="--ozone-platform=wayland"
+
+connected() {
+  curl -s -m 2 "$URL/api/clients" 2>/dev/null | grep -q '"count": [1-9]'
+}
+
 for browser in chromium-browser chromium google-chrome; do
-  if command -v "$browser" >/dev/null; then
-    exec "$browser" --kiosk --app="$URL" $PLATFORM --noerrdialogs \
+  command -v "$browser" >/dev/null || continue
+  # Started right after login on a slow computer, Chromium sometimes opens its
+  # window but never loads the page. Check that the interface really connected
+  # and start the browser again if it did not.
+  for attempt in 1 2 3; do
+    # --password-store: a kiosk has no passwords to keep; without it a keyring dialog covers the screen
+    "$browser" --kiosk --app="$URL" $PLATFORM --noerrdialogs \
       --disable-session-crashed-bubble --disable-pinch --overscroll-history-navigation=0 \
-      --disable-features=Translate --password-store=basic   # a kiosk has no passwords to keep; without this a keyring dialog covers the screen
-  fi
+      --disable-features=Translate --password-store=basic &
+    pid=$!
+    command -v curl >/dev/null || { wait "$pid"; exit; }
+    for _ in $(seq 45); do
+      sleep 2
+      kill -0 "$pid" 2>/dev/null || exit     # closed by the user
+      if connected; then wait "$pid"; exit; fi
+    done
+    kill "$pid" 2>/dev/null
+    sleep 3
+  done
+  exit 1
 done
 if command -v firefox >/dev/null; then
   exec firefox --kiosk "$URL"
