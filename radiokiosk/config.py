@@ -16,6 +16,7 @@ DEFAULTS = {
     "country": "DE",
     # [latitude, longitude] of the receiver, for the aircraft map and the weather
     "location": None,
+    "location_name": None,   # looked up automatically
     "dab_port": 7979,
     # receiver backend per tile: "engine" (own receiver with waterfall) or "rtl_fm" (classic)
     "fm_backend": "engine",

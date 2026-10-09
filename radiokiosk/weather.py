@@ -6,6 +6,25 @@ import aiohttp
 
 URL = "https://api.open-meteo.com/v1/forecast"
 KEEP = 15 * 60   # seconds a forecast stays fresh
+PLACE_URL = "https://nominatim.openstreetmap.org/reverse"
+# OpenStreetMap's usage policy asks for an identifying user agent
+HEADERS = {"User-Agent": "RadioKiosk/0.1 (https://github.com/TechnikWeber/RadioKiosk)"}
+
+
+async def place_name(location, language="en"):
+    """Name of the town at `location`, or "" when the lookup fails."""
+    params = {"lat": location[0], "lon": location[1], "format": "jsonv2", "zoom": 12,
+              "accept-language": language}
+    try:
+        async with aiohttp.ClientSession(headers=HEADERS, timeout=aiohttp.ClientTimeout(total=8)) as http:
+            async with http.get(PLACE_URL, params=params) as r:
+                r.raise_for_status()
+                data = await r.json()
+    except (aiohttp.ClientError, TimeoutError, ValueError):
+        return ""
+    address = data.get("address", {})
+    return next((address[k] for k in ("village", "town", "city", "municipality") if address.get(k)),
+                data.get("name") or "")
 
 
 class Weather:

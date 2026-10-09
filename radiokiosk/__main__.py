@@ -15,7 +15,7 @@ from .sources.fm import Fm
 from .sources.receiver import BACKENDS, available_backends
 from .sources.tuner import BANDS, Tuner
 from .sources.webradio import Webradio
-from .weather import Weather
+from .weather import Weather, place_name
 
 
 @web.middleware
@@ -131,19 +131,28 @@ def build(cfg):
         save_setting(cfg, body["key"], body["value"])
         return ok()
 
+    async def name_location(request):
+        """Look the place name up once per location and keep it with the settings."""
+        language = request.headers.get("Accept-Language", "en")[:2]
+        save_setting(cfg, "location_name", await place_name(cfg["location"], language))
+
     @routes.get("/api/location")
     async def location_get(request):
-        return web.json_response({"location": cfg.get("location")})
+        return web.json_response({"location": cfg.get("location"), "name": cfg.get("location_name")})
 
     @routes.post("/api/location")
     async def location_set(request):
         body = await request.json()
         save_setting(cfg, "location", [round(float(body["lat"]), 4), round(float(body["lon"]), 4)])
+        await name_location(request)
         return ok()
 
     @routes.get("/api/weather")
     async def weather_get(request):
-        return web.json_response(await weather.get(cfg.get("location")))
+        forecast = await weather.get(cfg.get("location"))
+        if not cfg.get("location_name"):   # location set before names existed, or the lookup failed
+            await name_location(request)
+        return web.json_response({**forecast, "place": cfg.get("location_name") or ""})
 
     @routes.get("/api/audio")
     async def audio_list(request):

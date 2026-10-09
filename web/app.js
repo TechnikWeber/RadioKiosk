@@ -698,6 +698,7 @@ const weather = {
       h("span", { textContent: describe(d.code) }),
       h("span", { textContent: `${Math.round(d.min)}° / ${Math.round(d.max)}°` }),
       h("small", { textContent: d.rain === null ? "" : `${t.rain} ${d.rain} %` }));
+    $("heading").textContent = data.place ? `${t.weather} · ${data.place}` : t.weather;
     view.replaceChildren(
       h("div", { className: "dial", innerHTML: `${Math.round(data.now.temperature)}° <small>${describe(data.now.code)}</small>` }),
       h("p", { className: "label meter", textContent: `${t.wind} ${Math.round(data.now.wind)} km/h` }),
@@ -833,7 +834,7 @@ const bluetooth = {
 const settings = {
   title: t.settings,
   async render() {
-    const [sinks, { location }, receivers] = await Promise.all(
+    const [sinks, { location, name: place }, receivers] = await Promise.all(
       [api("/api/audio"), api("/api/location"), api("/api/settings")]);
     const backendButton = (key, label) => h("button", {
       textContent: `${label}: ${t.backendNames[receivers[key]]}`,
@@ -872,7 +873,7 @@ const settings = {
           },
         }),
         h("button", {
-          textContent: `${t.location}: ${location ? t.locationSet : t.locationUnset}`, onclick: () => show(locationPicker),
+          textContent: `${t.location}: ${location ? place || t.locationSet : t.locationUnset}`, onclick: () => show(locationPicker),
         })),
       h("p", { className: "hint", textContent: t.output }),
       ...sinks.map(s => stationRow({
@@ -900,7 +901,7 @@ function drawIdle() {
   $("idle-time").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   $("idle-date").textContent = now.toLocaleDateString([], { weekday: "long", day: "numeric", month: "long" });
   $("idle-extra").textContent = [
-    idleWeather ? `${Math.round(idleWeather.temperature)}° ${describe(idleWeather.code)}` : null,
+    idleWeather ? [idleWeather.place, `${Math.round(idleWeather.temperature)}°`, describe(idleWeather.code)].filter(Boolean).join(" ") : null,
     state.alarm ? `⏰ ${state.alarm}` : null,
   ].filter(Boolean).join("  ·  ");
   const playing = state.source && state.status !== "error";
@@ -911,7 +912,7 @@ function drawIdle() {
   $("idle-box").style.transform = `translate(${(minute % 5 - 2) * 14}px, ${(minute % 3 - 1) * 10}px)`;
   if (Date.now() - idleWeatherAt > 15 * 60e3) {
     idleWeatherAt = Date.now();
-    api("/api/weather").then(w => { idleWeather = w.now; }, () => { idleWeather = null; });   // no location: no weather
+    api("/api/weather").then(w => { idleWeather = { ...w.now, place: w.place }; }, () => { idleWeather = null; });   // no location: no weather
   }
 }
 
