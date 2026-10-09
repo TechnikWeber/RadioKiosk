@@ -51,7 +51,10 @@ A small Python service controls the receivers and serves a web interface that a 
 | DAB+ | station scan, station list, scrolling text | `welle-cli`, `mpv` |
 | FM | stereo, band scan, presets, spectrum and waterfall | built-in receiver, `rtl_power`, `mpv` |
 | Receiver | free tuning in FM, AM and sideband with waterfall, squelch and a band plan: shortwave, amateur radio, PMR446, Freenet, CB | built-in receiver, `mpv` |
+| Aircraft | live map of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |
+| Weather | current weather and a four-day forecast | Open-Meteo |
 | SDR++ | the full SDR program for everything else | started as a normal program |
+| Settings | audio output, sleep timer, location | PipeWire or PulseAudio |
 
 Only one receiver can use the stick at a time, so the service stops the running one before starting the next. Tiles whose program or hardware is missing are disabled.
 
@@ -86,9 +89,10 @@ Optional file `~/.config/radiokiosk/config.json`:
 | `host` | `127.0.0.1` | `0.0.0.0` allows control from other devices on the network (no login) |
 | `port` | `8080` | port of the web interface |
 | `country` | `DE` | country code for the list of popular web radio stations |
+| `location` | not set | `[latitude, longitude]` for the aircraft map and the weather; easier to set under Settings |
 | `gain` | `auto` | tuner gain: `auto` adjusts it while listening, a number in dB forces it |
 | `apps` | SDR++, SDRangel | external programs shown as tiles |
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). The bundled map library Leaflet is BSD-2-Clause licensed, see `web/vendor/leaflet/LICENSE`.

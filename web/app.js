@@ -13,6 +13,13 @@ const STRINGS = {
     output: "Audio output", save: "Save", remove: "Remove",
     tuner: "Receiver", tunerSub: "Shortwave, 2 m, 70 cm …", squelch: "Squelch", off: "off",
     signal: "Signal", gainLabel: "Gain", stereo: "Stereo", muted: "squelched", zoom: "Zoom",
+    adsb: "Aircraft", adsbSub: "Live map (ADS-B)", aircraftSeen: "aircraft received", withPosition: "with position",
+    weather: "Weather", wind: "Wind", rain: "Rain", today: "Today",
+    needLocation: "Set your location first: Settings → Location.",
+    location: "Location", locationHint: "Move the map until the cross marks your place.", locationSave: "Use this place",
+    locationSet: "set", locationUnset: "not set", sleepTimer: "Sleep timer", minutes: "min",
+    wmo: { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Overcast", 45: "Fog", 51: "Drizzle", 61: "Rain",
+           66: "Freezing rain", 71: "Snow", 80: "Showers", 85: "Snow showers", 95: "Thunderstorm" },
     fmScanning: "Scanning the band…", fmFound: "Found", fmSaved: "Saved",
     enterFrequency: "Up to 1750: MHz · from 2000: kHz", cancel: "Cancel",
     relevel: "Reset remembered gain",
@@ -31,6 +38,13 @@ const STRINGS = {
     output: "Tonausgabe", save: "Speichern", remove: "Entfernen",
     tuner: "Empfänger", tunerSub: "Kurzwelle, 2 m, 70 cm …", squelch: "Rauschsperre", off: "aus",
     signal: "Signal", gainLabel: "Verstärkung", stereo: "Stereo", muted: "Rauschsperre zu", zoom: "Zoom",
+    adsb: "Flugzeuge", adsbSub: "Live-Karte (ADS-B)", aircraftSeen: "Flugzeuge empfangen", withPosition: "mit Position",
+    weather: "Wetter", wind: "Wind", rain: "Regen", today: "Heute",
+    needLocation: "Lege zuerst deinen Standort fest: Einstellungen → Standort.",
+    location: "Standort", locationHint: "Verschiebe die Karte, bis das Kreuz auf deinem Ort liegt.", locationSave: "Diesen Ort übernehmen",
+    locationSet: "festgelegt", locationUnset: "nicht festgelegt", sleepTimer: "Sleep-Timer", minutes: "min",
+    wmo: { 0: "Klar", 1: "Überwiegend klar", 2: "Teils bewölkt", 3: "Bedeckt", 45: "Nebel", 51: "Nieselregen", 61: "Regen",
+           66: "Gefrierender Regen", 71: "Schnee", 80: "Schauer", 85: "Schneeschauer", 95: "Gewitter" },
     fmScanning: "Suche Sender im Band…", fmFound: "Gefunden", fmSaved: "Gespeichert",
     enterFrequency: "Bis 1750: MHz · ab 2000: kHz", cancel: "Abbrechen",
     relevel: "Gemerkte Verstärkung zurücksetzen",
@@ -50,6 +64,8 @@ const ICONS = {
   fm: '<path d="M12 12v9M8 16a5.5 5.5 0 010-8M16 8a5.5 5.5 0 010 8M5 19a10 10 0 010-14M19 5a10 10 0 010 14"/>',
   app: '<path d="M3 17l4-9 3 6 3-10 3 8 2-3 3 8"/>',
   tuner: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v3M12 10V7M5.6 5.6l2 2M3 12h3M18.4 5.6l-2 2M21 12h-3"/>',
+  adsb: '<path d="M12 3l2 7 7 4v2l-7-2v4l2 2v1l-4-1-4 1v-1l2-2v-4l-7 2v-2l7-4z"/>',
+  weather: '<circle cx="8" cy="8" r="3"/><path d="M8 2v1M2 8h1M3.8 3.8l.7.7M12.2 3.8l-.7.7M8 20h9a4 4 0 000-8 6 6 0 00-11 2 3 3 0 002 6z"/>',
   settings: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
   star: '<path d="M12 4l2.5 5.2 5.5.8-4 4 1 5.6-5-2.7-5 2.7 1-5.6-4-4 5.5-.8z"/>',
 };
@@ -76,6 +92,7 @@ async function api(path, body) {
 }
 
 function show(v) {
+  if (current && current.leave) current.leave();
   current = v;
   $("heading").textContent = v.title;
   $("back").hidden = v === home;
@@ -182,6 +199,7 @@ const home = {
       tile("dab", t.dab, c.dab ? sdrProblem : `welle-cli ${t.notInstalled}`, () => show(dab)),
       tile("fm", t.fm, c.fm ? sdrProblem : `librtlsdr ${t.notInstalled}`, () => show(fm)),
       tile("tuner", t.tuner, c.fm ? sdrProblem : `librtlsdr ${t.notInstalled}`, () => show(tuner), t.tunerSub),
+      tile("adsb", t.adsb, c.adsb ? sdrProblem : `dump1090 ${t.notInstalled}`, () => show(adsb), t.adsbSub),
       ...c.apps.map(a => {
         const running = state.source === "app" && state.detail.app === a.id;
         const el = tile("app", a.name, a.available ? (a.needs_sdr ? sdrProblem : null) : t.notInstalled,
@@ -190,6 +208,7 @@ const home = {
         el.classList.toggle("running", running);
         return el;
       }),
+      tile("weather", t.weather, null, () => show(weather)),
       tile("settings", t.settings, null, () => show(settings)),
     ));
   },
@@ -480,13 +499,153 @@ const tuner = {
   },
 };
 
+/* ---------- aircraft map ---------- */
+
+let leaflet = null;
+function loadLeaflet() {
+  leaflet = leaflet || new Promise((resolve, reject) => {
+    document.head.append(h("link", { rel: "stylesheet", href: "vendor/leaflet/leaflet.css" }));
+    document.head.append(h("script", { src: "vendor/leaflet/leaflet.js", onload: resolve, onerror: reject }));
+  });
+  return leaflet;
+}
+
+const adsb = {
+  title: t.adsb,
+  map: null,
+  markers: new Map(),
+  centred: false,
+  box: h("div", { className: "map" }),
+  info: h("div", { className: "map-info" }),
+  async render() {
+    view.classList.add("flush");
+    view.replaceChildren(this.box, this.info);
+    await loadLeaflet();
+    if (!this.map) {
+      this.map = L.map(this.box).setView([51, 10], 6);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 14, attribution: "© OpenStreetMap",
+      }).addTo(this.map);
+    }
+    this.map.invalidateSize();
+    if (state.source !== "adsb") await api("/api/adsb/start", {});
+    this.poll();
+  },
+  leave() {
+    view.classList.remove("flush");
+    clearTimeout(this.timer);
+  },
+  async poll() {
+    if (current !== this) return;
+    try {
+      this.update(await api("/api/adsb/aircraft"));
+    } catch (e) { /* the next poll tries again */ }
+    this.timer = setTimeout(() => this.poll(), 2000);
+  },
+  update({ aircraft, location }) {
+    const located = aircraft.filter(a => a.lat !== undefined && a.lon !== undefined);
+    this.info.textContent = `${aircraft.length} ${t.aircraftSeen} · ${located.length} ${t.withPosition}`;
+    if (!this.centred && (location || located.length)) {
+      if (location) this.map.setView(location, 8);
+      else this.map.fitBounds(located.map(a => [a.lat, a.lon]), { maxZoom: 9, padding: [40, 40] });
+      this.centred = true;
+    }
+    const seen = new Set();
+    for (const a of located) {
+      seen.add(a.hex);
+      const label = [a.flight || a.hex, a.altitude !== undefined ? `${Math.round(a.altitude / 100) * 100} ft` : null]
+        .filter(Boolean).join(" · ");
+      const icon = L.divIcon({
+        className: "plane", iconSize: [28, 28],
+        html: `<svg viewBox="0 0 24 24" style="transform: rotate(${a.track || 0}deg)">${ICONS.adsb}</svg><span></span>`,
+      });
+      let marker = this.markers.get(a.hex);
+      if (!marker) this.markers.set(a.hex, marker = L.marker([a.lat, a.lon], { icon }).addTo(this.map));
+      marker.setLatLng([a.lat, a.lon]).setIcon(icon);
+      marker.getElement().querySelector("span").textContent = label;
+    }
+    for (const [hex, marker] of this.markers) {
+      if (!seen.has(hex)) { marker.remove(); this.markers.delete(hex); }
+    }
+  },
+};
+
+/* ---------- weather ---------- */
+
+// Open-Meteo reports WMO weather codes; neighbouring codes share a description
+const describe = code => t.wmo[[95, 85, 80, 71, 66, 61, 51, 45, 3, 2, 1, 0].find(c => code >= c)] || "";
+
+const weather = {
+  title: t.weather,
+  async render() {
+    view.replaceChildren(hint(t.loading));
+    let data;
+    try {
+      data = await api("/api/weather");
+    } catch (e) {
+      view.replaceChildren(hint(e.message === "no location set" ? t.needLocation : e.message));
+      return;
+    }
+    const day = (d, i) => h("div", { className: "day" },
+      h("b", { textContent: i ? new Date(d.date).toLocaleDateString([], { weekday: "long" }) : t.today }),
+      h("span", { textContent: describe(d.code) }),
+      h("span", { textContent: `${Math.round(d.min)}° / ${Math.round(d.max)}°` }),
+      h("small", { textContent: d.rain === null ? "" : `${t.rain} ${d.rain} %` }));
+    view.replaceChildren(
+      h("div", { className: "dial", innerHTML: `${Math.round(data.now.temperature)}° <small>${describe(data.now.code)}</small>` }),
+      h("p", { className: "label meter", textContent: `${t.wind} ${Math.round(data.now.wind)} km/h` }),
+      ...data.days.map(day));
+  },
+};
+
+/* ---------- location picker ---------- */
+
+const locationPicker = {
+  title: t.location,
+  map: null,
+  box: h("div", { className: "map crosshair" }),
+  async render() {
+    const save = h("button", { className: "primary map-action", textContent: t.locationSave, onclick: async () => {
+      const centre = this.map.getCenter();
+      await api("/api/location", { lat: centre.lat, lon: centre.lng });
+      show(settings);
+    } });
+    view.classList.add("flush");
+    view.replaceChildren(this.box, h("div", { className: "map-info", textContent: t.locationHint }), save);
+    await loadLeaflet();
+    const { location } = await api("/api/location");
+    if (!this.map) {
+      this.map = L.map(this.box);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 14, attribution: "© OpenStreetMap" }).addTo(this.map);
+    }
+    this.map.setView(location || [51, 10], location ? 11 : 6);
+    this.map.invalidateSize();
+  },
+  back() { show(settings); return true; },
+  leave() { view.classList.remove("flush"); },
+};
+
 /* ---------- settings ---------- */
 
 const settings = {
   title: t.settings,
   async render() {
-    const sinks = await api("/api/audio");
+    const [sinks, { location }] = await Promise.all([api("/api/audio"), api("/api/location")]);
+    const SLEEP = [0, 15, 30, 60, 90];
+    const left = state.sleep_until ? Math.max(1, Math.round((state.sleep_until - Date.now() / 1000) / 60)) : 0;
     view.replaceChildren(
+      h("div", { className: "toolbar" },
+        h("button", {
+          textContent: `${t.sleepTimer}: ${left ? left + " " + t.minutes : t.off}`,
+          onclick: async () => {
+            const current = SLEEP.findIndex(m => m >= left);
+            await api("/api/sleep", { minutes: left ? SLEEP[(current + 1) % SLEEP.length] : SLEEP[1] });
+            setTimeout(() => this.render(), 150);
+          },
+        }),
+        h("button", {
+          textContent: `${t.location}: ${location ? t.locationSet : t.locationUnset}`, onclick: () => show(locationPicker),
+        })),
       h("p", { className: "hint", textContent: t.output }),
       ...sinks.map(s => stationRow({
         title: s.label, info: t.kinds[s.kind], active: s.active,
@@ -501,6 +660,12 @@ const settings = {
 
 /* ---------- shared chrome ---------- */
 
+const tick = () => {
+  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const left = state.sleep_until ? Math.max(1, Math.round((state.sleep_until - Date.now() / 1000) / 60)) : 0;
+  $("clock").textContent = left ? `☾ ${left} ${t.minutes} · ${time}` : time;
+};
+
 function applyState(next) {
   state = next;
   const failed = state.status === "error";
@@ -509,13 +674,14 @@ function applyState(next) {
   $("now-text").textContent = failed ? state.error : state.status === "loading" ? t.loading : state.text || "";
   $("vol").textContent = state.volume ?? "";
   $("stop").disabled = !state.source;
+  tick();
   if (current && current.onState) current.onState();
 }
 
 // deep links such as #fm or #tuner/2m open a view directly
 async function openLink() {
   const [name, band] = location.hash.slice(1).split("/");
-  const target = { webradio, dab, fm, tuner, settings }[name] || home;
+  const target = { webradio, dab, fm, tuner, adsb, weather, settings }[name] || home;
   show(target);
   if (target === tuner && band) {
     const bands = await api("/api/tuner/bands");
@@ -544,7 +710,6 @@ $("stop").onclick = () => api("/api/stop", {});
 $("vol-down").onclick = () => api("/api/volume", { value: (state.volume ?? 50) - 5 });
 $("vol-up").onclick = () => api("/api/volume", { value: (state.volume ?? 50) + 5 });
 
-const tick = () => { $("clock").textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); };
 tick();
 setInterval(tick, 10000);
 connect();

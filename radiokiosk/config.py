@@ -14,6 +14,8 @@ DEFAULTS = {
     "host": "127.0.0.1",
     "port": 8080,
     "country": "DE",
+    # [latitude, longitude] of the receiver, for the aircraft map and the weather
+    "location": None,
     "dab_port": 7979,
     # "auto" measures a suitable tuner gain per band; a number in dB forces that gain.
     "gain": "auto",
@@ -40,6 +42,12 @@ def save_json(name, data):
     tmp = CONFIG_DIR / (name + ".tmp")
     tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False))
     tmp.replace(CONFIG_DIR / name)
+
+
+def save_setting(cfg, key, value):
+    """Change one setting from the interface and keep it in config.json."""
+    cfg[key] = value
+    save_json("config.json", {**load_json("config.json", {}), key: value})
 
 
 def load_config():

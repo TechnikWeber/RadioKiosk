@@ -5,13 +5,15 @@ import asyncio
 from aiohttp import web
 
 from . import audio
-from .config import WEB_DIR, load_config
+from .config import WEB_DIR, load_config, save_setting
 from .core import Core
+from .sources.adsb import Adsb
 from .sources.apps import Apps
 from .sources.dab import Dab
 from .sources.fm import Fm
 from .sources.tuner import BANDS, Tuner
 from .sources.webradio import Webradio
+from .weather import Weather
 
 
 @web.middleware
@@ -27,6 +29,8 @@ async def errors(request, handler):
 def build(cfg):
     core = Core(cfg)
     webradio, dab, fm, tuner, apps = Webradio(core), Dab(core), Fm(core), Tuner(core), Apps(core)
+    adsb = Adsb(core)
+    weather = Weather()
     routes = web.RouteTableDef()
     ok = lambda **data: web.json_response({"ok": True, **data})
 
@@ -61,6 +65,25 @@ def build(cfg):
         await audio.set_volume((await request.json())["value"])
         await core.refresh_volume()
         return ok()
+
+    @routes.post("/api/sleep")
+    async def sleep(request):
+        core.sleep_in(max(0, min(600, float((await request.json())["minutes"]))))
+        return ok()
+
+    @routes.get("/api/location")
+    async def location_get(request):
+        return web.json_response({"location": cfg.get("location")})
+
+    @routes.post("/api/location")
+    async def location_set(request):
+        body = await request.json()
+        save_setting(cfg, "location", [round(float(body["lat"]), 4), round(float(body["lon"]), 4)])
+        return ok()
+
+    @routes.get("/api/weather")
+    async def weather_get(request):
+        return web.json_response(await weather.get(cfg.get("location")))
 
     @routes.get("/api/audio")
     async def audio_list(request):
@@ -156,6 +179,15 @@ def build(cfg):
         if source is None:
             raise web.HTTPNotFound()
         return await source.stream(request)
+
+    @routes.post("/api/adsb/start")
+    async def adsb_start(request):
+        await adsb.start()
+        return ok()
+
+    @routes.get("/api/adsb/aircraft")
+    async def adsb_aircraft(request):
+        return web.json_response({"aircraft": adsb.list(), "location": cfg.get("location")})
 
     @routes.post("/api/apps/{id}/start")
     async def app_start(request):

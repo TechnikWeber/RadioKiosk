@@ -6,11 +6,13 @@ for ownership before it starts; the core stops whatever ran before.
 
 import asyncio
 import shutil
+import time
 
 from . import audio
 from .gain import Gains
 from .mpv import Mpv
 from . import rtlsdr
+from .sources.adsb import decoder as adsb_decoder
 from .util import sdr_present
 
 
@@ -26,8 +28,9 @@ class Core:
         self.receiver_available = rtlsdr.available()
         self.state = {
             "source": None, "status": "idle", "title": "", "text": "", "error": None,
-            "volume": None, "muted": False, "detail": {},
+            "volume": None, "muted": False, "detail": {}, "sleep_until": None,
         }
+        self.sleep_task = None
 
     def caps(self):
         sdr = sdr_present()
@@ -36,6 +39,7 @@ class Core:
             "sdr": sdr,
             "dab": shutil.which("welle-cli") is not None,
             "fm": self.receiver_available,
+            "adsb": adsb_decoder() is not None,
             "apps": [
                 {"id": a["id"], "name": a["name"], "needs_sdr": a.get("needs_sdr", False),
                  "available": shutil.which(a["command"][0]) is not None}
@@ -88,6 +92,21 @@ class Core:
         except Exception:
             pass
         self.update(source=None, status="idle", title="", text="", error=None, detail={})
+
+    def sleep_in(self, minutes):
+        """Stop whatever plays after `minutes`; 0 cancels the timer."""
+        if self.sleep_task:
+            self.sleep_task.cancel()
+            self.sleep_task = None
+        self.update(sleep_until=time.time() + minutes * 60 if minutes else None)
+        if minutes:
+            self.sleep_task = asyncio.create_task(self._sleep(minutes * 60))
+
+    async def _sleep(self, seconds):
+        await asyncio.sleep(seconds)
+        self.sleep_task = None
+        self.update(sleep_until=None)
+        await self.stop()
 
     def fail(self, message):
         self.update(status="error", error=message)

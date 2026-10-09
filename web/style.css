@@ -134,3 +134,17 @@ footer button { background: var(--bg); }
 @media (max-height: 420px) {
   .tile { min-height: 104px; }
 }
+
+/* aircraft map */
+main.flush { padding: 0; overflow: hidden; position: relative; }
+.map { height: 100%; background: var(--bg); }
+.map .leaflet-tile { filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9); }
+.map-info { position: absolute; left: 12px; bottom: 12px; z-index: 500; padding: 6px 12px; border-radius: 8px; background: var(--panel); font-size: 15px; }
+.plane svg { width: 28px; height: 28px; fill: var(--accent); stroke: var(--accent-ink); stroke-width: 1; }
+.plane span { position: absolute; left: 30px; top: 4px; padding: 0 6px; border-radius: 6px; background: var(--panel); color: var(--text); font-size: 13px; white-space: nowrap; }
+.map-action { position: absolute; right: 12px; bottom: 12px; z-index: 500; }
+.crosshair::after { content: "+"; position: absolute; left: 50%; top: 50%; z-index: 500; transform: translate(-50%, -50%); font-size: 40px; line-height: 1; color: var(--accent); pointer-events: none; }
+
+/* weather */
+.day { display: grid; grid-template-columns: 1.2fr 1.4fr 1fr 1fr; gap: 8px; align-items: center; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.day small { color: var(--muted); text-align: right; }

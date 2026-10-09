@@ -51,7 +51,10 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | DAB+ | Sendersuchlauf, Senderliste, Lauftext | `welle-cli`, `mpv` |
 | UKW | Stereo, Sendersuchlauf, Speicherplätze, Spektrum und Wasserfall | eingebauter Empfänger, `rtl_power`, `mpv` |
 | Empfänger | freies Abstimmen in FM, AM und Seitenband mit Wasserfall, Rauschsperre und Bandplan: Kurzwelle, Amateurfunk, PMR446, Freenet, CB | eingebauter Empfänger, `mpv` |
+| Flugzeuge | Live-Karte der Flugzeuge in deiner Umgebung (ADS-B) | `dump1090` oder `readsb`, Leaflet, OpenStreetMap |
+| Wetter | aktuelles Wetter und Vorhersage für vier Tage | Open-Meteo |
 | SDR++ | das vollwertige SDR-Programm für alles Weitere | startet als normales Programm |
+| Einstellungen | Tonausgabe, Sleep-Timer, Standort | PipeWire oder PulseAudio |
 
 Den Stick kann immer nur ein Empfänger nutzen, deshalb beendet der Dienst den laufenden, bevor er den nächsten startet. Kacheln, deren Programm oder Hardware fehlt, sind deaktiviert.
 
@@ -86,9 +89,10 @@ Optionale Datei `~/.config/radiokiosk/config.json`:
 | `host` | `127.0.0.1` | `0.0.0.0` erlaubt die Bedienung von anderen Geräten im Netz (ohne Anmeldung) |
 | `port` | `8080` | Port der Weboberfläche |
 | `country` | `DE` | Ländercode für die Liste beliebter Webradio-Sender |
+| `location` | nicht gesetzt | `[Breite, Länge]` für Flugzeug-Karte und Wetter; einfacher in den Einstellungen festzulegen |
 | `gain` | `auto` | Tuner-Verstärkung: `auto` regelt sie beim Hören nach, eine Zahl in dB erzwingt sie |
 | `apps` | SDR++, SDRangel | externe Programme, die als Kachel erscheinen |
 
 ## Lizenz
 
-[MIT](LICENSE)
+[MIT](LICENSE). Die mitgelieferte Kartenbibliothek Leaflet steht unter der BSD-2-Clause-Lizenz, siehe `web/vendor/leaflet/LICENSE`.
