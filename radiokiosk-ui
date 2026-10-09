@@ -20,20 +20,22 @@ connected() {
 
 for browser in chromium-browser chromium google-chrome; do
   command -v "$browser" >/dev/null || continue
-  # Started right after login on a slow computer, Chromium sometimes opens its
-  # window but never loads the page. Check that the interface really connected
-  # and start the browser again if it did not.
+  # In the busy first minute after boot on a Pi 3, Chromium's network process
+  # crashes and the page it was loading is lost: the window stays white. Check
+  # that the interface really connected and start the browser again if not.
+  LOG="${XDG_RUNTIME_DIR:-/tmp}/radiokiosk-browser.log"
   for attempt in 1 2 3; do
     # --password-store: a kiosk has no passwords to keep; without it a keyring dialog covers the screen
     "$browser" --kiosk --app="$URL" $PLATFORM --noerrdialogs \
       --disable-session-crashed-bubble --disable-pinch --overscroll-history-navigation=0 \
-      --disable-features=Translate --password-store=basic &
+      --disable-features=Translate --password-store=basic >"$LOG" 2>&1 &
     pid=$!
     command -v curl >/dev/null || { wait "$pid"; exit; }
     for _ in $(seq 45); do
       sleep 2
       kill -0 "$pid" 2>/dev/null || exit     # closed by the user
       if connected; then wait "$pid"; exit; fi
+      grep -q "Network service crashed" "$LOG" 2>/dev/null && break
     done
     kill "$pid" 2>/dev/null
     sleep 3
