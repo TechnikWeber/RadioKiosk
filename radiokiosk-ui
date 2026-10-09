@@ -1,0 +1,12 @@
+#!/bin/sh
+# Opens the RadioKiosk interface full screen in the first browser that is installed.
+URL="${RADIOKIOSK_URL:-http://localhost:8080}"
+for browser in chromium-browser chromium google-chrome; do
+  if command -v "$browser" >/dev/null; then
+    exec "$browser" --kiosk --app="$URL" --noerrdialogs --disable-session-crashed-bubble
+  fi
+done
+if command -v firefox >/dev/null; then
+  exec firefox --kiosk "$URL"
+fi
+exec xdg-open "$URL"

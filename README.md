@@ -1,0 +1,92 @@
+**English** · [Deutsch](README.de.md)
+
+# RadioKiosk
+
+Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world receiver: web radio, DAB+, FM, shortwave, amateur radio and more in one touch interface.
+
+> Early development. It runs on a Linux PC today; the kiosk setup for the Raspberry Pi (boot straight into the interface) is not finished yet.
+
+## Install
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash
+```
+
+The installer works on Fedora and on Debian-based systems (Debian, Ubuntu, Raspberry Pi OS). Run it as your normal user; it asks for your password to install packages. It then:
+
+1. installs the receivers and players RadioKiosk controls (`mpv`, `rtl-sdr`, `welle-cli`, SDR++, `dump1090`),
+2. stops the kernel's TV driver from claiming the SDR stick,
+3. downloads RadioKiosk to `~/.local/share/radiokiosk`,
+4. starts it as a background service that also comes up after every login.
+
+Afterwards open **RadioKiosk** from the application menu or go to <http://localhost:8080>. Run the same line again to update.
+
+SDRangel is optional:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --with-sdrangel
+```
+
+Programs your distribution does not package are skipped; their tiles stay disabled or hidden and everything else works.
+
+## Supported hardware
+
+| Part | Supported | Tested |
+|---|---|---|
+| Computer | 64-bit Linux on x86 or ARM with Fedora, Debian, Ubuntu or Raspberry Pi OS | Fedora 44 on an x86 laptop |
+| Raspberry Pi | Pi 4 and Pi 5 are the target; a Pi 3 should manage web radio, DAB+ and FM | not yet |
+| SDR stick | RTL-SDR Blog V4 and V3, other RTL2832U sticks | RTL-SDR Blog V4 |
+| Display | any; the interface is built for touch from 800×480 upwards | 800×480 layout in a browser |
+| Audio | every output PipeWire or PulseAudio offers: headphone jack, USB, Bluetooth, HDMI | built-in audio |
+
+Shortwave needs a stick that can tune below 24 MHz: the V4 does it with its built-in upconverter, the V3 through direct sampling. Either way it needs a long wire antenna. Without a stick, web radio still works.
+
+## What it does
+
+A small Python service controls the receivers and serves a web interface that a browser shows full screen.
+
+| Tile | What you get | Backend |
+|---|---|---|
+| Web radio | station search, popular stations, favorites | radio-browser.info, `mpv` |
+| DAB+ | station scan, station list, scrolling text | `welle-cli`, `mpv` |
+| FM | band scan, presets, manual tuning | `rtl_fm`, `rtl_power`, `mpv` |
+| Receiver | free tuning in FM, AM and sideband with a band plan: shortwave, amateur radio, PMR446, Freenet, CB | `rtl_fm`, `mpv` |
+| SDR++ | the full SDR program for everything else | started as a normal program |
+
+Only one receiver can use the stick at a time, so the service stops the running one before starting the next. Tiles whose program or hardware is missing are disabled.
+
+The tuner gain is measured automatically once per band, because the stick's own automatic gain overdrives on a good antenna. After changing the antenna, measure again under Settings.
+
+Listening to radio services that are not meant for the public is restricted in many countries. The band plan therefore only contains broadcast, amateur radio and licence-free bands.
+
+## Run from source
+
+```sh
+git clone https://github.com/TechnikWeber/RadioKiosk.git
+cd RadioKiosk
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python -m radiokiosk
+```
+
+This needs the same programs the installer sets up, and the kernel's DVB driver must not claim the stick:
+
+```sh
+echo 'blacklist dvb_usb_rtl28xxu' | sudo tee /etc/modprobe.d/blacklist-rtlsdr.conf
+```
+
+## Settings
+
+Optional file `~/.config/radiokiosk/config.json`:
+
+| Key | Default | Meaning |
+|---|---|---|
+| `host` | `127.0.0.1` | `0.0.0.0` allows control from other devices on the network (no login) |
+| `port` | `8080` | port of the web interface |
+| `country` | `DE` | country code for the list of popular web radio stations |
+| `gain` | `auto` | tuner gain: `auto` measures it once per band, a number in dB forces it |
+| `apps` | SDR++, SDRangel | external programs shown as tiles |
+
+## License
+
+[MIT](LICENSE)

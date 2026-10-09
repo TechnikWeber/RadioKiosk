@@ -1,0 +1,520 @@
+[
+ {
+  "id": "sw",
+  "name": {
+   "de": "Kurzwelle Rundfunk",
+   "en": "Shortwave broadcast"
+  },
+  "mode": "am",
+  "step": 5000,
+  "presets": [
+   {
+    "hz": 3950000,
+    "name": {
+     "de": "75 m (3950–4000 kHz)",
+     "en": "75 m (3950–4000 kHz)"
+    }
+   },
+   {
+    "hz": 5900000,
+    "name": {
+     "de": "49 m (5900–6200 kHz)",
+     "en": "49 m (5900–6200 kHz)"
+    }
+   },
+   {
+    "hz": 6070000,
+    "name": "Channel 292"
+   },
+   {
+    "hz": 7200000,
+    "name": {
+     "de": "41 m (7200–7450 kHz)",
+     "en": "41 m (7200–7450 kHz)"
+    }
+   },
+   {
+    "hz": 9400000,
+    "name": {
+     "de": "31 m (9400–9900 kHz)",
+     "en": "31 m (9400–9900 kHz)"
+    }
+   },
+   {
+    "hz": 11600000,
+    "name": {
+     "de": "25 m (11600–12100 kHz)",
+     "en": "25 m (11600–12100 kHz)"
+    }
+   },
+   {
+    "hz": 13570000,
+    "name": {
+     "de": "22 m (13570–13870 kHz)",
+     "en": "22 m (13570–13870 kHz)"
+    }
+   },
+   {
+    "hz": 15100000,
+    "name": {
+     "de": "19 m (15100–15800 kHz)",
+     "en": "19 m (15100–15800 kHz)"
+    }
+   },
+   {
+    "hz": 17480000,
+    "name": {
+     "de": "16 m (17480–17900 kHz)",
+     "en": "16 m (17480–17900 kHz)"
+    }
+   },
+   {
+    "hz": 21450000,
+    "name": {
+     "de": "13 m (21450–21850 kHz)",
+     "en": "13 m (21450–21850 kHz)"
+    }
+   }
+  ]
+ },
+ {
+  "id": "mw",
+  "name": {
+   "de": "Mittelwelle",
+   "en": "Medium wave"
+  },
+  "mode": "am",
+  "step": 9000,
+  "presets": [
+   {
+    "hz": 531000,
+    "name": {
+     "de": "Bandanfang (531–1602 kHz)",
+     "en": "Band start (531–1602 kHz)"
+    }
+   }
+  ]
+ },
+ {
+  "id": "ham-hf",
+  "name": {
+   "de": "Amateurfunk Kurzwelle",
+   "en": "Amateur radio HF"
+  },
+  "mode": "usb",
+  "step": 500,
+  "presets": [
+   {
+    "hz": 3700000,
+    "mode": "lsb",
+    "name": {
+     "de": "80 m Sprechfunk (3600–3800 kHz)",
+     "en": "80 m phone (3600–3800 kHz)"
+    }
+   },
+   {
+    "hz": 7100000,
+    "mode": "lsb",
+    "name": {
+     "de": "40 m Sprechfunk (7050–7200 kHz)",
+     "en": "40 m phone (7050–7200 kHz)"
+    }
+   },
+   {
+    "hz": 14200000,
+    "name": {
+     "de": "20 m Sprechfunk (14112–14350 kHz)",
+     "en": "20 m phone (14112–14350 kHz)"
+    }
+   },
+   {
+    "hz": 18130000,
+    "name": {
+     "de": "17 m Sprechfunk (18111–18168 kHz)",
+     "en": "17 m phone (18111–18168 kHz)"
+    }
+   },
+   {
+    "hz": 21300000,
+    "name": {
+     "de": "15 m Sprechfunk (21151–21450 kHz)",
+     "en": "15 m phone (21151–21450 kHz)"
+    }
+   },
+   {
+    "hz": 24950000,
+    "name": {
+     "de": "12 m Sprechfunk (24931–24990 kHz)",
+     "en": "12 m phone (24931–24990 kHz)"
+    }
+   },
+   {
+    "hz": 28500000,
+    "name": {
+     "de": "10 m Sprechfunk (28320–29000 kHz)",
+     "en": "10 m phone (28320–29000 kHz)"
+    }
+   },
+   {
+    "hz": 29600000,
+    "mode": "nfm",
+    "name": {
+     "de": "10 m FM-Anruffrequenz",
+     "en": "10 m FM calling"
+    }
+   }
+  ]
+ },
+ {
+  "id": "2m",
+  "name": {
+   "de": "Amateurfunk 2 m",
+   "en": "Amateur radio 2 m"
+  },
+  "mode": "nfm",
+  "step": 12500,
+  "squelch": 100,
+  "presets": [
+   {
+    "hz": 145500000,
+    "name": {
+     "de": "FM-Anruffrequenz",
+     "en": "FM calling"
+    }
+   },
+   {
+    "hz": 145600000,
+    "name": {
+     "de": "Relais 145.600",
+     "en": "Repeater 145.600"
+    }
+   },
+   {
+    "hz": 145625000,
+    "name": {
+     "de": "Relais 145.625",
+     "en": "Repeater 145.625"
+    }
+   },
+   {
+    "hz": 145650000,
+    "name": {
+     "de": "Relais 145.650",
+     "en": "Repeater 145.650"
+    }
+   },
+   {
+    "hz": 145675000,
+    "name": {
+     "de": "Relais 145.675",
+     "en": "Repeater 145.675"
+    }
+   },
+   {
+    "hz": 145700000,
+    "name": {
+     "de": "Relais 145.700",
+     "en": "Repeater 145.700"
+    }
+   },
+   {
+    "hz": 145725000,
+    "name": {
+     "de": "Relais 145.725",
+     "en": "Repeater 145.725"
+    }
+   },
+   {
+    "hz": 145750000,
+    "name": {
+     "de": "Relais 145.750",
+     "en": "Repeater 145.750"
+    }
+   },
+   {
+    "hz": 145775000,
+    "name": {
+     "de": "Relais 145.775",
+     "en": "Repeater 145.775"
+    }
+   },
+   {
+    "hz": 145800000,
+    "name": {
+     "de": "ISS Sprechfunk",
+     "en": "ISS voice"
+    }
+   },
+   {
+    "hz": 144300000,
+    "mode": "usb",
+    "name": {
+     "de": "SSB-Anruffrequenz",
+     "en": "SSB calling"
+    }
+   }
+  ]
+ },
+ {
+  "id": "70cm",
+  "name": {
+   "de": "Amateurfunk 70 cm",
+   "en": "Amateur radio 70 cm"
+  },
+  "mode": "nfm",
+  "step": 12500,
+  "squelch": 100,
+  "presets": [
+   {
+    "hz": 433500000,
+    "name": {
+     "de": "FM-Anruffrequenz",
+     "en": "FM calling"
+    }
+   },
+   {
+    "hz": 438650000,
+    "name": {
+     "de": "Relais ab 438,650 (25-kHz-Raster)",
+     "en": "Repeaters from 438.650 (25 kHz grid)"
+    }
+   },
+   {
+    "hz": 439000000,
+    "name": {
+     "de": "Relais ab 439,000",
+     "en": "Repeaters from 439.000"
+    }
+   },
+   {
+    "hz": 437800000,
+    "name": {
+     "de": "ISS Relais",
+     "en": "ISS repeater"
+    }
+   },
+   {
+    "hz": 432200000,
+    "mode": "usb",
+    "name": {
+     "de": "SSB-Anruffrequenz",
+     "en": "SSB calling"
+    }
+   }
+  ]
+ },
+ {
+  "id": "pmr",
+  "name": "PMR446",
+  "mode": "nfm",
+  "step": 12500,
+  "squelch": 100,
+  "presets": [
+   {
+    "hz": 446006250,
+    "name": {
+     "de": "Kanal 1",
+     "en": "Channel 1"
+    }
+   },
+   {
+    "hz": 446018750,
+    "name": {
+     "de": "Kanal 2",
+     "en": "Channel 2"
+    }
+   },
+   {
+    "hz": 446031250,
+    "name": {
+     "de": "Kanal 3",
+     "en": "Channel 3"
+    }
+   },
+   {
+    "hz": 446043750,
+    "name": {
+     "de": "Kanal 4",
+     "en": "Channel 4"
+    }
+   },
+   {
+    "hz": 446056250,
+    "name": {
+     "de": "Kanal 5",
+     "en": "Channel 5"
+    }
+   },
+   {
+    "hz": 446068750,
+    "name": {
+     "de": "Kanal 6",
+     "en": "Channel 6"
+    }
+   },
+   {
+    "hz": 446081250,
+    "name": {
+     "de": "Kanal 7",
+     "en": "Channel 7"
+    }
+   },
+   {
+    "hz": 446093750,
+    "name": {
+     "de": "Kanal 8",
+     "en": "Channel 8"
+    }
+   },
+   {
+    "hz": 446106250,
+    "name": {
+     "de": "Kanal 9",
+     "en": "Channel 9"
+    }
+   },
+   {
+    "hz": 446118750,
+    "name": {
+     "de": "Kanal 10",
+     "en": "Channel 10"
+    }
+   },
+   {
+    "hz": 446131250,
+    "name": {
+     "de": "Kanal 11",
+     "en": "Channel 11"
+    }
+   },
+   {
+    "hz": 446143750,
+    "name": {
+     "de": "Kanal 12",
+     "en": "Channel 12"
+    }
+   },
+   {
+    "hz": 446156250,
+    "name": {
+     "de": "Kanal 13",
+     "en": "Channel 13"
+    }
+   },
+   {
+    "hz": 446168750,
+    "name": {
+     "de": "Kanal 14",
+     "en": "Channel 14"
+    }
+   },
+   {
+    "hz": 446181250,
+    "name": {
+     "de": "Kanal 15",
+     "en": "Channel 15"
+    }
+   },
+   {
+    "hz": 446193750,
+    "name": {
+     "de": "Kanal 16",
+     "en": "Channel 16"
+    }
+   }
+  ]
+ },
+ {
+  "id": "freenet",
+  "name": "Freenet",
+  "mode": "nfm",
+  "step": 12500,
+  "squelch": 100,
+  "presets": [
+   {
+    "hz": 149025000,
+    "name": {
+     "de": "Kanal 1",
+     "en": "Channel 1"
+    }
+   },
+   {
+    "hz": 149037500,
+    "name": {
+     "de": "Kanal 2",
+     "en": "Channel 2"
+    }
+   },
+   {
+    "hz": 149050000,
+    "name": {
+     "de": "Kanal 3",
+     "en": "Channel 3"
+    }
+   },
+   {
+    "hz": 149087500,
+    "name": {
+     "de": "Kanal 4",
+     "en": "Channel 4"
+    }
+   },
+   {
+    "hz": 149100000,
+    "name": {
+     "de": "Kanal 5",
+     "en": "Channel 5"
+    }
+   },
+   {
+    "hz": 149112500,
+    "name": {
+     "de": "Kanal 6",
+     "en": "Channel 6"
+    }
+   }
+  ]
+ },
+ {
+  "id": "cb",
+  "name": {
+   "de": "CB-Funk",
+   "en": "CB radio"
+  },
+  "mode": "nfm",
+  "step": 10000,
+  "squelch": 100,
+  "presets": [
+   {
+    "hz": 26965000,
+    "name": {
+     "de": "Kanal 1 (FM-Anruf)",
+     "en": "Channel 1 (FM calling)"
+    }
+   },
+   {
+    "hz": 27065000,
+    "mode": "am",
+    "name": {
+     "de": "Kanal 9 (AM, Notruf/Fernfahrer)",
+     "en": "Channel 9 (AM, emergency/truckers)"
+    }
+   },
+   {
+    "hz": 27185000,
+    "mode": "am",
+    "name": {
+     "de": "Kanal 19 (AM, Fernfahrer)",
+     "en": "Channel 19 (AM, truckers)"
+    }
+   },
+   {
+    "hz": 27405000,
+    "name": {
+     "de": "Kanal 40",
+     "en": "Channel 40"
+    }
+   }
+  ]
+ }
+]
