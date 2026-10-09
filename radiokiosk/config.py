@@ -20,6 +20,8 @@ DEFAULTS = {
     # receiver backend per tile: "engine" (own receiver with waterfall) or "rtl_fm" (classic)
     "fm_backend": "engine",
     "tuner_backend": "engine",
+    # FM sound: "auto" picks stereo only on a strong signal, "stereo" and "mono" force it
+    "fm_stereo": "auto",
     # "auto" measures a suitable tuner gain per band; a number in dB forces that gain.
     "gain": "auto",
     "apps": [

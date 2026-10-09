@@ -8,7 +8,7 @@ import asyncio
 import shutil
 import time
 
-from ..util import kill
+from ..util import kill, spawn
 
 DECODERS = ("readsb", "dump1090-fa", "dump1090-mutability", "dump1090")
 SBS_PORT = 30003
@@ -57,7 +57,7 @@ class Adsb:
     async def _run(self, args):
         # right after another receiver let go of the stick, opening it can fail once
         for attempt in range(3):
-            proc = self.proc = await asyncio.create_subprocess_exec(
+            proc = self.proc = await spawn(
                 *args, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
             # keep the writer too: dropping it would close the connection
             stream, self.connection = await self._connect(proc)

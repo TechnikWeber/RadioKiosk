@@ -102,10 +102,11 @@ class Core:
         self.last = {"kind": kind, "title": title, **what}
         save_json("last.json", self.last)
 
-    async def replay(self):
-        if not self.last or self.last["kind"] not in self.players:
+    async def play(self, station):
+        """Play a station noted by remember()."""
+        if not station or station["kind"] not in self.players:
             raise RuntimeError("nothing has been played yet")
-        await self.players[self.last["kind"]](self.last)
+        await self.players[station["kind"]](station)
 
     def sleep_in(self, minutes):
         """Stop whatever plays after `minutes`; 0 cancels the timer."""

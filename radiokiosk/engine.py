@@ -3,7 +3,8 @@
 Runs as its own process (`python -m radiokiosk.engine`) so heavy signal
 processing never blocks the web service.
 
-  stdin   one JSON object per line: {"hz": ..., "mode": ..., "squelch": dB, "zoom": n}
+  stdin   one JSON object per line:
+          {"hz": ..., "mode": ..., "squelch": dB, "zoom": n, "stereo": "auto" | "stereo" | "mono"}
   stdout  frames of [1 byte kind][uint32 length][payload]
             A  audio, 48 kHz stereo signed 16 bit
             R  station name and radio text (RDS) as JSON, whenever they change
@@ -109,6 +110,7 @@ class Wfm:
         self.pilot = 0j
         self.stereo = False
         self.quality = 0.0     # signal above noise in dB, set by the engine
+        self.audio_mode = "auto"   # or "stereo" / "mono" to override the automatic choice
         self.rds = Rds(lowpass)
         self.news = None       # station info, when it just changed
 
@@ -122,9 +124,10 @@ class Wfm:
         # the pilot is A*sin(wt + p); its average against exp(-jwt) is A/2j * exp(jp)
         self.pilot = 0.8 * self.pilot + 0.2 * np.mean(mpx * np.conj(osc))
         level = abs(self.pilot)
-        # Stereo adds about 20 dB of hiss, so it is only worth it on a strong signal
-        self.stereo = (level > (0.012 if self.stereo else 0.025)
-                       and self.quality > (STEREO_ABOVE - 4 if self.stereo else STEREO_ABOVE))
+        self.stereo = self.audio_mode != "mono" and level > (0.012 if self.stereo else 0.025)
+        if self.audio_mode == "auto":
+            # Stereo adds about 20 dB of hiss, so it is only worth it on a strong signal
+            self.stereo &= self.quality > (STEREO_ABOVE - 4 if self.stereo else STEREO_ABOVE)
         self.news = self.rds(mpx)
         mono = self._audio(self.sum_filters, mpx)
         if not self.stereo:
@@ -262,6 +265,8 @@ class Engine:
         if mode != self.mode or hz != self.hz:
             self.demod = MODES[mode]()   # a fresh demodulator also forgets the previous station's RDS
             self.mode = mode
+        if mode == "wfm":
+            self.demod.audio_mode = command.get("stereo", "auto")
         self.hz = hz
         self.blocks = 0
         bins = self.demod.bins

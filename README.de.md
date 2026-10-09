@@ -55,7 +55,7 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Bluetooth | Bluetooth-Lautsprecher verbinden oder ein Handy über dieses Gerät abspielen lassen | `bluetoothctl`, PipeWire |
 | Wetter | aktuelles Wetter und Vorhersage für vier Tage | Open-Meteo |
 | SDR++ | das vollwertige SDR-Programm für alles Weitere | startet als normales Programm |
-| Einstellungen | Tonausgabe, Sleep-Timer, Wecker, Standort, Empfangsart | PipeWire oder PulseAudio |
+| Einstellungen | Tonausgabe, Sleep-Timer, Wecker, Ruhebildschirm, Bildschirmtastatur, Standort, Empfangsart | PipeWire oder PulseAudio |
 
 Den Stick kann immer nur ein Empfänger nutzen, deshalb beendet der Dienst den laufenden, bevor er den nächsten startet. Kacheln, deren Programm oder Hardware fehlt, sind deaktiviert.
 
@@ -63,7 +63,9 @@ UKW und der freie Empfänger nutzen den eigenen Empfänger von RadioKiosk, gesch
 
 Die Tuner-Verstärkung regelt sich beim Hören selbst nach, weil die Automatik des Sticks an einer guten Antenne übersteuert. Die Werte werden je Band gemerkt; nach einem Antennenwechsel setzt du sie in den Einstellungen zurück.
 
-Der Wecker weckt mit dem zuletzt gehörten Sender; startet der nicht, ertönt ersatzweise ein Ton. Der Rechner muss dafür laufen.
+Der Wecker weckt mit einem festen Sender oder mit dem zuletzt gehörten; startet der nicht, ertönt ersatzweise ein Ton. Der Rechner muss dafür laufen.
+
+Nach einer Weile ohne Berührung zeigt ein Ruhebildschirm Uhrzeit, Datum, Wetter und den laufenden Sender. Für die Sendersuche bringt die Oberfläche eine eigene Bildschirmtastatur mit, weil Systemtastaturen je nach Desktop verschieden sind; sie erscheint auf Touchscreens und lässt sich in den Einstellungen abschalten.
 
 Das Abhören von Funkdiensten, die nicht für die Allgemeinheit bestimmt sind, ist in vielen Ländern eingeschränkt. Der Bandplan enthält deshalb nur Rundfunk, Amateurfunk und anmeldefreie Bänder.
 
@@ -94,6 +96,7 @@ Optionale Datei `~/.config/radiokiosk/config.json`:
 | `country` | `DE` | Ländercode für die Liste beliebter Webradio-Sender |
 | `location` | nicht gesetzt | `[Breite, Länge]` für Flugzeug-Karte und Wetter; einfacher in den Einstellungen festzulegen |
 | `fm_backend`, `tuner_backend` | `engine` | Empfänger für die Kacheln UKW und Empfänger: `engine` (eingebaut) oder `rtl_fm`; auch in den Einstellungen |
+| `fm_stereo` | `auto` | UKW-Ton: `auto` (Stereo nur bei starkem Signal), `stereo` oder `mono`; auch als Knopf in der UKW-Ansicht |
 | `gain` | `auto` | Tuner-Verstärkung: `auto` regelt sie beim Hören nach, eine Zahl in dB erzwingt sie |
 | `apps` | SDR++, SDRangel | externe Programme, die als Kachel erscheinen |
 

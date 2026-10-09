@@ -84,12 +84,16 @@ def build(cfg):
 
     @routes.get("/api/alarm")
     async def alarm_get(request):
-        return web.json_response({**alarm.data, "wakes_with": (core.last or {}).get("title")})
+        return web.json_response({"enabled": alarm.data["enabled"], "time": alarm.data["time"],
+                                  "fixed": (alarm.data["station"] or {}).get("title"),
+                                  "last": (core.last or {}).get("title")})
 
     @routes.post("/api/alarm")
     async def alarm_set(request):
         body = await request.json()
-        alarm.set(body["enabled"], body["time"])
+        # "station": "last" follows what was heard last, "fix" pins the station heard last right now
+        station = {"last": None, "fix": core.last}.get(body.get("station"), alarm.data["station"])
+        alarm.set(body["enabled"], body["time"], station)
         core.update(alarm=alarm.data["time"] if alarm.data["enabled"] else None)
         return ok()
 
@@ -115,6 +119,7 @@ def build(cfg):
     @routes.get("/api/settings")
     async def settings_get(request):
         return web.json_response({"fm_backend": fm.backend_id(), "tuner_backend": tuner.backend_id(),
+                                  "fm_stereo": cfg["fm_stereo"],
                                   "backends": available_backends()})
 
     @routes.post("/api/settings")
@@ -193,6 +198,16 @@ def build(cfg):
     async def fm_tune(request):
         await fm.tune((await request.json())["mhz"])
         return ok()
+
+    @routes.post("/api/fm/stereo")
+    async def fm_stereo(request):
+        mode = (await request.json())["mode"]
+        if mode not in ("auto", "stereo", "mono"):
+            raise ValueError("unknown mode")
+        save_setting(cfg, "fm_stereo", mode)
+        if core.active is fm and fm.mhz is not None:
+            await fm.tune(fm.mhz)
+        return ok(mode=mode)
 
     @routes.get("/api/fm/names")
     async def fm_names(request):

@@ -9,7 +9,7 @@ import asyncio
 import aiohttp
 
 from ..config import load_json, save_json
-from ..util import kill
+from ..util import kill, spawn
 
 # Band III blocks used for DAB in Europe
 CHANNELS = [f"{n}{c}" for n in range(5, 13) for c in "ABCD"] + [f"13{c}" for c in "ABCDEF"]
@@ -32,7 +32,7 @@ class Dab:
 
     async def _tune(self, channel):
         await kill(self.proc)
-        self.proc = await asyncio.create_subprocess_exec(
+        self.proc = await spawn(
             "welle-cli", "-c", channel, "-w", str(self.port),
             stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
         self.channel = channel

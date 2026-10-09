@@ -14,7 +14,7 @@ from pathlib import Path
 from aiohttp import web
 
 from .. import rtlsdr
-from ..util import kill
+from ..util import kill, spawn
 from .rtlfm import RtlFmBackend
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
@@ -48,30 +48,32 @@ class EngineBackend:
 
     async def _start(self, gain_key):
         gains = self.core.gains
-        self.proc = await asyncio.create_subprocess_exec(
+        self.proc = await spawn(
             sys.executable, "-m", "radiokiosk.engine", "--gain", str(gains.known(gain_key, 28.0)),
             *(["--fixed-gain"] if gains.forced is not None else []),
             cwd=PROJECT_DIR, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE)
         self.audio = asyncio.Queue(maxsize=200)
         asyncio.create_task(self._pump(self.proc, self.audio))
 
-    def _tune(self, hz, mode, squelch=0, zoom=1):
-        self.rds = {}
+    def _tune(self, hz, mode, squelch=0, zoom=1, stereo="auto"):
+        if hz != self.tuned:
+            self.rds = {}
         self.tuned = hz
-        command = {"hz": hz, "mode": mode, "squelch": squelch, "zoom": zoom}
+        command = {"hz": hz, "mode": mode, "squelch": squelch, "zoom": zoom, "stereo": stereo}
         self.proc.stdin.write(json.dumps(command).encode() + b"\n")
 
-    async def receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1):
+    async def receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1, stereo="auto"):
         self.gain_key = gain_key
         name = self.owner.name
         if self.running():
             # the engine retunes on the fly, playback just continues
-            self.core.update(source=name, title=title, text="", error=None, detail=detail)
-            self._tune(hz, mode, squelch, zoom)
+            same = hz == self.tuned
+            self.core.update(source=name, title=title, error=None, detail=detail, **({} if same else {"text": ""}))
+            self._tune(hz, mode, squelch, zoom, stereo)
             return
         self.core.update(source=name, status="loading", title=title, text="", error=None, detail=detail)
         await self._start(gain_key)
-        self._tune(hz, mode, squelch, zoom)
+        self._tune(hz, mode, squelch, zoom, stereo)
         self.generation += 1
         port = self.core.cfg["port"]
         await self.core.mpv.play(f"http://127.0.0.1:{port}/stream/{name}?g={self.generation}", MPV_OPTIONS)
@@ -156,14 +158,14 @@ class Receiver:
         usable = available_backends()
         return wanted if usable.get(wanted) else next((n for n, ok in usable.items() if ok), wanted)
 
-    async def _receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1):
+    async def _receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1, stereo="auto"):
         """Caller holds core.lock."""
         await self.core.take(self)
         backend = self.backends[self.backend_id()]
         if self.active is not None and self.active is not backend:
             await self.active.stop()
         self.active = backend
-        await backend.receive(hz, mode, gain_key, title, detail, squelch, zoom)
+        await backend.receive(hz, mode, gain_key, title, detail, squelch, zoom, stereo)
 
     async def stream(self, request):
         if self.active is None:

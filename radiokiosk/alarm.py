@@ -1,4 +1,4 @@
-"""Alarm clock: at the set time, play whatever was heard last."""
+"""Alarm clock: at the set time, play a fixed station or whatever was heard last."""
 
 import asyncio
 import re
@@ -14,13 +14,14 @@ FALLBACK_TONE = "av://lavfi:sine=frequency=880:beep_factor=2:duration=120"
 class Alarm:
     def __init__(self, core):
         self.core = core
-        self.data = {"enabled": False, "time": "07:00", **load_json("alarm.json", {})}
+        # station: None wakes with the station heard last, otherwise a remembered station
+        self.data = {"enabled": False, "time": "07:00", "station": None, **load_json("alarm.json", {})}
         self.fired_on = None
 
-    def set(self, enabled, at):
+    def set(self, enabled, at, station):
         if not re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", at):
             raise ValueError("time must be HH:MM")
-        self.data = {"enabled": bool(enabled), "time": at}
+        self.data = {"enabled": bool(enabled), "time": at, "station": station}
         self.fired_on = None
         save_json("alarm.json", self.data)
 
@@ -35,7 +36,7 @@ class Alarm:
 
     async def ring(self):
         try:
-            await self.core.replay()
+            await self.core.play(self.data["station"] or self.core.last)
             await asyncio.sleep(FALLBACK_AFTER)
             # idle means somebody already switched the alarm off; only a station
             # that is still loading or failed needs the tone

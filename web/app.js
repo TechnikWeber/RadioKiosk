@@ -19,7 +19,10 @@ const STRINGS = {
     location: "Location", locationHint: "Move the map until the cross marks your place.", locationSave: "Use this place",
     locationSet: "set", locationUnset: "not set", sleepTimer: "Sleep timer", minutes: "min",
     alarm: "Alarm", alarmOn: "Alarm is on", alarmOff: "Alarm is off", wakesWith: "Wakes with",
-    wakesWithNothing: "Play a station once; the alarm wakes with the one heard last.",
+    wakesWithNothing: "Play a station once; the alarm can then wake with it.",
+    wakeLast: "Station heard last", wakeFixed: "Always", wakeFix: "Always wake with",
+    sound: "Sound", soundModes: { auto: "Auto", stereo: "Stereo", mono: "Mono" },
+    idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
     bluetooth: "Bluetooth", btSub: "Speakers and phone", btVisible: "Let a phone connect", btVisibleFor: "Visible for",
     btPhoneHint: "Then pick this device in the phone's Bluetooth settings and play music.",
     btScan: "Search for speakers", btScanning: "Searching…", btConnected: "connected", btPaired: "paired", btNew: "new",
@@ -52,7 +55,10 @@ const STRINGS = {
     location: "Standort", locationHint: "Verschiebe die Karte, bis das Kreuz auf deinem Ort liegt.", locationSave: "Diesen Ort übernehmen",
     locationSet: "festgelegt", locationUnset: "nicht festgelegt", sleepTimer: "Sleep-Timer", minutes: "min",
     alarm: "Wecker", alarmOn: "Wecker ist an", alarmOff: "Wecker ist aus", wakesWith: "Weckt mit",
-    wakesWithNothing: "Spiele einmal einen Sender; der Wecker weckt mit dem zuletzt gehörten.",
+    wakesWithNothing: "Spiele einmal einen Sender; danach kann der Wecker damit wecken.",
+    wakeLast: "Zuletzt gehörter Sender", wakeFixed: "Immer", wakeFix: "Immer wecken mit",
+    sound: "Ton", soundModes: { auto: "Auto", stereo: "Stereo", mono: "Mono" },
+    idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
     bluetooth: "Bluetooth", btSub: "Lautsprecher und Handy", btVisible: "Handy verbinden lassen", btVisibleFor: "Sichtbar für",
     btPhoneHint: "Wähle danach dieses Gerät in den Bluetooth-Einstellungen des Handys und spiele Musik ab.",
     btScan: "Lautsprecher suchen", btScanning: "Suche…", btConnected: "verbunden", btPaired: "gekoppelt", btNew: "neu",
@@ -126,6 +132,60 @@ function stationRow({ title, info, active, onPlay, starred, onStar }) {
     row.append(h("button", { className: "icon star" + (starred ? " on" : ""), innerHTML: icon("star"), onclick: onStar }));
   }
   return row;
+}
+
+/* ---------- preferences of this display ---------- */
+
+// Kept in the browser, not in the service: a phone used as remote control wants
+// other choices than the kiosk screen.
+const pref = (key, fallback) => {
+  try { return localStorage.getItem(key) ?? fallback; } catch (e) { return fallback; }
+};
+const setPref = (key, value) => { try { localStorage.setItem(key, value); } catch (e) { /* stays default */ } };
+
+/* ---------- on-screen keyboard ---------- */
+
+// Every desktop brings a different on-screen keyboard, or none in kiosk mode, so the
+// interface has its own. "auto" shows it on touch screens; where the system keyboard
+// works well, switch it off under Settings.
+const keyboardWanted = () => {
+  const mode = pref("keyboard", "auto");
+  return mode === "on" || (mode === "auto" && matchMedia("(pointer: coarse)").matches);
+};
+
+const KEYS = {
+  de: ["qwertzuiopü", "asdfghjklöä", "yxcvbnmß"],
+  en: ["qwertyuiop", "asdfghjkl", "zxcvbnm"],
+  numbers: ["1234567890", "-/:;()&@+", ".,?!'\"#"],
+};
+
+function keyboard(input, onEnter) {
+  let shift = false, numbers = false;
+  const el = h("div", { className: "keys" });
+  const set = value => { input.value = value; input.dispatchEvent(new Event("input")); };
+  const draw = () => {
+    const key = (label, action, className = "") => h("button", {
+      className, textContent: label, onclick: () => { action(); draw(); },
+    });
+    const letter = ch => {
+      const out = shift ? ch.toUpperCase() : ch;
+      return key(out, () => { set(input.value + out); shift = false; });
+    };
+    const rows = numbers ? KEYS.numbers : KEYS[lang];
+    el.replaceChildren(
+      h("div", { className: "key-row" }, ...[...rows[0]].map(letter)),
+      h("div", { className: "key-row" }, ...[...rows[1]].map(letter)),
+      h("div", { className: "key-row" },
+        key("⇧", () => { shift = !shift; }, shift ? "wide on" : "wide"),
+        ...[...rows[2]].map(letter),
+        key("⌫", () => set(input.value.slice(0, -1)), "wide")),
+      h("div", { className: "key-row" },
+        key(numbers ? "abc" : "123", () => { numbers = !numbers; }, "wide"),
+        key(" ", () => set(input.value + " "), "space"),
+        key("OK", onEnter, "primary wide")));
+  };
+  draw();
+  return el;
 }
 
 /* ---------- spectrum and waterfall ---------- */
@@ -238,6 +298,7 @@ const home = {
 const webradio = {
   title: t.webradio,
   tab: "favorites",
+  typing: false,
   favorites: [],
   results: [],
   query: "",
@@ -261,14 +322,27 @@ const webradio = {
   draw() {
     const tabButton = id => h("button", {
       className: this.tab === id ? "on" : "", textContent: t[id],
-      onclick: () => { this.tab = id; this.results = []; this.error = null; this.draw(); if (id === "popular") this.load(""); },
+      onclick: () => {
+        Object.assign(this, { tab: id, results: [], error: null, typing: id === "search" });
+        this.draw();
+        if (id === "popular") this.load("");
+      },
     });
     const parts = [h("div", { className: "tabs" }, tabButton("favorites"), tabButton("popular"), tabButton("search"))];
     if (this.tab === "search") {
       const input = h("input", { type: "search", value: this.query, placeholder: t.search, enterKeyHint: "search" });
-      const run = () => { this.query = input.value.trim(); if (this.query) this.load(this.query); };
+      const run = () => { this.query = input.value.trim(); this.typing = false; if (this.query) this.load(this.query); else this.draw(); };
+      input.oninput = () => { this.query = input.value; };
       input.onkeydown = e => { if (e.key === "Enter") run(); };
       parts.push(h("div", { className: "toolbar" }, input, h("button", { className: "primary", textContent: t.go, onclick: run })));
+      if (keyboardWanted()) {
+        if (this.typing) {
+          input.inputMode = "none";   // keep the system keyboard away while ours is open
+          view.replaceChildren(...parts, keyboard(input, run));
+          return;
+        }
+        input.onfocus = () => { this.typing = true; this.draw(); };
+      }
     }
     const list = this.tab === "favorites" ? this.favorites : this.results;
     if (list === null) parts.push(hint(t.loading));
@@ -288,7 +362,11 @@ const webradio = {
     view.replaceChildren(...parts);
     view.scrollTop = top;
   },
-  onState() { this.draw(); },
+  onState() {
+    // a redraw would throw away what is being typed
+    if (this.typing || (document.activeElement && document.activeElement.tagName === "INPUT")) return;
+    this.draw();
+  },
 };
 
 /* ---------- DAB+ ---------- */
@@ -333,6 +411,7 @@ const fm = {
   presets: [],
   stations: [],
   names: {},
+  sound: "auto",
   meter: h("p", { className: "label meter" }),
   fall: null,
   onSpectrum(s) {
@@ -341,8 +420,8 @@ const fm = {
   },
   async render() {
     this.fall = this.fall || makeWaterfall(hz => this.tune(Math.round(hz / 1e5) / 10));
-    [this.presets, this.stations, this.names] = await Promise.all(
-      [api("/api/fm/presets"), api("/api/fm/stations"), api("/api/fm/names")]);
+    [this.presets, this.stations, this.names, { fm_stereo: this.sound }] = await Promise.all(
+      [api("/api/fm/presets"), api("/api/fm/stations"), api("/api/fm/names"), api("/api/settings")]);
     if (state.source === "fm" && state.detail.mhz) this.mhz = state.detail.mhz;
     this.draw();
   },
@@ -368,13 +447,22 @@ const fm = {
       h("div", { className: "dial", innerHTML: `${this.mhz.toFixed(2)} <small>MHz</small>` }),
       ...(state.backends.fm === "engine" ? [this.meter, this.fall.el] : []),
       h("div", { className: "steps" }, step("− 1", -1), step("− 0.1", -0.1), step("+ 0.1", 0.1), step("+ 1", 1)),
-      h("div", { className: "toolbar" },
+      h("div", { className: "toolbar wrap" },
         h("button", { className: "primary", textContent: "▶", onclick: () => this.tune(this.mhz) }),
         h("button", {
           textContent: saved ? t.remove : t.save,
           onclick: async () => { this.presets = await api("/api/fm/presets", { mhz: this.mhz }); this.draw(); },
         }),
         h("button", { textContent: t.scan, disabled: !!scanning, onclick: () => api("/api/fm/scan", {}) }),
+        state.backends.fm !== "engine" ? null : h("button", {
+          textContent: `${t.sound}: ${t.soundModes[this.sound]}`,
+          onclick: () => {
+            const modes = Object.keys(t.soundModes);
+            this.sound = modes[(modes.indexOf(this.sound) + 1) % modes.length];
+            this.draw();
+            api("/api/fm/stereo", { mode: this.sound });
+          },
+        }),
       ),
       ...(scanning ? [hint(t.fmScanning)] : []),
       ...chips(t.fmSaved, this.presets),
@@ -653,13 +741,14 @@ const alarm = {
     this.data = await api("/api/alarm");
     this.draw();
   },
-  async change(minutes, enabled = this.data.enabled) {
+  async change(minutes, enabled = this.data.enabled, station) {
     const [hh, mm] = this.data.time.split(":").map(Number);
     const total = (hh * 60 + mm + minutes + 1440) % 1440;
     const time = `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
     Object.assign(this.data, { time, enabled });
     this.draw();
-    await api("/api/alarm", { enabled, time });
+    await api("/api/alarm", { enabled, time, station });
+    if (station) this.render();
   },
   draw() {
     const step = (label, minutes) => h("button", { textContent: label, onclick: () => this.change(minutes) });
@@ -670,7 +759,19 @@ const alarm = {
         className: this.data.enabled ? "primary" : "", textContent: this.data.enabled ? t.alarmOn : t.alarmOff,
         onclick: () => this.change(0, !this.data.enabled),
       })),
-      hint(this.data.wakes_with ? `${t.wakesWith}: ${this.data.wakes_with}` : t.wakesWithNothing));
+      h("p", { className: "label", textContent: t.wakesWith }),
+      ...(this.data.last || this.data.fixed ? [
+        stationRow({
+          title: t.wakeLast, info: this.data.last || "", active: !this.data.fixed,
+          onPlay: () => this.change(0, this.data.enabled, "last"),
+        }),
+        // pins whatever was heard last; to pick another station, play it first
+        stationRow({
+          title: this.data.fixed ? `${t.wakeFixed}: ${this.data.fixed}` : `${t.wakeFix}: ${this.data.last}`,
+          info: this.data.fixed && this.data.last && this.data.last !== this.data.fixed ? `→ ${t.wakeFix}: ${this.data.last}` : "",
+          active: !!this.data.fixed, onPlay: () => this.change(0, this.data.enabled, "fix"),
+        }),
+      ] : [hint(t.wakesWithNothing)]));
   },
   back() { show(settings); return true; },
 };
@@ -756,6 +857,21 @@ const settings = {
         }),
         h("button", { textContent: `${t.alarm}: ${state.alarm || t.off}`, onclick: () => show(alarm) }),
         h("button", {
+          textContent: `${t.idle}: ${Number(pref("idle", "2")) ? pref("idle", "2") + " " + t.minutes : t.off}`,
+          onclick: () => {
+            setPref("idle", IDLE_CHOICES[(IDLE_CHOICES.indexOf(Number(pref("idle", "2"))) + 1) % IDLE_CHOICES.length]);
+            this.render();
+          },
+        }),
+        h("button", {
+          textContent: `${t.keyboard}: ${t.keyboardModes[pref("keyboard", "auto")]}`,
+          onclick: () => {
+            const modes = Object.keys(t.keyboardModes);
+            setPref("keyboard", modes[(modes.indexOf(pref("keyboard", "auto")) + 1) % modes.length]);
+            this.render();
+          },
+        }),
+        h("button", {
           textContent: `${t.location}: ${location ? t.locationSet : t.locationUnset}`, onclick: () => show(locationPicker),
         })),
       h("p", { className: "hint", textContent: t.output }),
@@ -771,6 +887,48 @@ const settings = {
     );
   },
 };
+
+/* ---------- idle screen ---------- */
+
+const IDLE_CHOICES = [0, 1, 2, 5, 15];   // minutes without a touch; 0 switches it off
+const idle = $("idle");
+let lastTouch = Date.now();
+let idleWeather = null, idleWeatherAt = 0;
+
+function drawIdle() {
+  const now = new Date();
+  $("idle-time").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  $("idle-date").textContent = now.toLocaleDateString([], { weekday: "long", day: "numeric", month: "long" });
+  $("idle-extra").textContent = [
+    idleWeather ? `${Math.round(idleWeather.temperature)}° ${describe(idleWeather.code)}` : null,
+    state.alarm ? `⏰ ${state.alarm}` : null,
+  ].filter(Boolean).join("  ·  ");
+  const playing = state.source && state.status !== "error";
+  $("idle-title").textContent = playing ? state.title : "";
+  $("idle-text").textContent = playing ? state.text : "";
+  // shift a little every minute so nothing burns into the display
+  const minute = now.getMinutes();
+  $("idle-box").style.transform = `translate(${(minute % 5 - 2) * 14}px, ${(minute % 3 - 1) * 10}px)`;
+  if (Date.now() - idleWeatherAt > 15 * 60e3) {
+    idleWeatherAt = Date.now();
+    api("/api/weather").then(w => { idleWeather = w.now; }, () => { idleWeather = null; });   // no location: no weather
+  }
+}
+
+function showIdle() {
+  idle.hidden = false;
+  drawIdle();
+}
+
+for (const event of ["pointerdown", "keydown"]) {
+  addEventListener(event, () => { lastTouch = Date.now(); idle.hidden = true; }, true);
+}
+setInterval(() => {
+  const minutes = Number(pref("idle", "2"));
+  const watching = current === adsb || current === locationPicker;   // a map is there to be looked at
+  if (idle.hidden && minutes && !watching && Date.now() - lastTouch > minutes * 60e3) showIdle();
+  else if (!idle.hidden) drawIdle();
+}, 1000);
 
 /* ---------- shared chrome ---------- */
 
@@ -796,7 +954,9 @@ function applyState(next) {
 // deep links such as #fm or #tuner/2m open a view directly
 async function openLink() {
   const [name, band] = location.hash.slice(1).split("/");
+  if (name === "idle") showIdle();
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings }[name] || home;
+  if (target === webradio && band === "search") Object.assign(webradio, { tab: "search", typing: true });
   show(target);
   if (target === tuner && band) {
     const bands = await api("/api/tuner/bands");

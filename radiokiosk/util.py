@@ -1,6 +1,8 @@
 """Process and hardware helpers."""
 
 import asyncio
+import ctypes
+import signal
 from pathlib import Path
 
 # USB IDs of RTL2832U based sticks (RTL-SDR Blog V3/V4 and generic ones) and the
@@ -47,3 +49,16 @@ async def kill(proc, timeout=3):
             await asyncio.wait_for(proc.wait(), 1)
         except asyncio.TimeoutError:
             pass
+
+
+def die_with_parent():
+    """For subprocess preexec_fn: have the kernel stop the child when the service dies.
+
+    Otherwise a receiver would outlive a crashed or killed service and keep the SDR stick.
+    """
+    PR_SET_PDEATHSIG = 1
+    ctypes.CDLL(None).prctl(PR_SET_PDEATHSIG, signal.SIGTERM)
+
+
+async def spawn(*args, **kwargs):
+    return await asyncio.create_subprocess_exec(*args, preexec_fn=die_with_parent, **kwargs)

@@ -55,7 +55,7 @@ A small Python service controls the receivers and serves a web interface that a 
 | Bluetooth | connect a Bluetooth speaker, or let a phone play through this device | `bluetoothctl`, PipeWire |
 | Weather | current weather and a four-day forecast | Open-Meteo |
 | SDR++ | the full SDR program for everything else | started as a normal program |
-| Settings | audio output, sleep timer, alarm clock, location, receiver backend | PipeWire or PulseAudio |
+| Settings | audio output, sleep timer, alarm clock, idle screen, on-screen keyboard, location, receiver backend | PipeWire or PulseAudio |
 
 Only one receiver can use the stick at a time, so the service stops the running one before starting the next. Tiles whose program or hardware is missing are disabled.
 
@@ -63,7 +63,9 @@ FM and the free receiver use RadioKiosk's own receiver, written in Python with N
 
 The tuner gain adjusts itself while listening, because the stick's own automatic gain overdrives on a good antenna. The values are remembered per band; reset them under Settings after changing the antenna.
 
-The alarm clock wakes with the station that was heard last; if that does not start, it falls back to a tone. The computer has to be running for it.
+The alarm clock wakes with a fixed station or with the one heard last; if that does not start, it falls back to a tone. The computer has to be running for it.
+
+After a while without a touch, an idle screen shows the time, date, weather and what is playing. The interface brings its own on-screen keyboard for the station search, because system keyboards differ from desktop to desktop; it appears on touch screens and can be switched off under Settings.
 
 Listening to radio services that are not meant for the public is restricted in many countries. The band plan therefore only contains broadcast, amateur radio and licence-free bands.
 
@@ -94,6 +96,7 @@ Optional file `~/.config/radiokiosk/config.json`:
 | `country` | `DE` | country code for the list of popular web radio stations |
 | `location` | not set | `[latitude, longitude]` for the aircraft map and the weather; easier to set under Settings |
 | `fm_backend`, `tuner_backend` | `engine` | receiver for the FM and Receiver tiles: `engine` (built-in) or `rtl_fm`; also under Settings |
+| `fm_stereo` | `auto` | FM sound: `auto` (stereo only on a strong signal), `stereo` or `mono`; also a button in the FM view |
 | `gain` | `auto` | tuner gain: `auto` adjusts it while listening, a number in dB forces it |
 | `apps` | SDR++, SDRangel | external programs shown as tiles |
 

@@ -9,7 +9,7 @@ import json
 import shutil
 
 from .config import RUNTIME_DIR
-from .util import kill
+from .util import kill, spawn
 
 
 class Mpv:
@@ -33,7 +33,7 @@ class Mpv:
         await kill(self.proc)
         RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
         self.socket.unlink(missing_ok=True)
-        self.proc = await asyncio.create_subprocess_exec(
+        self.proc = await spawn(
             "mpv", "--idle=yes", "--no-video", "--no-terminal", "--no-config",
             f"--input-ipc-server={self.socket}",
             stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL,

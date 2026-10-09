@@ -5,7 +5,7 @@ import json
 
 from ..config import CONFIG_DIR
 from ..gain import TUNER_GAINS
-from ..util import kill, sdr_devices
+from ..util import kill, sdr_devices, spawn
 
 
 def seed_sdrpp(gain_db):
@@ -43,7 +43,7 @@ class Apps:
             seed_sdrpp(self.core.gains.known("fm", 29.7))
         async with self.core.lock:
             await self.core.take(self)
-            self.proc = await asyncio.create_subprocess_exec(
+            self.proc = await spawn(
                 *app["command"], stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
             self.core.update(source=self.name, status="playing", title=app["name"], text="",
                              error=None, detail={"app": app_id})

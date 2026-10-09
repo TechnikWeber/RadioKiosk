@@ -4,7 +4,7 @@ import asyncio
 import statistics
 
 from ..config import load_json, save_json
-from ..util import kill
+from ..util import kill, spawn
 from .receiver import Receiver
 
 # one level measurement every 2.4 MHz covers the whole band
@@ -31,7 +31,8 @@ class Fm(Receiver):
             name = self.names.get(f"{mhz:.1f}")
             title = f"{name} · {mhz:.2f} MHz" if name else f"{mhz:.2f} MHz"
             self.core.remember("fm", title, mhz=mhz)
-            await self._receive(int(mhz * 1e6), "wfm", "fm", title, {"mhz": mhz})
+            stereo = self.core.cfg["fm_stereo"]
+            await self._receive(int(mhz * 1e6), "wfm", "fm", title, {"mhz": mhz, "stereo": stereo}, stereo=stereo)
 
     def on_rds(self, info):
         if self.probing or self.mhz is None:
@@ -55,7 +56,7 @@ class Fm(Receiver):
                              detail={"scan": True})
             try:
                 gain = await self.core.gains.get("fm", BAND_PROBES, remeasure=True)
-                self.scanner = await asyncio.create_subprocess_exec(
+                self.scanner = await spawn(
                     "rtl_power", "-f", "87.5M:108M:50k", "-i", "2", "-1", "-g", str(gain), "-",
                     stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
                 out, _ = await asyncio.wait_for(self.scanner.communicate(), 30)

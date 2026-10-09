@@ -10,7 +10,7 @@ import shutil
 
 from aiohttp import web
 
-from ..util import kill, sdr_devices
+from ..util import kill, sdr_devices, spawn
 
 # rtl_fm arguments and output sample rate per mode. For wfm the stick samples at
 # 5x the output rate: rtl_fm's resampler distorts on fractional ratios.
@@ -43,7 +43,7 @@ class RtlFmBackend:
     def available():
         return shutil.which("rtl_fm") is not None
 
-    async def receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1):
+    async def receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1, stereo="auto"):
         if self.proc is not None:
             await kill(self.proc)
             await asyncio.sleep(0.3)  # reopening the stick immediately can hang it
@@ -62,7 +62,7 @@ class RtlFmBackend:
         self.squelch = squelch
         if squelch:
             args += ["-l", str(int(squelch * SQUELCH_PER_DB))]
-        self.proc = await asyncio.create_subprocess_exec(
+        self.proc = await spawn(
             *args, "-", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
         self.generation += 1
         options = ("demuxer=rawaudio,demuxer-rawaudio-format=s16le,"
