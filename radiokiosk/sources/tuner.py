@@ -4,27 +4,30 @@ import json
 from pathlib import Path
 
 from ..config import load_json, save_json
-from .rtlfm import MODES, RtlFm
+from .receiver import Receiver
 
 BANDS = json.loads((Path(__file__).resolve().parent.parent / "bands.json").read_text())
 
 
-class Tuner(RtlFm):
+MODES = ("wfm", "nfm", "am", "usb", "lsb")
+
+
+class Tuner(Receiver):
     name = "tuner"
 
     def __init__(self, core):
         super().__init__(core)
         self.favorites = load_json("tuner_favorites.json", [])
 
-    async def tune(self, hz, mode, squelch=0, label=""):
+    async def tune(self, hz, mode, squelch=0, zoom=1, label=""):
         hz = int(min(1.75e9, max(100e3, float(hz))))
         if mode not in MODES:
             raise RuntimeError("unknown mode")
-        # signal levels differ a lot between bands, so the gain is measured per 2 MHz slice
+        # signal levels differ a lot between bands, so the gain is remembered per 2 MHz slice
         gain_key = f"{hz // 2_000_000 * 2}MHz"
         async with self.core.lock:
-            await self._receive(hz, mode, gain_key, [hz], label or self.format(hz),
-                                {"hz": hz, "mode": mode, "squelch": squelch}, squelch)
+            await self._receive(hz, mode, gain_key, label or self.format(hz),
+                                {"hz": hz, "mode": mode, "squelch": squelch, "zoom": zoom}, squelch, zoom)
 
     @staticmethod
     def format(hz):

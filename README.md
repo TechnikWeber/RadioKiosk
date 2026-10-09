@@ -49,13 +49,15 @@ A small Python service controls the receivers and serves a web interface that a 
 |---|---|---|
 | Web radio | station search, popular stations, favorites | radio-browser.info, `mpv` |
 | DAB+ | station scan, station list, scrolling text | `welle-cli`, `mpv` |
-| FM | band scan, presets, manual tuning | `rtl_fm`, `rtl_power`, `mpv` |
-| Receiver | free tuning in FM, AM and sideband with a band plan: shortwave, amateur radio, PMR446, Freenet, CB | `rtl_fm`, `mpv` |
+| FM | stereo, band scan, presets, spectrum and waterfall | built-in receiver, `rtl_power`, `mpv` |
+| Receiver | free tuning in FM, AM and sideband with waterfall, squelch and a band plan: shortwave, amateur radio, PMR446, Freenet, CB | built-in receiver, `mpv` |
 | SDR++ | the full SDR program for everything else | started as a normal program |
 
 Only one receiver can use the stick at a time, so the service stops the running one before starting the next. Tiles whose program or hardware is missing are disabled.
 
-The tuner gain is measured automatically once per band, because the stick's own automatic gain overdrives on a good antenna. After changing the antenna, measure again under Settings.
+FM and the free receiver use RadioKiosk's own receiver, written in Python with NumPy: it demodulates, draws the waterfall and retunes without restarting the stick.
+
+The tuner gain adjusts itself while listening, because the stick's own automatic gain overdrives on a good antenna. The values are remembered per band; reset them under Settings after changing the antenna.
 
 Listening to radio services that are not meant for the public is restricted in many countries. The band plan therefore only contains broadcast, amateur radio and licence-free bands.
 
@@ -84,7 +86,7 @@ Optional file `~/.config/radiokiosk/config.json`:
 | `host` | `127.0.0.1` | `0.0.0.0` allows control from other devices on the network (no login) |
 | `port` | `8080` | port of the web interface |
 | `country` | `DE` | country code for the list of popular web radio stations |
-| `gain` | `auto` | tuner gain: `auto` measures it once per band, a number in dB forces it |
+| `gain` | `auto` | tuner gain: `auto` adjusts it while listening, a number in dB forces it |
 | `apps` | SDR++, SDRangel | external programs shown as tiles |
 
 ## License

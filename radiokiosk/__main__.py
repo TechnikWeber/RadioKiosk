@@ -140,7 +140,8 @@ def build(cfg):
     @routes.post("/api/tuner/tune")
     async def tuner_tune(request):
         body = await request.json()
-        await tuner.tune(body["hz"], body["mode"], body.get("squelch", 0), body.get("label", ""))
+        await tuner.tune(body["hz"], body["mode"], body.get("squelch", 0), body.get("zoom", 1),
+                         body.get("label", ""))
         return ok()
 
     @routes.post("/api/gain/reset")

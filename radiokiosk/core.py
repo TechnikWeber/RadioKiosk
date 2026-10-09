@@ -10,6 +10,7 @@ import shutil
 from . import audio
 from .gain import Gains
 from .mpv import Mpv
+from . import rtlsdr
 from .util import sdr_present
 
 
@@ -22,6 +23,7 @@ class Core:
         self.lock = asyncio.Lock()
         self.mpv = Mpv(self._on_mpv)
         self.gains = Gains(cfg)
+        self.receiver_available = rtlsdr.available()
         self.state = {
             "source": None, "status": "idle", "title": "", "text": "", "error": None,
             "volume": None, "muted": False, "detail": {},
@@ -33,7 +35,7 @@ class Core:
             "mpv": Mpv.available(),
             "sdr": sdr,
             "dab": shutil.which("welle-cli") is not None,
-            "fm": shutil.which("rtl_fm") is not None,
+            "fm": self.receiver_available,
             "apps": [
                 {"id": a["id"], "name": a["name"], "needs_sdr": a.get("needs_sdr", False),
                  "available": shutil.which(a["command"][0]) is not None}
@@ -58,6 +60,17 @@ class Core:
                 await ws.send_json(snap)
             except Exception:
                 self.clients.discard(ws)
+
+    def broadcast_bytes(self, payload):
+        """Spectrum lines for the waterfall; a slow browser must not hold up the others."""
+        for ws in list(self.clients):
+            asyncio.create_task(self._send_bytes(ws, payload))
+
+    async def _send_bytes(self, ws, payload):
+        try:
+            await ws.send_bytes(payload)
+        except Exception:
+            self.clients.discard(ws)
 
     async def take(self, source):
         """Make `source` the active one, stopping the previous owner first."""

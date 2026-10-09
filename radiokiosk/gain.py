@@ -2,8 +2,9 @@
 
 The stick's own automatic gain overdrives its ADC on a good antenna (heavy
 noise and distortion), and one fixed value cannot fit every antenna and band.
-So the launcher measures the raw signal level once per band and picks the gain
-that puts it at a healthy level.
+The receiver engine therefore adjusts the gain itself while it runs; this
+module measures it for programs that cannot (band scan, SDR++) and remembers
+the result per band.
 """
 
 import asyncio
@@ -63,6 +64,11 @@ class Gains:
             self.cache[key] = await calibrate(frequencies)
             save_json("gains.json", self.cache)
         return self.cache[key]
+
+    def remember(self, key, gain):
+        if self.cache.get(key) != gain:
+            self.cache[key] = gain
+            save_json("gains.json", self.cache)
 
     def forget(self):
         self.cache = {}

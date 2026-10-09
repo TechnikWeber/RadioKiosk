@@ -12,10 +12,11 @@ const STRINGS = {
     running: "Running", quit: "Quit", expert: "Expert receiver",
     output: "Audio output", save: "Save", remove: "Remove",
     tuner: "Receiver", tunerSub: "Shortwave, 2 m, 70 cm …", squelch: "Squelch", off: "off",
+    signal: "Signal", gainLabel: "Gain", stereo: "Stereo", muted: "squelched", zoom: "Zoom",
     fmScanning: "Scanning the band…", fmFound: "Found", fmSaved: "Saved",
     enterFrequency: "Up to 1750: MHz · from 2000: kHz", cancel: "Cancel",
-    relevel: "Measure signal levels again",
-    relevelHint: "The tuner gain is measured once per band. Measure again after changing the antenna or location.",
+    relevel: "Reset remembered gain",
+    relevelHint: "The tuner gain adjusts itself and is remembered per band. Reset it after changing the antenna or location.",
     kinds: { analog: "Headphone jack / built-in", usb: "USB", bluetooth: "Bluetooth", hdmi: "HDMI" },
   },
   de: {
@@ -29,10 +30,11 @@ const STRINGS = {
     running: "Läuft", quit: "Beenden", expert: "Experten-Empfänger",
     output: "Tonausgabe", save: "Speichern", remove: "Entfernen",
     tuner: "Empfänger", tunerSub: "Kurzwelle, 2 m, 70 cm …", squelch: "Rauschsperre", off: "aus",
+    signal: "Signal", gainLabel: "Verstärkung", stereo: "Stereo", muted: "Rauschsperre zu", zoom: "Zoom",
     fmScanning: "Suche Sender im Band…", fmFound: "Gefunden", fmSaved: "Gespeichert",
     enterFrequency: "Bis 1750: MHz · ab 2000: kHz", cancel: "Abbrechen",
-    relevel: "Pegel neu einmessen",
-    relevelHint: "Die Verstärkung wird je Band einmal eingemessen. Nach Antennen- oder Standortwechsel neu einmessen.",
+    relevel: "Gemerkte Verstärkung zurücksetzen",
+    relevelHint: "Die Verstärkung regelt sich selbst und wird je Band gemerkt. Nach Antennen- oder Standortwechsel zurücksetzen.",
     kinds: { analog: "Klinke / eingebaut", usb: "USB", bluetooth: "Bluetooth", hdmi: "HDMI" },
   },
 };
@@ -92,6 +94,78 @@ function stationRow({ title, info, active, onPlay, starred, onStar }) {
   return row;
 }
 
+/* ---------- spectrum and waterfall ---------- */
+
+const PALETTE = (() => {
+  // dark blue -> cyan -> yellow -> white
+  const stops = [[0, 8, 12, 40], [0.35, 20, 90, 170], [0.6, 40, 200, 200], [0.8, 250, 220, 80], [1, 255, 255, 255]];
+  const colors = new Uint8ClampedArray(256 * 4);
+  for (let i = 0; i < 256; i++) {
+    const x = i / 255;
+    const k = stops.findIndex(stop => stop[0] >= x) || 1;
+    const [a, b] = [stops[k - 1], stops[k]];
+    const f = (x - a[0]) / (b[0] - a[0]);
+    for (let c = 0; c < 3; c++) colors[i * 4 + c] = a[c + 1] + (b[c + 1] - a[c + 1]) * f;
+    colors[i * 4 + 3] = 255;
+  }
+  return colors;
+})();
+
+// One spectrum line from the receiver engine: header, then one byte per point (0..255 = -120..0 dBFS).
+function parseSpectrum(buffer) {
+  const head = new DataView(buffer);
+  const flags = head.getUint8(36);
+  return {
+    start: head.getFloat64(0, true), span: head.getFloat64(8, true), tuned: head.getFloat64(16, true),
+    snr: head.getFloat32(28, true), gain: head.getFloat32(32, true),
+    stereo: !!(flags & 1), squelched: !!(flags & 2), line: new Uint8Array(buffer, 37),
+  };
+}
+
+const meterText = s => [
+  `${t.signal} ${Math.max(0, s.snr).toFixed(0)} dB`, `${t.gainLabel} ${s.gain.toFixed(0)} dB`,
+  s.stereo ? t.stereo : null, s.squelched ? t.muted : null,
+].filter(Boolean).join(" · ");
+
+// Spectrum trace on top, waterfall below. The element keeps its picture while views redraw around it.
+function makeWaterfall(onTune) {
+  const TRACE = 48, ROWS = 72;
+  const canvas = h("canvas", { className: "waterfall", width: 1024, height: TRACE + ROWS });
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const row = ctx.createImageData(1024, 1);
+  let last = null, floor = 60;
+  canvas.onclick = e => {
+    if (!last) return;
+    const box = canvas.getBoundingClientRect();
+    onTune(last.start + (e.clientX - box.left) / box.width * last.span);
+  };
+  return {
+    el: canvas,
+    push(s) {
+      if (!last || last.start !== s.start || last.span !== s.span) ctx.clearRect(0, 0, 1024, TRACE + ROWS);
+      last = s;
+      // follow the noise floor so the colours fit weak and strong bands alike
+      const sorted = Uint8Array.from(s.line).sort();
+      floor += (sorted[300] - floor) * 0.1;
+      const scale = v => Math.min(1, Math.max(0, (v - floor + 6) / 110));   // about 50 dB of range
+      ctx.drawImage(canvas, 0, TRACE, 1024, ROWS - 1, 0, TRACE + 1, 1024, ROWS - 1);
+      for (let x = 0; x < 1024; x++) {
+        row.data.set(PALETTE.subarray(Math.round(scale(s.line[x]) * 255) * 4, Math.round(scale(s.line[x]) * 255) * 4 + 4), x * 4);
+      }
+      ctx.putImageData(row, 0, TRACE);
+      ctx.clearRect(0, 0, 1024, TRACE);
+      ctx.beginPath();
+      for (let x = 0; x < 1024; x++) ctx.lineTo(x, TRACE - 2 - scale(s.line[x]) * (TRACE - 4));
+      ctx.strokeStyle = "#93a1b3";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      const marker = (s.tuned - s.start) / s.span * 1024;
+      ctx.fillStyle = "#ffb347";
+      ctx.fillRect(marker - 1, 0, 2, TRACE);
+    },
+  };
+}
+
 /* ---------- home ---------- */
 
 const home = {
@@ -106,8 +180,8 @@ const home = {
     view.replaceChildren(h("div", { className: "tiles" },
       tile("webradio", t.webradio, c.mpv ? null : t.noMpv, () => show(webradio)),
       tile("dab", t.dab, c.dab ? sdrProblem : `welle-cli ${t.notInstalled}`, () => show(dab)),
-      tile("fm", t.fm, c.fm ? sdrProblem : `rtl_fm ${t.notInstalled}`, () => show(fm)),
-      tile("tuner", t.tuner, c.fm ? sdrProblem : `rtl_fm ${t.notInstalled}`, () => show(tuner), t.tunerSub),
+      tile("fm", t.fm, c.fm ? sdrProblem : `librtlsdr ${t.notInstalled}`, () => show(fm)),
+      tile("tuner", t.tuner, c.fm ? sdrProblem : `librtlsdr ${t.notInstalled}`, () => show(tuner), t.tunerSub),
       ...c.apps.map(a => {
         const running = state.source === "app" && state.detail.app === a.id;
         const el = tile("app", a.name, a.available ? (a.needs_sdr ? sdrProblem : null) : t.notInstalled,
@@ -221,7 +295,14 @@ const fm = {
   mhz: 98.5,
   presets: [],
   stations: [],
+  meter: h("p", { className: "label meter" }),
+  fall: null,
+  onSpectrum(s) {
+    this.fall.push(s);
+    this.meter.textContent = meterText(s);
+  },
   async render() {
+    this.fall = this.fall || makeWaterfall(hz => this.tune(Math.round(hz / 1e5) / 10));
     [this.presets, this.stations] = await Promise.all([api("/api/fm/presets"), api("/api/fm/stations")]);
     if (state.source === "fm" && state.detail.mhz) this.mhz = state.detail.mhz;
     this.draw();
@@ -245,6 +326,8 @@ const fm = {
     const saved = this.presets.includes(this.mhz);
     view.replaceChildren(
       h("div", { className: "dial", innerHTML: `${this.mhz.toFixed(2)} <small>MHz</small>` }),
+      this.meter,
+      this.fall.el,
       h("div", { className: "steps" }, step("− 1", -1), step("− 0.1", -0.1), step("+ 0.1", 0.1), step("+ 1", 1)),
       h("div", { className: "toolbar" },
         h("button", { className: "primary", textContent: "▶", onclick: () => this.tune(this.mhz) }),
@@ -270,7 +353,8 @@ const fm = {
 /* ---------- receiver (free tuning) ---------- */
 
 const MODE_NAMES = { nfm: "FM", wfm: "WFM", am: "AM", usb: "USB", lsb: "LSB" };
-const SQUELCH_LEVELS = [0, 50, 100, 150, 250];
+const SQUELCH_LEVELS = [0, 3, 6, 10, 15];   // dB above the noise floor
+const ZOOMS = [1, 4, 16, 64];
 const formatHz = hz => hz < 30e6
   ? `${(hz / 1e3).toFixed(1)} <small>kHz</small>` : `${(hz / 1e6).toFixed(4)} <small>MHz</small>`;
 
@@ -280,8 +364,18 @@ const tuner = {
   favorites: [],
   band: null,      // null shows the band list
   entry: null,     // digits typed on the number pad, null when it is closed
-  hz: 145500000, mode: "nfm", squelch: 0, label: "",
+  hz: 145500000, mode: "nfm", squelch: 0, zoom: 1, label: "",
+  meter: h("p", { className: "label meter" }),
+  fall: null,
+  onSpectrum(s) {
+    this.fall.push(s);
+    this.meter.textContent = meterText(s);
+  },
   async render() {
+    this.fall = this.fall || makeWaterfall(hz => {
+      const step = this.band ? this.band.step : 1000;
+      this.tune(Math.round(hz / step) * step);
+    });
     [this.bands, this.favorites] = await Promise.all([api("/api/tuner/bands"), api("/api/tuner/favorites")]);
     this.draw();
   },
@@ -305,7 +399,7 @@ const tuner = {
     this.draw();
     clearTimeout(this.timer);
     this.timer = setTimeout(() => api("/api/tuner/tune",
-      { hz: this.hz, mode: this.mode, squelch: this.mode === "nfm" ? this.squelch : 0, label: this.label }), 400);
+      { hz: this.hz, mode: this.mode, squelch: this.mode === "nfm" ? this.squelch : 0, zoom: this.zoom, label: this.label }), 400);
   },
   draw() {
     $("heading").textContent = this.band ? tr(this.band.name) : this.title;
@@ -316,6 +410,8 @@ const tuner = {
     const top = view.scrollTop;
     view.replaceChildren(
       h("div", { className: "dial", innerHTML: formatHz(this.hz), onclick: () => { this.entry = ""; this.draw(); } }),
+      this.meter,
+      this.fall.el,
       h("div", { className: "steps five" }, ...Object.keys(MODE_NAMES).map(m => h("button", {
         className: m === this.mode ? "on" : "", textContent: MODE_NAMES[m], onclick: () => this.tune(this.hz, m, this.label),
       }))),
@@ -329,12 +425,19 @@ const tuner = {
           },
         }),
         this.mode === "nfm" ? h("button", {
-          textContent: `${t.squelch}: ${this.squelch || t.off}`,
+          textContent: `${t.squelch}: ${this.squelch ? this.squelch + " dB" : t.off}`,
           onclick: () => {
             this.squelch = SQUELCH_LEVELS[(SQUELCH_LEVELS.indexOf(this.squelch) + 1) % SQUELCH_LEVELS.length];
             this.tune(this.hz, this.mode, this.label);
           },
         }) : null,
+        h("button", {
+          textContent: `${t.zoom} ×${this.zoom}`,
+          onclick: () => {
+            this.zoom = ZOOMS[(ZOOMS.indexOf(this.zoom) + 1) % ZOOMS.length];
+            this.tune(this.hz, this.mode, this.label);
+          },
+        }),
       ),
       ...this.band.presets.map(p => stationRow({
         title: tr(p.name), info: `${formatHz(p.hz).replace(/<\/?small>/g, "")} · ${MODE_NAMES[p.mode || this.band.mode]}`,
@@ -423,7 +526,12 @@ async function openLink() {
 
 function connect() {
   const ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.binaryType = "arraybuffer";
   ws.onmessage = e => {
+    if (typeof e.data !== "string") {
+      if (current && current.onSpectrum) current.onSpectrum(parseSpectrum(e.data));
+      return;
+    }
     const first = current === null;
     applyState(JSON.parse(e.data));
     if (first) openLink();

@@ -173,7 +173,7 @@
   },
   "mode": "nfm",
   "step": 12500,
-  "squelch": 100,
+  "squelch": 6,
   "presets": [
    {
     "hz": 145500000,
@@ -263,7 +263,7 @@
   },
   "mode": "nfm",
   "step": 12500,
-  "squelch": 100,
+  "squelch": 6,
   "presets": [
    {
     "hz": 433500000,
@@ -308,7 +308,7 @@
   "name": "PMR446",
   "mode": "nfm",
   "step": 12500,
-  "squelch": 100,
+  "squelch": 6,
   "presets": [
    {
     "hz": 446006250,
@@ -429,7 +429,7 @@
   "name": "Freenet",
   "mode": "nfm",
   "step": 12500,
-  "squelch": 100,
+  "squelch": 6,
   "presets": [
    {
     "hz": 149025000,
@@ -483,7 +483,7 @@
   },
   "mode": "nfm",
   "step": 10000,
-  "squelch": 100,
+  "squelch": 6,
   "presets": [
    {
     "hz": 26965000,

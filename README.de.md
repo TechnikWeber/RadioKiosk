@@ -49,13 +49,15 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 |---|---|---|
 | Webradio | Sendersuche, beliebte Sender, Favoriten | radio-browser.info, `mpv` |
 | DAB+ | Sendersuchlauf, Senderliste, Lauftext | `welle-cli`, `mpv` |
-| UKW | Sendersuchlauf, Speicherplätze, manuelles Abstimmen | `rtl_fm`, `rtl_power`, `mpv` |
-| Empfänger | freies Abstimmen in FM, AM und Seitenband mit Bandplan: Kurzwelle, Amateurfunk, PMR446, Freenet, CB | `rtl_fm`, `mpv` |
+| UKW | Stereo, Sendersuchlauf, Speicherplätze, Spektrum und Wasserfall | eingebauter Empfänger, `rtl_power`, `mpv` |
+| Empfänger | freies Abstimmen in FM, AM und Seitenband mit Wasserfall, Rauschsperre und Bandplan: Kurzwelle, Amateurfunk, PMR446, Freenet, CB | eingebauter Empfänger, `mpv` |
 | SDR++ | das vollwertige SDR-Programm für alles Weitere | startet als normales Programm |
 
 Den Stick kann immer nur ein Empfänger nutzen, deshalb beendet der Dienst den laufenden, bevor er den nächsten startet. Kacheln, deren Programm oder Hardware fehlt, sind deaktiviert.
 
-Die Tuner-Verstärkung wird je Band einmal automatisch eingemessen, weil die Automatik des Sticks an einer guten Antenne übersteuert. Nach einem Antennenwechsel misst du in den Einstellungen neu ein.
+UKW und der freie Empfänger nutzen den eigenen Empfänger von RadioKiosk, geschrieben in Python mit NumPy: Er demoduliert, zeichnet den Wasserfall und stimmt um, ohne den Stick neu zu starten.
+
+Die Tuner-Verstärkung regelt sich beim Hören selbst nach, weil die Automatik des Sticks an einer guten Antenne übersteuert. Die Werte werden je Band gemerkt; nach einem Antennenwechsel setzt du sie in den Einstellungen zurück.
 
 Das Abhören von Funkdiensten, die nicht für die Allgemeinheit bestimmt sind, ist in vielen Ländern eingeschränkt. Der Bandplan enthält deshalb nur Rundfunk, Amateurfunk und anmeldefreie Bänder.
 
@@ -84,7 +86,7 @@ Optionale Datei `~/.config/radiokiosk/config.json`:
 | `host` | `127.0.0.1` | `0.0.0.0` erlaubt die Bedienung von anderen Geräten im Netz (ohne Anmeldung) |
 | `port` | `8080` | Port der Weboberfläche |
 | `country` | `DE` | Ländercode für die Liste beliebter Webradio-Sender |
-| `gain` | `auto` | Tuner-Verstärkung: `auto` misst sie je Band einmal ein, eine Zahl in dB erzwingt sie |
+| `gain` | `auto` | Tuner-Verstärkung: `auto` regelt sie beim Hören nach, eine Zahl in dB erzwingt sie |
 | `apps` | SDR++, SDRangel | externe Programme, die als Kachel erscheinen |
 
 ## Lizenz

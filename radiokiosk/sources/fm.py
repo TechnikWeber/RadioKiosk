@@ -4,25 +4,27 @@ import asyncio
 import statistics
 
 from ..config import load_json, save_json
-from .rtlfm import RtlFm
+from ..util import kill
+from .receiver import Receiver
 
 # one level measurement every 2.4 MHz covers the whole band
 BAND_PROBES = [88.7e6 + i * 2.4e6 for i in range(9)]
 SCAN_THRESHOLD_DB = 12
 
 
-class Fm(RtlFm):
+class Fm(Receiver):
     name = "fm"
 
     def __init__(self, core):
         super().__init__(core)
         self.presets = load_json("fm_presets.json", [])
         self.stations = load_json("fm_stations.json", [])
+        self.scanner = None
 
     async def tune(self, mhz):
         mhz = round(min(108.0, max(87.5, float(mhz))), 2)
         async with self.core.lock:
-            await self._receive(mhz * 1e6, "wfm", "fm", BAND_PROBES, f"{mhz:.2f} MHz", {"mhz": mhz})
+            await self._receive(int(mhz * 1e6), "wfm", "fm", f"{mhz:.2f} MHz", {"mhz": mhz})
 
     async def scan(self):
         await self.core.stop()
@@ -32,18 +34,18 @@ class Fm(RtlFm):
                              detail={"scan": True})
             try:
                 gain = await self.core.gains.get("fm", BAND_PROBES, remeasure=True)
-                proc = await asyncio.create_subprocess_exec(
+                self.scanner = await asyncio.create_subprocess_exec(
                     "rtl_power", "-f", "87.5M:108M:50k", "-i", "2", "-1", "-g", str(gain), "-",
                     stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
-                self.proc = proc
-                out, _ = await asyncio.wait_for(proc.communicate(), 30)
+                out, _ = await asyncio.wait_for(self.scanner.communicate(), 30)
                 self.stations = self._find_stations(out.decode())
                 save_json("fm_stations.json", self.stations)
             except (RuntimeError, asyncio.TimeoutError) as e:
                 self.core.fail(str(e) or "scan timed out")
                 return
             finally:
-                self.proc = None
+                await kill(self.scanner)
+                self.scanner = None
             self.core.active = None
             self.core.update(source=None, status="idle", detail={})
 
@@ -77,3 +79,7 @@ class Fm(RtlFm):
             self.presets = sorted(self.presets + [mhz])
         save_json("fm_presets.json", self.presets)
         return self.presets
+
+    async def stop(self):
+        await kill(self.scanner)
+        await super().stop()
