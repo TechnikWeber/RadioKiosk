@@ -22,17 +22,17 @@ curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/instal
 
 The installer works on Fedora and on Debian-based systems (Debian, Ubuntu, Raspberry Pi OS). Run it as your normal user; it asks for your password to install packages. It then:
 
-1. installs the receivers and players RadioKiosk controls (`mpv`, `rtl-sdr`, `welle-cli`, SDR++, `dump1090`),
+1. installs the receivers and players RadioKiosk controls (`mpv`, `rtl-sdr`, `welle-cli`, SDR++, `dump1090` or `readsb`),
 2. stops the kernel's TV driver from claiming the SDR stick,
 3. downloads RadioKiosk to `~/.local/share/radiokiosk`,
 4. starts it as a background service that also comes up after every login.
 
 Afterwards open **RadioKiosk** from the application menu or go to <http://localhost:8080>. Run the same line again to update.
 
-SDRangel is optional:
+Add `--kiosk` to open the interface full screen after every login, and `--with-sdrangel` for SDRangel as a second expert receiver:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --with-sdrangel
+curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --with-sdrangel
 ```
 
 Programs your distribution does not package are skipped; their tiles stay disabled or hidden and everything else works.
@@ -42,7 +42,7 @@ Programs your distribution does not package are skipped; their tiles stay disabl
 | Part | Supported | Tested |
 |---|---|---|
 | Computer | 64-bit Linux on x86 or ARM with Fedora, Debian, Ubuntu or Raspberry Pi OS | Fedora 44 on an x86 laptop |
-| Raspberry Pi | Pi 4 and Pi 5 are the target; a Pi 3 should manage web radio, DAB+ and FM | not yet |
+| Raspberry Pi | Pi 4 and Pi 5 are the target; a Pi 3 should manage web radio, DAB+ and FM | installer and interface on a Pi 3 B+ with Raspberry Pi OS 64-bit; reception not yet |
 | SDR stick | RTL-SDR Blog V4 and V3, other RTL2832U sticks | RTL-SDR Blog V4 |
 | Display | any; the interface is built for touch from 800×480 upwards | 800×480 layout in a browser |
 | Audio | every output PipeWire or PulseAudio offers: headphone jack, USB, Bluetooth, HDMI | built-in audio |

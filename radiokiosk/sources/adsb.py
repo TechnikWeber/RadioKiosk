@@ -38,6 +38,8 @@ class Adsb:
             await self.core.take(self)
             self.aircraft = {}
             args = [binary, "--net", "--net-sbs-port", str(SBS_PORT)]
+            if binary == "readsb":
+                args += ["--device-type", "rtlsdr"]   # readsb only opens a stick when told which kind
             help_text = await self._help(binary)
             if "--net-http-port" in help_text:
                 # the classic dump1090 serves its own map on 8080 by default, which is our port

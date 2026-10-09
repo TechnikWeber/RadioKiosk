@@ -22,17 +22,17 @@ curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/instal
 
 Der Installer läuft auf Fedora und auf Debian-basierten Systemen (Debian, Ubuntu, Raspberry Pi OS). Starte ihn als normaler Benutzer; er fragt nach deinem Passwort, um Pakete zu installieren. Danach erledigt er Folgendes:
 
-1. Er installiert die Empfänger und Abspieler, die RadioKiosk steuert (`mpv`, `rtl-sdr`, `welle-cli`, SDR++, `dump1090`).
+1. Er installiert die Empfänger und Abspieler, die RadioKiosk steuert (`mpv`, `rtl-sdr`, `welle-cli`, SDR++, `dump1090` oder `readsb`).
 2. Er hindert den TV-Treiber des Kernels daran, den SDR-Stick zu belegen.
 3. Er lädt RadioKiosk nach `~/.local/share/radiokiosk`.
 4. Er startet es als Hintergrunddienst, der auch nach jeder Anmeldung wieder läuft.
 
 Anschließend öffnest du **RadioKiosk** im Anwendungsmenü oder rufst <http://localhost:8080> auf. Zum Aktualisieren führst du dieselbe Zeile noch einmal aus.
 
-SDRangel ist optional:
+Mit `--kiosk` öffnet sich die Oberfläche nach jeder Anmeldung im Vollbild, mit `--with-sdrangel` kommt SDRangel als zweiter Experten-Empfänger dazu:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --with-sdrangel
+curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --with-sdrangel
 ```
 
 Programme, die deine Distribution nicht als Paket anbietet, werden übersprungen; ihre Kacheln bleiben deaktiviert oder unsichtbar, alles andere funktioniert.
@@ -42,7 +42,7 @@ Programme, die deine Distribution nicht als Paket anbietet, werden übersprungen
 | Teil | Unterstützt | Getestet |
 |---|---|---|
 | Rechner | 64-bit-Linux auf x86 oder ARM mit Fedora, Debian, Ubuntu oder Raspberry Pi OS | Fedora 44 auf einem x86-Laptop |
-| Raspberry Pi | Pi 4 und Pi 5 sind das Ziel; ein Pi 3 sollte Webradio, DAB+ und UKW schaffen | noch nicht |
+| Raspberry Pi | Pi 4 und Pi 5 sind das Ziel; ein Pi 3 sollte Webradio, DAB+ und UKW schaffen | Installer und Oberfläche auf einem Pi 3 B+ mit Raspberry Pi OS 64-bit; Empfang noch nicht |
 | SDR-Stick | RTL-SDR Blog V4 und V3, andere RTL2832U-Sticks | RTL-SDR Blog V4 |
 | Display | beliebig; die Oberfläche ist für Touch ab 800×480 gebaut | 800×480-Layout im Browser |
 | Ton | jede Ausgabe, die PipeWire oder PulseAudio anbietet: Klinke, USB, Bluetooth, HDMI | eingebauter Ton |
