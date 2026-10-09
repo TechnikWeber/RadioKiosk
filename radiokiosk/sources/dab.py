@@ -8,10 +8,13 @@ import asyncio
 
 import aiohttp
 
-from ..config import load_json, save_json
+from ..config import CACHE_DIR, load_json, save_json
 from ..util import kill, spawn
 
 # Band III blocks used for DAB in Europe
+SLIDES = CACHE_DIR / "dab_slides"   # last picture each station sent, doubles as its logo
+
+
 CHANNELS = [f"{n}{c}" for n in range(5, 13) for c in "ABCD"] + [f"13{c}" for c in "ABCDEF"]
 
 
@@ -141,12 +144,16 @@ class Dab:
 
     async def _poll_text(self, sid):
         """Show the station's scrolling text (DLS), or a warning while reception is poor."""
-        last_errors = 0
+        last_errors = last_slide = 0
         while True:
             await asyncio.sleep(2)
             mux = await self._mux() or {}
             for s in mux.get("services", []):
                 if s.get("sid") == sid:
+                    slide = s.get("mot", {}).get("lastchange", 0)
+                    if slide != last_slide and await self._save_slide(sid):
+                        last_slide = slide
+                        self.core.update(detail={"sid": sid, "slide": slide})
                     errors = s.get("errorcounters", {}).get("frameerrors", 0)
                     text = (s.get("dls", {}).get("label") or "").strip()
                     if errors - last_errors > 20:
@@ -156,6 +163,24 @@ class Dab:
                     last_errors = errors
                     if text:
                         self.core.update(text=text)
+
+    async def _save_slide(self, sid):
+        """Stations send pictures (cover, logo, programme info) along with the audio."""
+        try:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=4)) as http:
+                async with http.get(f"http://127.0.0.1:{self.port}/slide/{sid}") as r:
+                    if r.status != 200:
+                        return False
+                    picture = await r.read()
+        except (aiohttp.ClientError, TimeoutError):
+            return False
+        SLIDES.mkdir(parents=True, exist_ok=True)
+        (SLIDES / sid).write_bytes(picture)
+        return True
+
+    @staticmethod
+    def slides():
+        return sorted(p.name for p in SLIDES.glob("0x*")) if SLIDES.exists() else []
 
     def on_title(self, title):
         pass

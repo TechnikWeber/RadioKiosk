@@ -4,6 +4,14 @@
 
 Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfänger: Webradio, DAB+, UKW, Kurzwelle, Amateurfunk und mehr in einer Touch-Oberfläche.
 
+[![Tests](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml/badge.svg)](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml)
+
+| | |
+|---|---|
+| ![Startbildschirm mit Favoriten und Kacheln](docs/screenshots/home.png) | ![UKW mit Sendername, Radiotext und Wasserfall](docs/screenshots/fm.png) |
+| ![Freier Empfänger auf dem 2-m-Amateurfunkband](docs/screenshots/receiver.png) | ![Live-Flugzeugkarte mit Liste](docs/screenshots/aircraft.png) |
+| ![Ruhebildschirm mit Uhrzeit, Wetter und Sender](docs/screenshots/idle.png) | |
+
 > Frühe Entwicklung. Es läuft heute auf einem Linux-PC; die Kiosk-Einrichtung für den Raspberry Pi (Start direkt in die Oberfläche) ist noch nicht fertig.
 
 ## Installation
@@ -47,15 +55,21 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 
 | Kachel | Funktionen | Technik dahinter |
 |---|---|---|
-| Webradio | Sendersuche, beliebte Sender, Favoriten | radio-browser.info, `mpv` |
-| DAB+ | Sendersuchlauf, Senderliste, Lauftext | `welle-cli`, `mpv` |
+| Webradio | Sendersuche, beliebte Sender, Senderlogos | radio-browser.info, `mpv` |
+| DAB+ | Sendersuchlauf, Senderliste, Lauftext, Bilder, die die Sender mitschicken | `welle-cli`, `mpv` |
 | UKW | Stereo, Sendernamen und Radiotext (RDS), Sendersuchlauf, Speicherplätze, Spektrum und Wasserfall | eingebauter Empfänger oder `rtl_fm`, `rtl_power`, `mpv` |
 | Empfänger | freies Abstimmen in FM, AM und Seitenband mit Wasserfall, Rauschsperre und Bandplan: Kurzwelle, Amateurfunk, PMR446, Freenet, CB | eingebauter Empfänger, `mpv` |
-| Flugzeuge | Live-Karte der Flugzeuge in deiner Umgebung (ADS-B) | `dump1090` oder `readsb`, Leaflet, OpenStreetMap |
+| Flugzeuge | Live-Karte und Liste der Flugzeuge in deiner Umgebung (ADS-B) | `dump1090` oder `readsb`, Leaflet, OpenStreetMap |
 | Bluetooth | Bluetooth-Lautsprecher verbinden oder ein Handy über dieses Gerät abspielen lassen | `bluetoothctl`, PipeWire |
 | Wetter | aktuelles Wetter und Vorhersage für vier Tage | Open-Meteo |
 | SDR++ | das vollwertige SDR-Programm für alles Weitere | startet als normales Programm |
-| Einstellungen | Tonausgabe, Sleep-Timer, Wecker, Ruhebildschirm, Bildschirmtastatur, Standort, Empfangsart | PipeWire oder PulseAudio |
+| Einstellungen | Sprache, Tonausgabe, Sleep-Timer, Wecker, Ruhebildschirm, Bildschirmtastatur, Standort, Fernbedienung, Empfangsart | PipeWire oder PulseAudio |
+
+Jeder Sender kann einen Stern bekommen, egal aus welcher Quelle. Favoriten erscheinen als Zeile auf dem Startbildschirm und starten mit einem Tipp; einzelne oder alle entfernst du über den Stern am Ende dieser Zeile, etwa nach einem Ortswechsel.
+
+Die Oberfläche ist standardmäßig englisch und lässt sich in den Einstellungen auf Deutsch umstellen.
+
+Ist in den Einstellungen die Fernbedienung eingeschaltet, können Handys und Rechner im selben Netz die Oberfläche im Browser öffnen. Es gibt keine Anmeldung, nutze das also nur in einem Netz, dem du vertraust.
 
 Den Stick kann immer nur ein Empfänger nutzen, deshalb beendet der Dienst den laufenden, bevor er den nächsten startet. Kacheln, deren Programm oder Hardware fehlt, sind deaktiviert.
 
@@ -85,13 +99,22 @@ Dafür braucht es dieselben Programme, die der Installer einrichtet, und der DVB
 echo 'blacklist dvb_usb_rtl28xxu' | sudo tee /etc/modprobe.d/blacklist-rtlsdr.conf
 ```
 
+## Tests
+
+```sh
+.venv/bin/python -m unittest
+```
+
+Die Tests schicken künstliche Funksignale durch die Demodulatoren und den RDS-Dekoder; einen SDR-Stick brauchen sie nicht.
+
 ## Einstellungen
 
 Optionale Datei `~/.config/radiokiosk/config.json`:
 
 | Schlüssel | Standard | Bedeutung |
 |---|---|---|
-| `host` | `127.0.0.1` | `0.0.0.0` erlaubt die Bedienung von anderen Geräten im Netz (ohne Anmeldung) |
+| `remote` | `false` | erlaubt Handys und PCs im lokalen Netz, RadioKiosk zu bedienen (ohne Anmeldung); auch als Schalter in den Einstellungen |
+| `host` | `0.0.0.0` | auf `127.0.0.1` setzen, um nie im Netz zu lauschen |
 | `port` | `8080` | Port der Weboberfläche |
 | `country` | `DE` | Ländercode für die Liste beliebter Webradio-Sender |
 | `location` | nicht gesetzt | `[Breite, Länge]` für Flugzeug-Karte und Wetter; einfacher in den Einstellungen festzulegen |

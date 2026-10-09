@@ -6,13 +6,17 @@ from pathlib import Path
 
 APP = "radiokiosk"
 CONFIG_DIR = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / APP
+CACHE_DIR = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / APP
 RUNTIME_DIR = Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / APP
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 DEFAULTS = {
-    # 127.0.0.1 keeps the UI local to the kiosk; 0.0.0.0 allows remote control from the LAN.
-    "host": "127.0.0.1",
+    # The service listens on the network but only answers this computer unless
+    # "remote" is on; then phones and PCs in the local network may control it.
+    # Set "host" to 127.0.0.1 to rule that out entirely.
+    "host": "0.0.0.0",
     "port": 8080,
+    "remote": False,
     "country": "DE",
     # [latitude, longitude] of the receiver, for the aircraft map and the weather
     "location": None,

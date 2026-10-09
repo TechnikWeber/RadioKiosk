@@ -1,6 +1,8 @@
 """HTTP API, WebSocket state feed and static web UI."""
 
 import asyncio
+import ipaddress
+import socket
 
 from aiohttp import web
 
@@ -10,7 +12,7 @@ from .config import WEB_DIR, load_config, save_setting
 from .core import Core
 from .sources.adsb import Adsb
 from .sources.apps import Apps
-from .sources.dab import Dab
+from .sources.dab import SLIDES, Dab
 from .sources.fm import Fm
 from .sources.receiver import BACKENDS, available_backends
 from .sources.tuner import BANDS, Tuner
@@ -28,8 +30,31 @@ async def errors(request, handler):
         return web.json_response({"error": str(e) or type(e).__name__}, status=400)
 
 
+def addresses(port):
+    """How other devices in the network reach this one."""
+    found = [f"http://{socket.gethostname().split('.')[0]}.local:{port}"]
+    try:
+        # no packet is sent; this only asks the system which address it would use
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+            probe.connect(("192.0.2.1", 9))
+            found.append(f"http://{probe.getsockname()[0]}:{port}")
+    except OSError:
+        pass
+    return found
+
+
 def build(cfg):
     core = Core(cfg)
+
+    @web.middleware
+    async def local_first(request, handler):
+        """Answer this computer always, the local network only when remote control is on."""
+        client = ipaddress.ip_address(request.remote or "127.0.0.1")
+        client = getattr(client, "ipv4_mapped", None) or client
+        if client.is_loopback or (cfg["remote"] and (client.is_private or client.is_link_local)):
+            return await handler(request)
+        raise web.HTTPForbidden(text="Remote control is switched off on this RadioKiosk.")
+
     webradio, dab, fm, tuner, apps = Webradio(core), Dab(core), Fm(core), Tuner(core), Apps(core)
     adsb = Adsb(core)
     weather = Weather()
@@ -39,6 +64,7 @@ def build(cfg):
         "webradio": lambda last: webradio.play(last["station"]),
         "dab": lambda last: dab.play(last["sid"]),
         "fm": lambda last: fm.tune(last["mhz"]),
+        "tuner": lambda last: tuner.tune(last["hz"], last["mode"], last.get("squelch", 0), 1, last["title"]),
     }
     core.sources.update(fm=fm, tuner=tuner)
     core.receiver_backends = available_backends()
@@ -120,14 +146,17 @@ def build(cfg):
     async def settings_get(request):
         return web.json_response({"fm_backend": fm.backend_id(), "tuner_backend": tuner.backend_id(),
                                   "fm_stereo": cfg["fm_stereo"],
+                                  "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
                                   "backends": available_backends()})
 
     @routes.post("/api/settings")
     async def settings_set(request):
         body = await request.json()
-        if body["key"] not in ("fm_backend", "tuner_backend") or body["value"] not in BACKENDS:
+        allowed = {"fm_backend": tuple(BACKENDS), "tuner_backend": tuple(BACKENDS), "remote": (True, False)}
+        if body["value"] not in allowed.get(body["key"], ()):
             raise ValueError("unknown setting")
-        await core.stop()
+        if body["key"] != "remote":
+            await core.stop()
         save_setting(cfg, body["key"], body["value"])
         return ok()
 
@@ -168,13 +197,22 @@ def build(cfg):
     async def stations(request):
         return web.json_response(await webradio.search(request.query.get("q", "").strip()))
 
-    @routes.get("/api/webradio/favorites")
-    async def favorites(request):
-        return web.json_response(webradio.favorites)
+    @routes.get("/api/favorites")
+    async def favorites_get(request):
+        return web.json_response(core.favorites.items)
 
-    @routes.post("/api/webradio/favorites")
-    async def favorite_toggle(request):
-        return web.json_response(webradio.toggle_favorite(await request.json()))
+    @routes.post("/api/favorites")
+    async def favorites_toggle(request):
+        return web.json_response(core.favorites.toggle(await request.json()))
+
+    @routes.post("/api/favorites/play")
+    async def favorites_play(request):
+        await core.play(await request.json())
+        return ok()
+
+    @routes.post("/api/favorites/clear")
+    async def favorites_clear(request):
+        return web.json_response(core.favorites.clear((await request.json()).get("kind")))
 
     @routes.post("/api/webradio/play")
     async def webradio_play(request):
@@ -183,7 +221,16 @@ def build(cfg):
 
     @routes.get("/api/dab/services")
     async def dab_services(request):
-        return web.json_response({"services": dab.services, "scan": dab.scan_state})
+        return web.json_response({"services": dab.services, "scan": dab.scan_state, "slides": dab.slides()})
+
+    @routes.get("/api/dab/slide/{sid}")
+    async def dab_slide(request):
+        sid = request.match_info["sid"]
+        if sid not in dab.slides():
+            raise web.HTTPNotFound()
+        picture = (SLIDES / sid).read_bytes()
+        kind = "image/png" if picture.startswith(b"\x89PNG") else "image/jpeg"
+        return web.Response(body=picture, content_type=kind, headers={"Cache-Control": "no-cache"})
 
     @routes.post("/api/dab/scan")
     async def dab_scan(request):
@@ -194,14 +241,6 @@ def build(cfg):
     async def dab_play(request):
         await dab.play((await request.json())["sid"])
         return ok()
-
-    @routes.get("/api/fm/presets")
-    async def fm_presets(request):
-        return web.json_response(fm.presets)
-
-    @routes.post("/api/fm/presets")
-    async def fm_preset_toggle(request):
-        return web.json_response(fm.toggle_preset((await request.json())["mhz"]))
 
     @routes.post("/api/fm/tune")
     async def fm_tune(request):
@@ -234,14 +273,6 @@ def build(cfg):
     @routes.get("/api/tuner/bands")
     async def tuner_bands(request):
         return web.json_response(BANDS)
-
-    @routes.get("/api/tuner/favorites")
-    async def tuner_favorites(request):
-        return web.json_response(tuner.favorites)
-
-    @routes.post("/api/tuner/favorites")
-    async def tuner_favorite_toggle(request):
-        return web.json_response(tuner.toggle_favorite(await request.json()))
 
     @routes.post("/api/tuner/tune")
     async def tuner_tune(request):
@@ -277,7 +308,7 @@ def build(cfg):
         await apps.start(request.match_info["id"])
         return ok()
 
-    app = web.Application(middlewares=[errors])
+    app = web.Application(middlewares=[local_first, errors])
     app.add_routes(routes)
     app.router.add_static("/", WEB_DIR)
 

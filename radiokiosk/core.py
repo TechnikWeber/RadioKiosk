@@ -10,6 +10,7 @@ import time
 
 from . import audio
 from .config import load_json, save_json
+from .favorites import Favorites
 from .gain import Gains
 from .mpv import Mpv
 from .sources.adsb import decoder as adsb_decoder
@@ -25,6 +26,7 @@ class Core:
         self.lock = asyncio.Lock()
         self.mpv = Mpv(self._on_mpv)
         self.gains = Gains(cfg)
+        self.favorites = Favorites()
         self.receiver_backends = {}   # filled by the service: which backends are installed
         self.state = {
             "source": None, "status": "idle", "title": "", "text": "", "error": None,

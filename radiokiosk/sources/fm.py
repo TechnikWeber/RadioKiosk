@@ -17,7 +17,6 @@ class Fm(Receiver):
 
     def __init__(self, core):
         super().__init__(core)
-        self.presets = load_json("fm_presets.json", [])
         self.stations = load_json("fm_stations.json", [])
         self.names = load_json("fm_names.json", {})   # "91.8" -> station name from RDS
         self.scanner = None
@@ -47,6 +46,7 @@ class Fm(Receiver):
         if self.names.get(f"{mhz:.1f}") != name:
             self.names[f"{mhz:.1f}"] = name
             save_json("fm_names.json", self.names)
+        self.core.favorites.retitle(("fm", f"{mhz:.2f}"), f"{name} · {mhz:.2f} MHz")
 
     async def scan(self):
         await self.core.stop()
@@ -62,6 +62,8 @@ class Fm(Receiver):
                 out, _ = await asyncio.wait_for(self.scanner.communicate(), 30)
                 self.stations = self._find_stations(out.decode())
                 save_json("fm_stations.json", self.stations)
+                self.names = {}   # the same frequency is another station somewhere else
+                save_json("fm_names.json", self.names)
                 await self._name_stations()
             except (RuntimeError, asyncio.TimeoutError) as e:
                 self.core.fail(str(e) or "scan timed out")
@@ -108,15 +110,6 @@ class Fm(Receiver):
             if 875 <= channel <= 1080 and db - floor >= SCAN_THRESHOLD_DB and db >= max(near):
                 found.append({"mhz": channel / 10, "level": round(db - floor)})
         return found
-
-    def toggle_preset(self, mhz):
-        mhz = round(float(mhz), 2)
-        if mhz in self.presets:
-            self.presets.remove(mhz)
-        else:
-            self.presets = sorted(self.presets + [mhz])
-        save_json("fm_presets.json", self.presets)
-        return self.presets
 
     async def stop(self):
         await kill(self.scanner)

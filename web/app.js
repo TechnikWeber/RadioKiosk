@@ -1,5 +1,15 @@
 "use strict";
 
+/* ---------- preferences of this display ---------- */
+
+// Kept in the browser, not in the service: a phone used as remote control wants
+// other choices than the kiosk screen.
+const pref = (key, fallback) => {
+  try { return localStorage.getItem(key) ?? fallback; } catch (e) { return fallback; }
+};
+const setPref = (key, value) => { try { localStorage.setItem(key, value); } catch (e) { /* stays default */ } };
+
+
 const STRINGS = {
   en: {
     webradio: "Web radio", dab: "DAB+", fm: "FM", settings: "Settings",
@@ -18,6 +28,11 @@ const STRINGS = {
     needLocation: "Set your location first: Settings → Location.",
     location: "Location", locationHint: "Move the map until the cross marks your place.", locationSave: "Use this place",
     locationSet: "set", locationUnset: "not set", sleepTimer: "Sleep timer", minutes: "min",
+    language: "Language", languages: { en: "English", de: "Deutsch" },
+    manage: "Manage favorites", clearAll: "Remove all", clearSure: "Really remove all?",
+    kinds2: { webradio: "Web radio", dab: "DAB+", fm: "FM", tuner: "Receiver" },
+    list: "List", remote: "Remote control", remoteOn: "on", remoteHint: "Phones and computers in your network can now open:",
+    remoteWarning: "There is no password: everyone in this network can operate the radio.",
     alarm: "Alarm", alarmOn: "Alarm is on", alarmOff: "Alarm is off", wakesWith: "Wakes with",
     wakesWithNothing: "Play a station once; the alarm can then wake with it.",
     wakeLast: "Station heard last", wakeFixed: "Always", wakeFix: "Always wake with",
@@ -54,6 +69,11 @@ const STRINGS = {
     needLocation: "Lege zuerst deinen Standort fest: Einstellungen → Standort.",
     location: "Standort", locationHint: "Verschiebe die Karte, bis das Kreuz auf deinem Ort liegt.", locationSave: "Diesen Ort übernehmen",
     locationSet: "festgelegt", locationUnset: "nicht festgelegt", sleepTimer: "Sleep-Timer", minutes: "min",
+    language: "Sprache", languages: { en: "English", de: "Deutsch" },
+    manage: "Favoriten verwalten", clearAll: "Alle entfernen", clearSure: "Wirklich alle entfernen?",
+    kinds2: { webradio: "Webradio", dab: "DAB+", fm: "UKW", tuner: "Empfänger" },
+    list: "Liste", remote: "Fernbedienung", remoteOn: "an", remoteHint: "Handys und Rechner in deinem Netz können jetzt öffnen:",
+    remoteWarning: "Es gibt kein Passwort: Jeder in diesem Netz kann das Radio bedienen.",
     alarm: "Wecker", alarmOn: "Wecker ist an", alarmOff: "Wecker ist aus", wakesWith: "Weckt mit",
     wakesWithNothing: "Spiele einmal einen Sender; danach kann der Wecker damit wecken.",
     wakeLast: "Zuletzt gehörter Sender", wakeFixed: "Immer", wakeFix: "Immer wecken mit",
@@ -74,8 +94,39 @@ const STRINGS = {
     kinds: { analog: "Klinke / eingebaut", usb: "USB", bluetooth: "Bluetooth", hdmi: "HDMI" },
   },
 };
-const lang = STRINGS[navigator.language.slice(0, 2)] ? navigator.language.slice(0, 2) : "en";
+// English unless switched under Settings
+const lang = STRINGS[pref("lang", "en")] ? pref("lang", "en") : "en";
 const t = STRINGS[lang];
+
+// The service reports problems in English; these are their German counterparts.
+const MESSAGES_DE = [
+  [/^no data from the SDR stick.*$/, "Der SDR-Stick liefert keine Daten – falls das anhält, neu einstecken"],
+  [/^cannot open the SDR stick.*$/, "Der SDR-Stick lässt sich nicht öffnen – nutzt ihn ein anderes Programm?"],
+  [/^the SDR stick stopped delivering data.*$/, "Der SDR-Stick liefert keine Daten mehr – bitte neu einstecken"],
+  [/^the receiver stopped unexpectedly$/, "Der Empfänger wurde unerwartet beendet"],
+  [/^weak reception \(SNR (.+) dB\)$/, "Schwacher Empfang (Signalabstand $1 dB)"],
+  [/^reception on block (.+) is too weak$/, "Der Empfang auf Block $1 ist zu schwach"],
+  [/^no reception on block (.+)$/, "Kein Empfang auf Block $1"],
+  [/^welle-cli could not open the SDR$/, "welle-cli konnte den SDR-Stick nicht öffnen"],
+  [/^welle-cli did not start$/, "welle-cli ist nicht gestartet"],
+  [/^unknown service$/, "Dieser Sender ist nicht mehr in der Liste – bitte den Suchlauf neu starten"],
+  [/^station directory unreachable.*$/, "Das Senderverzeichnis ist nicht erreichbar"],
+  [/^weather service unreachable.*$/, "Der Wetterdienst ist nicht erreichbar"],
+  [/^the ADS-B decoder could not open the SDR stick$/, "Der ADS-B-Dekoder konnte den SDR-Stick nicht öffnen"],
+  [/^the ADS-B decoder stopped unexpectedly$/, "Der ADS-B-Dekoder wurde unerwartet beendet"],
+  [/^no ADS-B decoder installed$/, "Kein ADS-B-Dekoder installiert"],
+  [/^could not connect.*$/, "Verbindung fehlgeschlagen – ist das Gerät im Kopplungsmodus?"],
+  [/^nothing has been played yet$/, "Es wurde noch nichts abgespielt"],
+  [/^scan timed out$/, "Der Suchlauf hat zu lange gedauert"],
+  [/^mpv is not installed$/, "mpv ist nicht installiert"],
+  [/^(playback|loading) failed$/, "Die Wiedergabe ist fehlgeschlagen"],
+  [/^unrecognized file format$/, "Der Sender liefert kein abspielbares Format"],
+];
+const say = text => {
+  if (lang !== "de" || !text) return text;
+  const match = MESSAGES_DE.find(([pattern]) => pattern.test(text));
+  return match ? text.replace(match[0], match[1]) : text;
+};
 document.documentElement.lang = lang;
 // band plan entries carry their names as plain text or as { de, en }
 const tr = name => typeof name === "string" ? name : name[lang] || name.en;
@@ -106,8 +157,9 @@ function h(tag, props = {}, ...children) {
 }
 
 async function api(path, body) {
-  const response = await fetch(path, body === undefined ? {} : {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  // the service looks up place names in the language of the interface
+  const response = await fetch(path, body === undefined ? { headers: { "Accept-Language": lang } } : {
+    method: "POST", headers: { "Content-Type": "application/json", "Accept-Language": lang }, body: JSON.stringify(body),
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || response.statusText);
@@ -125,23 +177,52 @@ function show(v) {
 
 const hint = text => h("p", { className: "hint", textContent: text });
 
-function stationRow({ title, info, active, onPlay, starred, onStar }) {
+function stationRow({ title, info, active, onPlay, starred, onStar, logo }) {
+  const picture = logo ? h("img", { className: "logo", src: logo, loading: "lazy", alt: "" }) : null;
+  if (picture) picture.onerror = () => picture.remove();   // many stations list a logo that no longer exists
   const row = h("div", { className: "row" + (active ? " current" : "") },
-    h("button", { onclick: onPlay }, h("b", { textContent: title }), h("small", { textContent: info || "" })));
+    h("button", { onclick: onPlay }, picture,
+      h("span", { className: "texts" }, h("b", { textContent: title }), h("small", { textContent: info || "" }))));
   if (onStar) {
     row.append(h("button", { className: "icon star" + (starred ? " on" : ""), innerHTML: icon("star"), onclick: onStar }));
   }
   return row;
 }
 
-/* ---------- preferences of this display ---------- */
+/* ---------- favorites ---------- */
 
-// Kept in the browser, not in the service: a phone used as remote control wants
-// other choices than the kiosk screen.
-const pref = (key, fallback) => {
-  try { return localStorage.getItem(key) ?? fallback; } catch (e) { return fallback; }
+// One list for all sources; an entry carries what its source needs to play it.
+let favorites = [];
+const favKey = e => `${e.kind}|` + {
+  webradio: () => e.station.id, dab: () => e.sid, fm: () => Number(e.mhz).toFixed(2), tuner: () => `${e.hz}/${e.mode}`,
+}[e.kind]();
+const isStarred = entry => favorites.some(f => favKey(f) === favKey(entry));
+async function toggleStar(entry) {
+  favorites = await api("/api/favorites", entry);
+  current.draw();
+}
+
+const favoritesView = {
+  title: t.favorites,
+  sure: false,
+  render() { this.sure = false; this.draw(); },
+  draw() {
+    view.replaceChildren(
+      ...(favorites.length ? [] : [hint(t.noFavorites)]),
+      ...favorites.map(f => stationRow({
+        title: f.title, info: t.kinds2[f.kind], starred: true,
+        onPlay: () => api("/api/favorites/play", f), onStar: () => toggleStar(f),
+      })),
+      ...(favorites.length ? [h("div", { className: "toolbar" }, h("button", {
+        textContent: this.sure ? t.clearSure : t.clearAll,
+        onclick: async () => {
+          if (this.sure) favorites = await api("/api/favorites/clear", {});
+          this.sure = !this.sure;
+          this.draw();
+        },
+      }))] : []));
+  },
 };
-const setPref = (key, value) => { try { localStorage.setItem(key, value); } catch (e) { /* stays default */ } };
 
 /* ---------- on-screen keyboard ---------- */
 
@@ -271,7 +352,12 @@ const home = {
       className: "tile" + (state.source === id ? " running" : ""), disabled: !!problem, onclick,
       innerHTML: icon(id) + `<span>${label}</span>` + (problem || sub ? `<small>${problem || sub}</small>` : ""),
     });
-    view.replaceChildren(h("div", { className: "tiles" },
+    const favorite = f => h("button", { onclick: () => api("/api/favorites/play", f) },
+      h("i", { innerHTML: icon(f.kind) }), h("span", { textContent: f.title }));
+    view.replaceChildren(
+      ...(favorites.length ? [h("div", { className: "favrow" }, ...favorites.map(favorite),
+        h("button", { className: "icon", innerHTML: icon("star"), ariaLabel: t.manage, onclick: () => show(favoritesView) }))] : []),
+      h("div", { className: "tiles" },
       tile("webradio", t.webradio, c.mpv ? null : t.noMpv, () => show(webradio)),
       tile("dab", t.dab, c.dab ? sdrProblem : `welle-cli ${t.notInstalled}`, () => show(dab)),
       tile("fm", t.fm, c.fm ? sdrProblem : `librtlsdr ${t.notInstalled}`, () => show(fm)),
@@ -290,6 +376,7 @@ const home = {
       tile("settings", t.settings, null, () => show(settings)),
     ));
   },
+  draw() { this.render(); },
   onState() { this.render(); },
 };
 
@@ -299,15 +386,14 @@ const webradio = {
   title: t.webradio,
   tab: "favorites",
   typing: false,
-  favorites: [],
   results: [],
   query: "",
   async render() {
-    this.favorites = await api("/api/webradio/favorites");
-    if (!this.favorites.length && this.tab === "favorites") this.tab = "popular";
+    if (!this.starred().length && this.tab === "favorites") this.tab = "popular";
     this.draw();
     if (this.tab === "popular") this.load("");
   },
+  starred() { return favorites.filter(f => f.kind === "webradio").map(f => f.station); },
   async load(query) {
     this.results = null;
     this.draw();
@@ -344,9 +430,9 @@ const webradio = {
         input.onfocus = () => { this.typing = true; this.draw(); };
       }
     }
-    const list = this.tab === "favorites" ? this.favorites : this.results;
+    const list = this.tab === "favorites" ? this.starred() : this.results;
     if (list === null) parts.push(hint(t.loading));
-    else if (this.error) parts.push(hint(this.error));
+    else if (this.error) parts.push(hint(say(this.error)));
     else if (!list.length && this.tab === "favorites") parts.push(hint(t.noFavorites));
     else if (!list.length && this.tab === "search" && this.query) parts.push(hint(t.noResults));
     else for (const s of list) {
@@ -354,8 +440,9 @@ const webradio = {
         title: s.name, info: s.info,
         active: state.source === "webradio" && state.detail.id === s.id,
         onPlay: () => api("/api/webradio/play", s),
-        starred: this.favorites.some(f => f.id === s.id),
-        onStar: async () => { this.favorites = await api("/api/webradio/favorites", s); this.draw(); },
+        logo: s.logo,
+        starred: isStarred({ kind: "webradio", station: s }),
+        onStar: () => toggleStar({ kind: "webradio", title: s.name, station: s }),
       }));
     }
     const top = view.scrollTop;
@@ -374,21 +461,30 @@ const webradio = {
 const dab = {
   title: t.dab,
   services: [],
+  slides: [],
   async render() {
-    this.services = (await api("/api/dab/services")).services;
+    ({ services: this.services, slides: this.slides } = await api("/api/dab/services"));
     this.draw();
   },
   draw() {
     const scan = state.source === "dab" && state.detail.scan;
     const parts = [h("div", { className: "toolbar" },
       h("button", { textContent: t.scan, disabled: !!scan, onclick: () => api("/api/dab/scan", {}) }))];
+    // the picture the playing station sends along (cover, logo, programme info)
+    if (state.source === "dab" && state.detail.slide) {
+      if (!this.slides.includes(state.detail.sid)) this.slides.push(state.detail.sid);
+      parts.push(h("img", { className: "slide", alt: "", src: `/api/dab/slide/${state.detail.sid}?v=${state.detail.slide}` }));
+    }
     if (scan) parts.push(hint(`${t.scanning} ${scan.channel} · ${scan.found} ${t.found}`));
     else if (!this.services.length) parts.push(hint(t.noServices));
     else for (const s of this.services) {
       parts.push(stationRow({
         title: s.name, info: `${s.ensemble} · ${s.channel}`,
+        logo: this.slides.includes(s.sid) ? `/api/dab/slide/${s.sid}` : null,
         active: state.source === "dab" && state.detail.sid === s.sid,
         onPlay: () => api("/api/dab/play", { sid: s.sid }),
+        starred: isStarred({ kind: "dab", sid: s.sid }),
+        onStar: () => toggleStar({ kind: "dab", title: s.name, sid: s.sid }),
       }));
     }
     const top = view.scrollTop;
@@ -408,7 +504,6 @@ const dab = {
 const fm = {
   title: t.fm,
   mhz: 98.5,
-  presets: [],
   stations: [],
   names: {},
   sound: "auto",
@@ -420,8 +515,8 @@ const fm = {
   },
   async render() {
     this.fall = this.fall || makeWaterfall(hz => this.tune(Math.round(hz / 1e5) / 10));
-    [this.presets, this.stations, this.names, { fm_stereo: this.sound }] = await Promise.all(
-      [api("/api/fm/presets"), api("/api/fm/stations"), api("/api/fm/names"), api("/api/settings")]);
+    [this.stations, this.names, { fm_stereo: this.sound }] = await Promise.all(
+      [api("/api/fm/stations"), api("/api/fm/names"), api("/api/settings")]);
     if (state.source === "fm" && state.detail.mhz) this.mhz = state.detail.mhz;
     this.draw();
   },
@@ -442,7 +537,9 @@ const fm = {
         textContent: this.names[mhz.toFixed(1)] ? `${this.names[mhz.toFixed(1)]} · ${mhz.toFixed(1)}` : mhz.toFixed(1),
       }))),
     ] : [];
-    const saved = this.presets.includes(this.mhz);
+    const name = this.names[this.mhz.toFixed(1)];
+    const entry = { kind: "fm", mhz: this.mhz, title: (name ? `${name} · ` : "") + `${this.mhz.toFixed(2)} MHz` };
+    const saved = isStarred(entry);
     view.replaceChildren(
       h("div", { className: "dial", innerHTML: `${this.mhz.toFixed(2)} <small>MHz</small>` }),
       ...(state.backends.fm === "engine" ? [this.meter, this.fall.el] : []),
@@ -451,7 +548,7 @@ const fm = {
         h("button", { className: "primary", textContent: "▶", onclick: () => this.tune(this.mhz) }),
         h("button", {
           textContent: saved ? t.remove : t.save,
-          onclick: async () => { this.presets = await api("/api/fm/presets", { mhz: this.mhz }); this.draw(); },
+          onclick: () => toggleStar(entry),
         }),
         h("button", { textContent: t.scan, disabled: !!scanning, onclick: () => api("/api/fm/scan", {}) }),
         state.backends.fm !== "engine" ? null : h("button", {
@@ -465,7 +562,7 @@ const fm = {
         }),
       ),
       ...(scanning ? [hint(t.fmScanning)] : []),
-      ...chips(t.fmSaved, this.presets),
+      ...chips(t.fmSaved, favorites.filter(f => f.kind === "fm").map(f => f.mhz).sort((a, b) => a - b)),
       ...chips(t.fmFound, this.stations.map(s => s.mhz)),
     );
   },
@@ -488,7 +585,9 @@ const formatHz = hz => hz < 30e6
 const tuner = {
   title: t.tuner,
   bands: [],
-  favorites: [],
+  get favorites() {
+    return favorites.filter(f => f.kind === "tuner").map(f => ({ hz: f.hz, mode: f.mode, name: f.title }));
+  },
   band: null,      // null shows the band list
   entry: null,     // digits typed on the number pad, null when it is closed
   hz: 145500000, mode: "nfm", squelch: 0, zoom: 1, label: "",
@@ -503,7 +602,7 @@ const tuner = {
       const step = this.band ? this.band.step : 1000;
       this.tune(Math.round(hz / step) * step);
     });
-    [this.bands, this.favorites] = await Promise.all([api("/api/tuner/bands"), api("/api/tuner/favorites")]);
+    this.bands = await api("/api/tuner/bands");
     this.draw();
   },
   back() {
@@ -545,10 +644,10 @@ const tuner = {
       h("div", { className: "toolbar" },
         h("button", {
           className: "star" + (isFavorite ? " on" : ""), innerHTML: icon("star"),
-          onclick: async () => {
-            this.favorites = await api("/api/tuner/favorites", { hz: this.hz, mode: this.mode, name: this.label });
-            this.draw();
-          },
+          onclick: () => toggleStar({
+            kind: "tuner", hz: this.hz, mode: this.mode, squelch: this.mode === "nfm" ? this.squelch : 0,
+            title: this.label || formatHz(this.hz).replace(/<\/?small>/g, ""),
+          }),
         }),
         this.mode === "nfm" ? h("button", {
           textContent: `${t.squelch}: ${this.squelch ? this.squelch + " dB" : t.off}`,
@@ -608,6 +707,13 @@ const tuner = {
 
 /* ---------- aircraft map ---------- */
 
+function distanceKm([lat1, lon1], [lat2, lon2]) {
+  const rad = Math.PI / 180;
+  const a = Math.sin((lat2 - lat1) * rad / 2) ** 2
+    + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin((lon2 - lon1) * rad / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(a));
+}
+
 let leaflet = null;
 function loadLeaflet() {
   leaflet = leaflet || new Promise((resolve, reject) => {
@@ -624,9 +730,14 @@ const adsb = {
   centred: false,
   box: h("div", { className: "map" }),
   info: h("div", { className: "map-info" }),
+  list: h("div", { className: "map-list", hidden: true }),
   async render() {
+    const toggle = h("button", { className: "map-action", textContent: t.list, onclick: () => {
+      this.list.hidden = !this.list.hidden;
+      toggle.classList.toggle("on", !this.list.hidden);
+    } });
     view.classList.add("flush");
-    view.replaceChildren(this.box, this.info);
+    view.replaceChildren(this.box, this.info, this.list, toggle);
     await loadLeaflet();
     if (!this.map) {
       this.map = L.map(this.box).setView([51, 10], 6);
@@ -674,6 +785,18 @@ const adsb = {
     for (const [hex, marker] of this.markers) {
       if (!seen.has(hex)) { marker.remove(); this.markers.delete(hex); }
     }
+    // nearest first when the own position is known, otherwise the most recently heard
+    const km = a => location && a.lat !== undefined ? distanceKm(location, [a.lat, a.lon]) : Infinity;
+    const sorted = [...aircraft].sort((a, b) => km(a) - km(b) || a.seen - b.seen);
+    this.list.replaceChildren(...sorted.map(a => stationRow({
+      title: a.flight || a.hex,
+      info: [
+        a.altitude !== undefined ? `${Math.round(a.altitude / 100) * 100} ft` : null,
+        a.speed !== undefined ? `${Math.round(a.speed)} kt` : null,
+        km(a) < Infinity ? `${Math.round(km(a))} km` : null,
+      ].filter(Boolean).join(" · "),
+      onPlay: () => { if (a.lat !== undefined) this.map.panTo([a.lat, a.lon]); },
+    })));
   },
 };
 
@@ -690,11 +813,11 @@ const weather = {
     try {
       data = await api("/api/weather");
     } catch (e) {
-      view.replaceChildren(hint(e.message === "no location set" ? t.needLocation : e.message));
+      view.replaceChildren(hint(e.message === "no location set" ? t.needLocation : say(e.message)));
       return;
     }
     const day = (d, i) => h("div", { className: "day" },
-      h("b", { textContent: i ? new Date(d.date).toLocaleDateString([], { weekday: "long" }) : t.today }),
+      h("b", { textContent: i ? new Date(d.date).toLocaleDateString(lang, { weekday: "long" }) : t.today }),
       h("span", { textContent: describe(d.code) }),
       h("span", { textContent: `${Math.round(d.min)}° / ${Math.round(d.max)}°` }),
       h("small", { textContent: d.rain === null ? "" : `${t.rain} ${d.rain} %` }));
@@ -818,7 +941,7 @@ const bluetooth = {
           onclick: () => this.act("scan", {}, "scan"),
         })),
       ...(s.visible ? [hint(t.btPhoneHint)] : []),
-      ...(this.error ? [hint(this.error)] : []),
+      ...(this.error ? [hint(say(this.error))] : []),
       ...s.devices.map(d => stationRow({
         title: d.name, active: d.connected,
         info: this.busy === d.mac ? t.loading : d.connected ? t.btConnected : d.paired ? t.btPaired : t.btNew,
@@ -834,7 +957,7 @@ const bluetooth = {
 const settings = {
   title: t.settings,
   async render() {
-    const [sinks, { location, name: place }, receivers] = await Promise.all(
+    const [sinks, { location: position, name: place }, receivers] = await Promise.all(
       [api("/api/audio"), api("/api/location"), api("/api/settings")]);
     const backendButton = (key, label) => h("button", {
       textContent: `${label}: ${t.backendNames[receivers[key]]}`,
@@ -865,6 +988,15 @@ const settings = {
           },
         }),
         h("button", {
+          textContent: `${t.language}: ${t.languages[lang]}`,
+          onclick: () => { setPref("lang", lang === "en" ? "de" : "en"); location.hash = "settings"; location.reload(); },
+        }),
+        h("button", {
+          className: receivers.remote ? "primary" : "",
+          textContent: `${t.remote}: ${receivers.remote ? t.remoteOn : t.off}`,
+          onclick: async () => { await api("/api/settings", { key: "remote", value: !receivers.remote }); this.render(); },
+        }),
+        h("button", {
           textContent: `${t.keyboard}: ${t.keyboardModes[pref("keyboard", "auto")]}`,
           onclick: () => {
             const modes = Object.keys(t.keyboardModes);
@@ -873,13 +1005,15 @@ const settings = {
           },
         }),
         h("button", {
-          textContent: `${t.location}: ${location ? place || t.locationSet : t.locationUnset}`, onclick: () => show(locationPicker),
+          textContent: `${t.location}: ${position ? place || t.locationSet : t.locationUnset}`, onclick: () => show(locationPicker),
         })),
       h("p", { className: "hint", textContent: t.output }),
       ...sinks.map(s => stationRow({
         title: s.label, info: t.kinds[s.kind], active: s.active,
         onPlay: async () => { await api("/api/audio", { name: s.name }); this.render(); },
       })),
+      ...(receivers.remote ? [h("p", { className: "hint" },
+        t.remoteHint, h("br"), h("b", { textContent: receivers.addresses.join("  ·  ") }), h("br"), t.remoteWarning)] : []),
       h("p", { className: "hint", textContent: t.receiverHint }),
       h("div", { className: "toolbar wrap" }, backendButton("fm_backend", t.fm), backendButton("tuner_backend", t.tuner)),
       h("p", { className: "hint", textContent: t.relevelHint }),
@@ -899,14 +1033,14 @@ let idleWeather = null, idleWeatherAt = 0;
 function drawIdle() {
   const now = new Date();
   $("idle-time").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  $("idle-date").textContent = now.toLocaleDateString([], { weekday: "long", day: "numeric", month: "long" });
+  $("idle-date").textContent = now.toLocaleDateString(lang, { weekday: "long", day: "numeric", month: "long" });
   $("idle-extra").textContent = [
     idleWeather ? [idleWeather.place, `${Math.round(idleWeather.temperature)}°`, describe(idleWeather.code)].filter(Boolean).join(" ") : null,
     state.alarm ? `⏰ ${state.alarm}` : null,
   ].filter(Boolean).join("  ·  ");
   const playing = state.source && state.status !== "error";
   $("idle-title").textContent = playing ? state.title : "";
-  $("idle-text").textContent = playing ? state.text : "";
+  $("idle-text").textContent = playing ? say(state.text) : "";
   // shift a little every minute so nothing burns into the display
   const minute = now.getMinutes();
   $("idle-box").style.transform = `translate(${(minute % 5 - 2) * 14}px, ${(minute % 3 - 1) * 10}px)`;
@@ -945,7 +1079,7 @@ function applyState(next) {
   const failed = state.status === "error";
   $("now").classList.toggle("error", failed);
   $("now-title").textContent = state.title || "";
-  $("now-text").textContent = failed ? state.error : state.status === "loading" ? t.loading : state.text || "";
+  $("now-text").textContent = failed ? say(state.error) : state.status === "loading" ? t.loading : say(state.text) || "";
   $("vol").textContent = state.volume ?? "";
   $("stop").disabled = !state.source;
   tick();
@@ -956,7 +1090,7 @@ function applyState(next) {
 async function openLink() {
   const [name, band] = location.hash.slice(1).split("/");
   if (name === "idle") showIdle();
-  const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings }[name] || home;
+  const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView }[name] || home;
   if (target === webradio && band === "search") Object.assign(webradio, { tab: "search", typing: true });
   show(target);
   if (target === tuner && band) {
@@ -967,7 +1101,7 @@ async function openLink() {
 }
 
 function connect() {
-  const ws = new WebSocket(`ws://${location.host}/ws`);
+  const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
   ws.binaryType = "arraybuffer";
   ws.onmessage = e => {
     if (typeof e.data !== "string") {
@@ -976,7 +1110,7 @@ function connect() {
     }
     const first = current === null;
     applyState(JSON.parse(e.data));
-    if (first) openLink();
+    if (first) api("/api/favorites").then(list => { favorites = list; openLink(); });
   };
   ws.onclose = () => setTimeout(connect, 1500);
 }

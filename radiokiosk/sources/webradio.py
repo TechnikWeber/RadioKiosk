@@ -2,8 +2,6 @@
 
 import aiohttp
 
-from ..config import load_json, save_json
-
 SERVERS = ["de1.api.radio-browser.info", "de2.api.radio-browser.info", "all.api.radio-browser.info"]
 HEADERS = {"User-Agent": "RadioKiosk/0.1"}
 
@@ -13,7 +11,6 @@ class Webradio:
 
     def __init__(self, core):
         self.core = core
-        self.favorites = load_json("favorites.json", [])
         self.station = None
 
     async def search(self, query=""):
@@ -36,18 +33,11 @@ class Webradio:
                     "id": s["stationuuid"],
                     "name": s["name"].strip(),
                     "url": s.get("url_resolved") or s["url"],
+                    "logo": s.get("favicon") or "",
                     "info": ", ".join(filter(None, [s.get("countrycode"), s.get("codec"),
                                                     f'{s["bitrate"]} kbit/s' if s.get("bitrate") else ""])),
                 } for s in rows]
         raise RuntimeError(f"station directory unreachable: {last_error}")
-
-    def toggle_favorite(self, station):
-        if any(f["id"] == station["id"] for f in self.favorites):
-            self.favorites = [f for f in self.favorites if f["id"] != station["id"]]
-        else:
-            self.favorites.append({k: station[k] for k in ("id", "name", "url", "info") if k in station})
-        save_json("favorites.json", self.favorites)
-        return self.favorites
 
     async def play(self, station):
         async with self.core.lock:

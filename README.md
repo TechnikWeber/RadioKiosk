@@ -4,6 +4,14 @@
 
 Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world receiver: web radio, DAB+, FM, shortwave, amateur radio and more in one touch interface.
 
+[![Tests](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml/badge.svg)](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml)
+
+| | |
+|---|---|
+| ![Start screen with favorites and tiles](docs/screenshots/home.png) | ![FM with station name, radio text and waterfall](docs/screenshots/fm.png) |
+| ![Free receiver on the 2 m amateur band](docs/screenshots/receiver.png) | ![Live aircraft map with list](docs/screenshots/aircraft.png) |
+| ![Idle screen with time, weather and station](docs/screenshots/idle.png) | |
+
 > Early development. It runs on a Linux PC today; the kiosk setup for the Raspberry Pi (boot straight into the interface) is not finished yet.
 
 ## Install
@@ -47,15 +55,21 @@ A small Python service controls the receivers and serves a web interface that a 
 
 | Tile | What you get | Backend |
 |---|---|---|
-| Web radio | station search, popular stations, favorites | radio-browser.info, `mpv` |
-| DAB+ | station scan, station list, scrolling text | `welle-cli`, `mpv` |
+| Web radio | station search, popular stations, station logos | radio-browser.info, `mpv` |
+| DAB+ | station scan, station list, scrolling text, pictures the stations send | `welle-cli`, `mpv` |
 | FM | stereo, station names and radio text (RDS), band scan, presets, spectrum and waterfall | built-in receiver or `rtl_fm`, `rtl_power`, `mpv` |
 | Receiver | free tuning in FM, AM and sideband with waterfall, squelch and a band plan: shortwave, amateur radio, PMR446, Freenet, CB | built-in receiver, `mpv` |
-| Aircraft | live map of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |
+| Aircraft | live map and list of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |
 | Bluetooth | connect a Bluetooth speaker, or let a phone play through this device | `bluetoothctl`, PipeWire |
 | Weather | current weather and a four-day forecast | Open-Meteo |
 | SDR++ | the full SDR program for everything else | started as a normal program |
-| Settings | audio output, sleep timer, alarm clock, idle screen, on-screen keyboard, location, receiver backend | PipeWire or PulseAudio |
+| Settings | language, audio output, sleep timer, alarm clock, idle screen, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
+
+Every station can get a star, whatever its source. Favorites appear as a row on the start screen and start with one tap; remove single ones or all of them under the star at the end of that row, for example after moving to another place.
+
+The interface is English by default and can be switched to German under Settings.
+
+With remote control switched on under Settings, phones and computers in the same network can open the interface in a browser. There is no login, so use it only in a network you trust.
 
 Only one receiver can use the stick at a time, so the service stops the running one before starting the next. Tiles whose program or hardware is missing are disabled.
 
@@ -85,13 +99,22 @@ This needs the same programs the installer sets up, and the kernel's DVB driver 
 echo 'blacklist dvb_usb_rtl28xxu' | sudo tee /etc/modprobe.d/blacklist-rtlsdr.conf
 ```
 
+## Tests
+
+```sh
+.venv/bin/python -m unittest
+```
+
+The tests feed synthetic radio signals through the demodulators and the RDS decoder; they need no SDR stick.
+
 ## Settings
 
 Optional file `~/.config/radiokiosk/config.json`:
 
 | Key | Default | Meaning |
 |---|---|---|
-| `host` | `127.0.0.1` | `0.0.0.0` allows control from other devices on the network (no login) |
+| `remote` | `false` | let phones and PCs in the local network control RadioKiosk (no login); also a switch under Settings |
+| `host` | `0.0.0.0` | set to `127.0.0.1` to never listen on the network at all |
 | `port` | `8080` | port of the web interface |
 | `country` | `DE` | country code for the list of popular web radio stations |
 | `location` | not set | `[latitude, longitude]` for the aircraft map and the weather; easier to set under Settings |
