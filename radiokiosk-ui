@@ -1,6 +1,15 @@
 #!/bin/sh
 # Opens the RadioKiosk interface full screen in the first browser that is installed.
 URL="${RADIOKIOSK_URL:-http://localhost:8080}"
+# Right after login the service may still be starting; a browser that comes
+# first would show an error page and stay on it.
+if command -v curl >/dev/null; then
+  for _ in $(seq 60); do
+    curl -s -o /dev/null -m 2 "$URL/api/state" && break
+    sleep 1
+  done
+fi
+
 # Chromium assumes X11 unless told otherwise
 PLATFORM=""
 [ -n "$WAYLAND_DISPLAY" ] && PLATFORM="--ozone-platform=wayland"
