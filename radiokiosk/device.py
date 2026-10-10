@@ -148,6 +148,7 @@ async def update():
     if changed:
         # restart in a moment, so this request can still be answered
         await asyncio.create_subprocess_exec(
-            "systemd-run", "--user", "--on-active=2", "systemctl", "--user", "restart", "radiokiosk.service",
+            # without the accuracy a timer may fire up to a minute late
+            "systemd-run", "--user", "--on-active=2", "--timer-property=AccuracySec=100ms", "systemctl", "--user", "restart", "radiokiosk.service",
             stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
     return changed
