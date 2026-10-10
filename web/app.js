@@ -69,6 +69,8 @@ const STRINGS = {
     idleContent: "Idle screen shows", idleContents: { clock: "clock", gallery: "gallery", feed: "news" },
     galleryFit: "Pictures", galleryFits: { whole: "whole picture", smart: "zoom slightly", fill: "fill the screen" },
     subfoldersToo: "Subfolders", demoPictures: "Demo pictures (no folder of your own chosen yet)",
+    suggestions: "Suggestions", tiles: "Tiles on the start screen", tilesHint: "Tap a tile to hide it or bring it back.",
+    shown: "shown", hiddenTile: "hidden",
     theme: "Design", themes: { dark: "dark", light: "light" },
     bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
@@ -152,6 +154,8 @@ const STRINGS = {
     idleContent: "Ruhebildschirm zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", feed: "Nachrichten" },
     galleryFit: "Bilder", galleryFits: { whole: "ganzes Bild", smart: "leicht zoomen", fill: "Bildschirm füllen" },
     subfoldersToo: "Unterordner", demoPictures: "Demobilder (noch kein eigener Ordner gewählt)",
+    suggestions: "Vorschläge", tiles: "Kacheln auf dem Startbildschirm", tilesHint: "Tippe eine Kachel an, um sie auszublenden oder zurückzuholen.",
+    shown: "sichtbar", hiddenTile: "ausgeblendet",
     theme: "Design", themes: { dark: "dunkel", light: "hell" },
     bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
@@ -339,9 +343,14 @@ const favoritesView = {
 // Every desktop brings a different on-screen keyboard, or none in kiosk mode, so the
 // interface has its own. "auto" shows it on touch screens; where the system keyboard
 // works well, switch it off under Settings.
+// "auto" goes by what touched the screen last: a finger gets the keyboard, a mouse does not.
+// Asking the browser for a "coarse pointer" is not enough; a touch screen on a desktop
+// that also offers a mouse pointer answers no.
+let lastPointer = matchMedia("(pointer: coarse)").matches ? "touch" : "mouse";
+addEventListener("pointerdown", e => { lastPointer = e.pointerType; }, true);
 const keyboardWanted = () => {
   const mode = pref("keyboard", "auto");
-  return mode === "on" || (mode === "auto" && matchMedia("(pointer: coarse)").matches);
+  return mode === "on" || (mode === "auto" && lastPointer !== "mouse");
 };
 
 const KEYS = {
@@ -467,16 +476,21 @@ const home = {
   render() {
     const c = state.caps;
     const sdrProblem = !c.sdr ? t.noSdr : null;
-    const tile = (id, label, problem, onclick, sub) => h("button", {
-      className: "tile" + (state.source === id ? " running" : ""), disabled: !!problem, onclick,
-      innerHTML: icon(id) + `<span>${label}</span>` + (problem || sub ? `<small>${problem || sub}</small>` : ""),
-    });
+    const tile = (id, label, problem, onclick, sub) => {
+      const el = h("button", {
+        className: "tile" + (state.source === id ? " running" : ""), disabled: !!problem, onclick,
+        innerHTML: icon(id) + `<span>${label}</span>` + (problem || sub ? `<small>${problem || sub}</small>` : ""),
+      });
+      el.dataset.tile = id;
+      return el;
+    };
+    const hidden = state.hidden_tiles || [];
     const favorite = f => h("button", { onclick: () => api("/api/favorites/play", f) },
       h("i", { innerHTML: icon(f.kind) }), h("span", { textContent: f.title }));
     view.replaceChildren(
       ...(favorites.length ? [h("div", { className: "favrow" }, ...favorites.map(favorite),
         h("button", { className: "icon", innerHTML: icon("star"), ariaLabel: t.manage, onclick: () => show(favoritesView) }))] : []),
-      h("div", { className: "tiles" },
+      h("div", { className: "tiles" }, ...[
       tile("webradio", t.webradio, c.mpv ? null : t.noMpv, () => show(webradio)),
       tile("dab", t.dab, c.dab ? sdrProblem : `welle-cli ${t.notInstalled}`, () => show(dab)),
       tile("fm", t.fm, c.fm ? sdrProblem : `librtlsdr ${t.notInstalled}`, () => show(fm)),
@@ -489,6 +503,7 @@ const home = {
           () => running ? api("/api/stop", {}) : api(`/api/apps/${a.id}/start`, {}),
           running ? `${t.running} – ${t.quit}` : t.expert);
         el.classList.toggle("running", running);
+        el.dataset.tile = a.id;
         return el;
       }),
       ...(c.bluetooth ? [tile("bluetooth", t.bluetooth, null, () => show(bluetooth), t.btSub)] : []),
@@ -500,7 +515,7 @@ const home = {
       tile("gallery", t.gallery, null, () => show(galleryView), t.gallerySub),
       tile("timer", t.timer, null, () => show(timerView), t.timerSub),
       tile("settings", t.settings, null, () => show(settings)),
-    ));
+      ].filter(el => !hidden.includes(el.dataset.tile))));
   },
   draw() { this.render(); },
   onState() { this.render(); },
@@ -1255,7 +1270,7 @@ const textPrompt = {
   ask(options) { Object.assign(this, { value: "" }, options); show(this); },
   render() {
     const input = h("input", { type: "text", value: this.value, placeholder: this.label, autocapitalize: "off", spellcheck: false });
-    const note = h("p", { className: "hint" });
+    const note = h("p", { className: "label" });
     const finish = async () => {
       try { await this.done(input.value.trim()); } catch (e) { note.textContent = say(e.message); return; }
       show(this.origin);
@@ -1263,9 +1278,9 @@ const textPrompt = {
     input.onkeydown = e => { if (e.key === "Enter") finish(); };
     const own = keyboardWanted();
     if (own) input.inputMode = "none";
-    view.replaceChildren(h("p", { className: "label", textContent: this.label }),
+    view.replaceChildren(h("p", { className: "label", textContent: this.label }), note,
       h("div", { className: "toolbar" }, input, h("button", { className: "primary", textContent: "OK", onclick: finish })),
-      note, ...(own ? [keyboard(input, finish)] : []));
+      ...(own ? [keyboard(input, finish)] : []));
     if (!own) input.focus();
   },
   back() { show(this.origin); return true; },
@@ -1286,12 +1301,12 @@ const podcasts = {
   tab: "subscriptions",
   typing: false,
   subscribed: [],
+  suggested: [],
   results: [],
   query: "",
   error: null,
   async render() {
-    ({ subscribed: this.subscribed } = await api("/api/podcasts"));
-    if (!this.subscribed.length && this.tab === "subscriptions") Object.assign(this, { tab: "search", typing: true });
+    ({ subscribed: this.subscribed, suggested: this.suggested } = await api("/api/podcasts"));
     this.draw();
   },
   async load(query) {
@@ -1330,6 +1345,10 @@ const podcasts = {
     else for (const p of list) {
       parts.push(stationRow({ title: p.title, info: p.author, logo: p.image, onPlay: () => episodes.open(p) }));
     }
+    if (this.tab === "subscriptions" && this.suggested.length) {
+      parts.push(h("p", { className: "label", textContent: t.suggestions }),
+        ...this.suggested.map(p => stationRow({ title: p.title, info: p.author, onPlay: () => episodes.open(p) })));
+    }
     const top = view.scrollTop;
     view.replaceChildren(...parts);
     view.scrollTop = top;
@@ -1357,7 +1376,7 @@ const episodes = {
     const parts = [h("div", { className: "toolbar wrap" },
       h("button", { className: subscribed ? "on" : "", textContent: subscribed ? t.subscribedOn : t.subscribe, onclick: async () => {
         await api("/api/podcasts/subscribe", { podcast: this.podcast, on: !subscribed });
-        ({ subscribed: podcasts.subscribed } = await api("/api/podcasts"));
+        ({ subscribed: podcasts.subscribed, suggested: podcasts.suggested } = await api("/api/podcasts"));
         this.draw();
       } }),
       ...(mine ? [seek(-30), seek(30), h("span", { className: "label", textContent:
@@ -1455,7 +1474,8 @@ const article = {
 const feedList = {
   title: t.manageFeeds,
   async render() {
-    const { feeds } = await api("/api/feeds");
+    const { feeds, suggested } = await api("/api/feeds");
+    const note = h("p", { className: "label" });
     view.replaceChildren(
       h("div", { className: "toolbar" }, h("button", { className: "primary", textContent: t.addFeed, onclick: () => textPrompt.ask({
         title: t.addFeed, label: t.feedAddress, value: "https://", origin: this,
@@ -1464,7 +1484,15 @@ const feedList = {
       ...feeds.map(f => h("div", { className: "row" },
         h("button", {}, h("span", { className: "texts" }, h("b", { textContent: f.title }), h("small", { textContent: f.url }))),
         h("button", { className: "icon", textContent: "×", ariaLabel: t.remove,
-          onclick: async () => { await api("/api/feeds", { action: "remove", url: f.url }); this.render(); } }))));
+          onclick: async () => { await api("/api/feeds", { action: "remove", url: f.url }); this.render(); } }))),
+      ...(suggested.length ? [h("p", { className: "label", textContent: t.suggestions }), note] : []),
+      ...suggested.map(f => h("div", { className: "row" },
+        h("button", {}, h("span", { className: "texts" }, h("b", { textContent: f.title }), h("small", { textContent: f.url }))),
+        h("button", { className: "icon", textContent: "+", ariaLabel: t.addFeed, onclick: async e => {
+          e.target.disabled = true;
+          try { await api("/api/feeds", { action: "add", url: f.url }); this.render(); }
+          catch (error) { note.textContent = say(error.message); e.target.disabled = false; }
+        } }))));
   },
   back() { show(news); return true; },
 };
@@ -1631,6 +1659,31 @@ const timerView = {
     view.querySelector(".big").textContent = big;
   },
   onState() { this.draw(); },
+};
+
+/* ---------- which tiles the start screen shows ---------- */
+
+// Every tile but the settings, which are the way back here.
+const tilesView = {
+  title: t.tiles,
+  render() { this.draw(); },
+  draw() {
+    const c = state.caps, hidden = state.hidden_tiles || [];
+    const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner], ["adsb", t.adsb],
+      ...c.apps.map(a => [a.id, a.name]), ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
+      ["podcast", t.podcasts], ["news", t.news], ["sensors", t.sensors], ["ais", t.ais], ["weather", t.weather],
+      ["gallery", t.gallery], ["timer", t.timer]];
+    const top = view.scrollTop;
+    view.replaceChildren(h("p", { className: "explain", textContent: t.tilesHint }),
+      h("div", { className: "toolbar wrap" }, ...all.map(([id, name]) => h("button", {
+        className: hidden.includes(id) ? "" : "on", textContent: `${name}: ${hidden.includes(id) ? t.hiddenTile : t.shown}`,
+        onclick: () => api("/api/settings", { key: "hidden_tiles",
+          value: hidden.includes(id) ? hidden.filter(x => x !== id) : [...hidden, id] }),
+      }))));
+    view.scrollTop = top;
+  },
+  onState() { this.draw(); },
+  back() { show(settings); return true; },
 };
 
 /* ---------- gallery ---------- */
@@ -1898,7 +1951,8 @@ document.body.dataset.bar = pref("bar", "medium");
       h("div", { className: "toolbar wrap" },
         h("button", { textContent: t.receiverSetting, onclick: () => show(receiverView) }),
         h("button", { textContent: t.gallery, onclick: () => show(gallerySettings) }),
-        h("button", { textContent: t.podcastDirectory, onclick: () => show(podcastSettings) })),
+        h("button", { textContent: t.podcastDirectory, onclick: () => show(podcastSettings) }),
+        h("button", { textContent: t.tiles, onclick: () => show(tilesView) })),
       h("p", { className: "hint", textContent: t.relevelHint }),
       h("div", { className: "toolbar" },
         h("button", { textContent: t.relevel, onclick: e => { e.target.disabled = true; api("/api/gain/reset", {}); } })),
@@ -2066,7 +2120,7 @@ async function openLink() {
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
     wifi: wifiView, receiver: receiverView,
     gallery: galleryView, gallerysettings: gallerySettings, podcasts, news, sensors, ais: ships, timer: timerView,
-    podcastsettings: podcastSettings }[name] || home;
+    podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList }[name] || home;
   if (target === webradio && band === "search") Object.assign(webradio, { tab: "search", typing: true });
   show(target);
   if (target === tuner && band) {

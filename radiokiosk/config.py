@@ -43,6 +43,8 @@ DEFAULTS = {
     "gallery": None,
     # what the idle screen shows: "clock" (black and dimmed), "gallery" or "feed" (the newest article)
     "idle_content": "clock",
+    # tiles taken off the start screen, by their id
+    "hidden_tiles": [],
     # podcast directory: "fyyd", "apple" or "podcastindex"; only the last needs key and secret
     "podcast_provider": "fyyd",
     "podcast_key": "",

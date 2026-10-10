@@ -19,6 +19,20 @@ SAVE_EVERY = 5      # seconds between notes of the playing position
 REWIND = 5          # seconds an episode steps back when it is picked up again
 
 
+# Offered until something is subscribed: the four at the top of Apple's German podcast
+# chart and the first of the US chart, as of October 2026.
+SUGGESTIONS = [
+    {"title": "RONZHEIMER.", "author": "Paul Ronzheimer", "feed": "https://ronzheimer.podigee.io/feed/mp3", "image": ""},
+    {"title": "Lanz + Precht", "author": "ZDF, Markus Lanz & Richard David Precht",
+     "feed": "https://cdn.julephosting.de/podcasts/1355-lanz-precht/feed.rss", "image": ""},
+    {"title": "Machtwechsel", "author": "Dagmar Rosenfeld und Robin Alexander",
+     "feed": "https://machtwechsel.podigee.io/feed/mp3", "image": ""},
+    {"title": "Baywatch Berlin", "author": "Klaas Heufer-Umlauf, Thomas Schmitt & Jakob Lundt",
+     "feed": "https://baywatch-berlin.podigee.io/feed/mp3", "image": ""},
+    {"title": "The Daily", "author": "The New York Times", "feed": "https://feeds.simplecast.com/Sl5CSM3S", "image": ""},
+]
+
+
 async def _json(url, params, headers=None):
     try:
         async with aiohttp.ClientSession(headers={**HEADERS, **(headers or {})},
@@ -73,6 +87,9 @@ class Podcasts:
             self.subscribed.append({k: podcast.get(k, "") for k in ("title", "author", "feed", "image")})
             self.subscribed.sort(key=lambda p: p["title"].lower())
         save_json("podcasts.json", self.subscribed)
+
+    def suggestions(self):
+        return [s for s in SUGGESTIONS if all(p["feed"] != s["feed"] for p in self.subscribed)]
 
     async def episodes(self, feed):
         parsed = await fetch_feed(feed)

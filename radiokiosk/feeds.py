@@ -18,11 +18,18 @@ from .config import load_json, save_json
 HEADERS = {"User-Agent": "RadioKiosk/0.1"}
 REFRESH_AFTER = 300     # seconds a fetched feed is trusted
 ARTICLES = 60           # newest articles kept over all feeds
+# Feeds the reader offers with one tap: large German news sites and one for the world.
+# They are the public feeds these sites publish for readers like this one; shown are
+# headline and teaser as the feed carries them.
+SUGGESTIONS = [
+    {"url": "https://www.tagesschau.de/index~rss2.xml", "title": "tagesschau.de"},
+    {"url": "https://www.spiegel.de/schlagzeilen/index.rss", "title": "DER SPIEGEL"},
+    {"url": "https://www.zdf.de/rss/zdf/nachrichten", "title": "ZDFheute"},
+    {"url": "https://www.deutschlandfunk.de/nachrichten-100.rss", "title": "Deutschlandfunk"},
+    {"url": "https://feeds.bbci.co.uk/news/world/rss.xml", "title": "BBC News (World)"},
+]
 # what the reader starts with, by country; anything else gets the English one
-STARTERS = {
-    "DE": {"url": "https://www.tagesschau.de/index~rss2.xml", "title": "tagesschau.de"},
-    None: {"url": "https://feeds.bbci.co.uk/news/world/rss.xml", "title": "BBC News"},
-}
+STARTERS = {"DE": SUGGESTIONS[0], None: SUGGESTIONS[-1]}
 
 
 def plain(markup, limit=None):
@@ -141,6 +148,9 @@ class Feeds:
         merged = sorted((a for articles in lists for a in articles), key=lambda a: -a["date"])
         return merged[:ARTICLES]
 
+    def suggestions(self):
+        return [s for s in SUGGESTIONS if all(feed["url"] != s["url"] for feed in self.feeds)]
+
     async def add(self, url):
         url = url.strip()
         if not re.match(r"https?://", url):
@@ -148,7 +158,8 @@ class Feeds:
         if any(feed["url"] == url for feed in self.feeds):
             return
         parsed = await fetch_feed(url)   # also proves that the address is a feed
-        self.feeds.append({"url": url, "title": parsed["title"] or url.split("/")[2]})
+        known = next((s["title"] for s in SUGGESTIONS if s["url"] == url), None)
+        self.feeds.append({"url": url, "title": known or parsed["title"] or url.split("/")[2]})
         save_json("feeds.json", self.feeds)
 
     def remove(self, url):

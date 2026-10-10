@@ -261,6 +261,13 @@ def build(cfg):
     @routes.post("/api/settings")
     async def settings_set(request):
         body = await request.json()
+        if body["key"] == "hidden_tiles":
+            # the settings tile is the way back, so it cannot be hidden
+            if not isinstance(body["value"], list) or not all(isinstance(t, str) and t != "settings" for t in body["value"]):
+                raise ValueError("unknown setting")
+            save_setting(cfg, "hidden_tiles", sorted(set(body["value"])))
+            await core._broadcast()
+            return ok()
         if body["key"] in ("podcast_key", "podcast_secret") and isinstance(body["value"], str):
             save_setting(cfg, body["key"], body["value"].strip())
             return ok()
@@ -463,7 +470,8 @@ def build(cfg):
 
     @routes.get("/api/podcasts")
     async def podcasts_get(request):
-        return web.json_response({"subscribed": podcasts.subscribed, "provider": cfg["podcast_provider"]})
+        return web.json_response({"subscribed": podcasts.subscribed, "suggested": podcasts.suggestions(),
+                                  "provider": cfg["podcast_provider"]})
 
     @routes.get("/api/podcasts/search")
     async def podcasts_search(request):
@@ -488,7 +496,8 @@ def build(cfg):
 
     @routes.get("/api/feeds")
     async def feeds_get(request):
-        return web.json_response({"feeds": feeds.feeds, "articles": await feeds.articles()})
+        return web.json_response({"feeds": feeds.feeds, "suggested": feeds.suggestions(),
+                                  "articles": await feeds.articles()})
 
     @routes.post("/api/feeds")
     async def feeds_set(request):
