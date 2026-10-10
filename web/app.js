@@ -32,7 +32,7 @@ const STRINGS = {
     connecting: "Connecting…", connected: "connected", update: "Update RadioKiosk", updating: "Updating…",
     upToDate: "Already up to date", updated: "Updated – restarting", restart: "Restart", shutDown: "Shut down",
     sure: "Tap again to confirm", liveStream: "Listen along on other devices (remote control must be on):",
-    scanChannels: "Scan", stopScan: "Stop scan", onAir: "On the air nearby (EiBi schedule)",
+    scanChannels: "Scan", stopScan: "Stop scan", onAir: "Scheduled to be on the air now, within ±250 kHz (EiBi list)",
     record: "Record", recordingTo: "Recording to Music/RadioKiosk",
     warn: { undervoltage: "The power supply is too weak: reception suffers and the SDR stick may hang." },
     adsb: "Aircraft", adsbSub: "Live map (ADS-B)", aircraftSeen: "aircraft received", withPosition: "with position",
@@ -164,7 +164,7 @@ const STRINGS = {
     connecting: "Verbinde…", connected: "verbunden", update: "RadioKiosk aktualisieren", updating: "Aktualisiere…",
     upToDate: "Bereits aktuell", updated: "Aktualisiert – starte neu", restart: "Neu starten", shutDown: "Ausschalten",
     sure: "Zum Bestätigen noch einmal tippen", liveStream: "Auf anderen Geräten mithören (Fernbedienung muss an sein):",
-    scanChannels: "Suchlauf", stopScan: "Suchlauf stoppen", onAir: "Gerade in der Nähe auf Sendung (EiBi-Fahrplan)",
+    scanChannels: "Suchlauf", stopScan: "Suchlauf stoppen", onAir: "Laut Sendeplan jetzt auf Sendung, im Umkreis von ±250 kHz (EiBi-Liste)",
     record: "Aufnehmen", recordingTo: "Aufnahme läuft nach Musik/RadioKiosk",
     warn: { undervoltage: "Das Netzteil ist zu schwach: Der Empfang leidet und der SDR-Stick kann sich aufhängen." },
     adsb: "Flugzeuge", adsbSub: "Live-Karte (ADS-B)", aircraftSeen: "Flugzeuge empfangen", withPosition: "mit Position",
@@ -942,8 +942,9 @@ const tuner = {
       waterfall: waterfallOn("tuner") }).catch(e => { this.error = e.message; this.draw(); });
   },
   async loadOnAir() {
-    // the schedule only covers long, medium and shortwave
-    this.onair = this.hz < 30e6 && this.mode !== "nfm" ? await api(`/api/tuner/onair?hz=${this.hz}`).catch(() => []) : [];
+    // the schedule only covers long, medium and shortwave; in the amateur and CB lists it would bury the channels
+    const listed = this.band && !["ham-hf", "cb"].includes(this.band.id);
+    this.onair = listed && this.hz < 30e6 && this.mode !== "nfm" ? await api(`/api/tuner/onair?hz=${this.hz}`).catch(() => []) : [];
     if (current === this && this.band) this.draw();
   },
   tune(hz, mode = this.mode, label = "") {
@@ -1005,10 +1006,15 @@ const tuner = {
         title: e.station, info: `${e.khz} kHz · ${e.language}${e.target ? " → " + e.target : ""}`,
         active: e.khz * 1000 === this.hz, onPlay: () => this.tune(e.khz * 1000, "am", e.station),
       })),
-      ...this.band.presets.map(p => stationRow({
-        title: tr(p.name), info: `${formatHz(p.hz).replace(/<\/?small>/g, "")} · ${MODE_NAMES[p.mode || this.band.mode]}`,
-        active: p.hz === this.hz, onPlay: () => this.select(p),
-      })),
+      ...this.band.presets.flatMap((p, i, all) => {
+        const row = stationRow({
+          title: tr(p.name), active: p.hz === this.hz, onPlay: () => this.select(p),
+          info: [formatHz(p.hz).replace(/<\/?small>/g, ""), MODE_NAMES[p.mode || this.band.mode], p.note && tr(p.note)].filter(Boolean).join(" · "),
+        });
+        row.classList.toggle("tall", Boolean(p.note));   // a note may take a second line
+        const heading = p.group && tr(p.group) !== tr((all[i - 1] || {}).group || "");
+        return heading ? [h("p", { className: "label", textContent: tr(p.group) }), row] : [row];
+      }),
     );
     view.scrollTop = top;
   },

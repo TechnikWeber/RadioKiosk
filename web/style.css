@@ -125,6 +125,7 @@ footer button.icon svg { width: calc(var(--bar-touch) * .5); height: calc(var(--
 .row b, .row small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .row b { font-weight: 600; }
 .row small { color: var(--muted); font-size: 14px; }
+.row.tall small { white-space: normal; }
 .row.current > button:first-child { border-color: var(--accent); }
 .star.on { color: var(--accent); }
 .star.on svg { fill: currentColor; }

@@ -137,19 +137,316 @@
   "step": 500,
   "presets": [
    {
+    "hz": 1850000,
+    "name": {
+     "de": "160 m Sprechfunk (1843–2000 kHz)",
+     "en": "160 m phone (1843–2000 kHz)"
+    },
+    "group": {
+     "de": "160 m",
+     "en": "160 m"
+    },
+    "mode": "lsb"
+   },
+   {
+    "hz": 1835300,
+    "name": {
+     "de": "160 m QRP Telegrafie (1836 kHz)",
+     "en": "160 m QRP CW (1836 kHz)"
+    },
+    "group": {
+     "de": "160 m",
+     "en": "160 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 1840000,
+    "name": "160 m FT8",
+    "group": {
+     "de": "160 m",
+     "en": "160 m"
+    },
+    "mode": "usb"
+   },
+   {
     "hz": 3700000,
-    "mode": "lsb",
     "name": {
      "de": "80 m Sprechfunk (3600–3800 kHz)",
      "en": "80 m phone (3600–3800 kHz)"
+    },
+    "group": {
+     "de": "80 m",
+     "en": "80 m"
+    },
+    "mode": "lsb"
+   },
+   {
+    "hz": 3790000,
+    "name": {
+     "de": "80 m DX-Fenster",
+     "en": "80 m DX window"
+    },
+    "group": {
+     "de": "80 m",
+     "en": "80 m"
+    },
+    "mode": "lsb",
+    "note": {
+     "de": "3775–3800 kHz, Vorrang für Interkontinentalverkehr",
+     "en": "3775–3800 kHz, priority for intercontinental contacts"
     }
    },
    {
-    "hz": 7100000,
-    "mode": "lsb",
+    "hz": 3690000,
     "name": {
-     "de": "40 m Sprechfunk (7050–7200 kHz)",
-     "en": "40 m phone (7050–7200 kHz)"
+     "de": "80 m QRP Sprechfunk",
+     "en": "80 m QRP phone"
+    },
+    "group": {
+     "de": "80 m",
+     "en": "80 m"
+    },
+    "mode": "lsb",
+    "note": {
+     "de": "Aktivitätszentrum für kleine Leistung",
+     "en": "centre of activity for low power"
+    }
+   },
+   {
+    "hz": 3760000,
+    "name": {
+     "de": "80 m Notfunk",
+     "en": "80 m emergency"
+    },
+    "group": {
+     "de": "80 m",
+     "en": "80 m"
+    },
+    "mode": "lsb",
+    "note": {
+     "de": "Aktivitätszentrum der IARU-Region 1",
+     "en": "IARU Region 1 centre of activity"
+    }
+   },
+   {
+    "hz": 3559300,
+    "name": {
+     "de": "80 m QRP Telegrafie (3560 kHz)",
+     "en": "80 m QRP CW (3560 kHz)"
+    },
+    "group": {
+     "de": "80 m",
+     "en": "80 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 3554300,
+    "name": {
+     "de": "80 m langsame Telegrafie, QRS (3555 kHz)",
+     "en": "80 m slow CW, QRS (3555 kHz)"
+    },
+    "group": {
+     "de": "80 m",
+     "en": "80 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 3573000,
+    "name": "80 m FT8",
+    "group": {
+     "de": "80 m",
+     "en": "80 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 3630000,
+    "name": {
+     "de": "80 m digitale Sprache (DV)",
+     "en": "80 m digital voice (DV)"
+    },
+    "group": {
+     "de": "80 m",
+     "en": "80 m"
+    },
+    "mode": "lsb"
+   },
+   {
+    "hz": 3735000,
+    "name": {
+     "de": "80 m Bildfunk (SSTV)",
+     "en": "80 m pictures (SSTV)"
+    },
+    "group": {
+     "de": "80 m",
+     "en": "80 m"
+    },
+    "mode": "lsb"
+   },
+   {
+    "hz": 5360000,
+    "name": {
+     "de": "60 m Sprechfunk (5354–5366 kHz)",
+     "en": "60 m phone (5354–5366 kHz)"
+    },
+    "group": {
+     "de": "60 m",
+     "en": "60 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 5357000,
+    "name": "60 m FT8",
+    "group": {
+     "de": "60 m",
+     "en": "60 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 7100000,
+    "name": {
+     "de": "40 m Sprechfunk (7053–7200 kHz)",
+     "en": "40 m phone (7053–7200 kHz)"
+    },
+    "group": {
+     "de": "40 m",
+     "en": "40 m"
+    },
+    "mode": "lsb"
+   },
+   {
+    "hz": 7185000,
+    "name": {
+     "de": "40 m DX-Fenster",
+     "en": "40 m DX window"
+    },
+    "group": {
+     "de": "40 m",
+     "en": "40 m"
+    },
+    "mode": "lsb",
+    "note": {
+     "de": "7175–7200 kHz, Vorrang für Interkontinentalverkehr",
+     "en": "7175–7200 kHz, priority for intercontinental contacts"
+    }
+   },
+   {
+    "hz": 7090000,
+    "name": {
+     "de": "40 m QRP Sprechfunk",
+     "en": "40 m QRP phone"
+    },
+    "group": {
+     "de": "40 m",
+     "en": "40 m"
+    },
+    "mode": "lsb",
+    "note": {
+     "de": "Aktivitätszentrum für kleine Leistung",
+     "en": "centre of activity for low power"
+    }
+   },
+   {
+    "hz": 7110000,
+    "name": {
+     "de": "40 m Notfunk",
+     "en": "40 m emergency"
+    },
+    "group": {
+     "de": "40 m",
+     "en": "40 m"
+    },
+    "mode": "lsb",
+    "note": {
+     "de": "Aktivitätszentrum der IARU-Region 1",
+     "en": "IARU Region 1 centre of activity"
+    }
+   },
+   {
+    "hz": 7029300,
+    "name": {
+     "de": "40 m QRP Telegrafie (7030 kHz)",
+     "en": "40 m QRP CW (7030 kHz)"
+    },
+    "group": {
+     "de": "40 m",
+     "en": "40 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 7074000,
+    "name": "40 m FT8",
+    "group": {
+     "de": "40 m",
+     "en": "40 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 7070000,
+    "name": {
+     "de": "40 m digitale Sprache (DV)",
+     "en": "40 m digital voice (DV)"
+    },
+    "group": {
+     "de": "40 m",
+     "en": "40 m"
+    },
+    "mode": "lsb"
+   },
+   {
+    "hz": 7165000,
+    "name": {
+     "de": "40 m Bildfunk (SSTV)",
+     "en": "40 m pictures (SSTV)"
+    },
+    "group": {
+     "de": "40 m",
+     "en": "40 m"
+    },
+    "mode": "lsb"
+   },
+   {
+    "hz": 10115300,
+    "name": {
+     "de": "30 m QRP Telegrafie (10116 kHz)",
+     "en": "30 m QRP CW (10116 kHz)"
+    },
+    "group": {
+     "de": "30 m (kein Sprechfunk)",
+     "en": "30 m (no phone)"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 10136000,
+    "name": "30 m FT8",
+    "group": {
+     "de": "30 m (kein Sprechfunk)",
+     "en": "30 m (no phone)"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 10143300,
+    "name": {
+     "de": "Bake DK0WCY (10144 kHz)",
+     "en": "Beacon DK0WCY (10144 kHz)"
+    },
+    "group": {
+     "de": "30 m (kein Sprechfunk)",
+     "en": "30 m (no phone)"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "Funkwetter- und Aurorabake aus Norddeutschland",
+     "en": "propagation and aurora beacon from northern Germany"
     }
    },
    {
@@ -157,43 +454,681 @@
     "name": {
      "de": "20 m Sprechfunk (14112–14350 kHz)",
      "en": "20 m phone (14112–14350 kHz)"
+    },
+    "group": {
+     "de": "20 m",
+     "en": "20 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 14195000,
+    "name": {
+     "de": "20 m DX-Fenster",
+     "en": "20 m DX window"
+    },
+    "group": {
+     "de": "20 m",
+     "en": "20 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "14190–14200 kHz, Vorrang für DXpeditionen",
+     "en": "14190–14200 kHz, priority for DXpeditions"
     }
+   },
+   {
+    "hz": 14285000,
+    "name": {
+     "de": "20 m QRP Sprechfunk",
+     "en": "20 m QRP phone"
+    },
+    "group": {
+     "de": "20 m",
+     "en": "20 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "Aktivitätszentrum für kleine Leistung",
+     "en": "centre of activity for low power"
+    }
+   },
+   {
+    "hz": 14300000,
+    "name": {
+     "de": "20 m Notfunk",
+     "en": "20 m emergency"
+    },
+    "group": {
+     "de": "20 m",
+     "en": "20 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "weltweites Aktivitätszentrum",
+     "en": "global centre of activity"
+    }
+   },
+   {
+    "hz": 14099300,
+    "name": {
+     "de": "20 m Weltbaken NCDXF/IARU (14100 kHz)",
+     "en": "20 m world beacons NCDXF/IARU (14100 kHz)"
+    },
+    "group": {
+     "de": "20 m",
+     "en": "20 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "18 Baken rund um die Welt, jede sendet alle 3 Minuten 10 Sekunden lang",
+     "en": "18 beacons around the world, each sends for 10 seconds every 3 minutes"
+    }
+   },
+   {
+    "hz": 14059300,
+    "name": {
+     "de": "20 m QRP Telegrafie (14060 kHz)",
+     "en": "20 m QRP CW (14060 kHz)"
+    },
+    "group": {
+     "de": "20 m",
+     "en": "20 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 14054300,
+    "name": {
+     "de": "20 m langsame Telegrafie, QRS (14055 kHz)",
+     "en": "20 m slow CW, QRS (14055 kHz)"
+    },
+    "group": {
+     "de": "20 m",
+     "en": "20 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 14074000,
+    "name": "20 m FT8",
+    "group": {
+     "de": "20 m",
+     "en": "20 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 14130000,
+    "name": {
+     "de": "20 m digitale Sprache (DV)",
+     "en": "20 m digital voice (DV)"
+    },
+    "group": {
+     "de": "20 m",
+     "en": "20 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 14230000,
+    "name": {
+     "de": "20 m Bildfunk (SSTV)",
+     "en": "20 m pictures (SSTV)"
+    },
+    "group": {
+     "de": "20 m",
+     "en": "20 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 18140000,
+    "name": {
+     "de": "17 m Sprechfunk (18111–18168 kHz)",
+     "en": "17 m phone (18111–18168 kHz)"
+    },
+    "group": {
+     "de": "17 m",
+     "en": "17 m"
+    },
+    "mode": "usb"
    },
    {
     "hz": 18130000,
     "name": {
-     "de": "17 m Sprechfunk (18111–18168 kHz)",
-     "en": "17 m phone (18111–18168 kHz)"
+     "de": "17 m QRP Sprechfunk",
+     "en": "17 m QRP phone"
+    },
+    "group": {
+     "de": "17 m",
+     "en": "17 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "Aktivitätszentrum für kleine Leistung",
+     "en": "centre of activity for low power"
     }
+   },
+   {
+    "hz": 18160000,
+    "name": {
+     "de": "17 m Notfunk",
+     "en": "17 m emergency"
+    },
+    "group": {
+     "de": "17 m",
+     "en": "17 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "weltweites Aktivitätszentrum",
+     "en": "global centre of activity"
+    }
+   },
+   {
+    "hz": 18109300,
+    "name": {
+     "de": "17 m Weltbaken NCDXF/IARU (18110 kHz)",
+     "en": "17 m world beacons NCDXF/IARU (18110 kHz)"
+    },
+    "group": {
+     "de": "17 m",
+     "en": "17 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "18 Baken rund um die Welt, jede sendet alle 3 Minuten 10 Sekunden lang",
+     "en": "18 beacons around the world, each sends for 10 seconds every 3 minutes"
+    }
+   },
+   {
+    "hz": 18085300,
+    "name": {
+     "de": "17 m QRP Telegrafie (18086 kHz)",
+     "en": "17 m QRP CW (18086 kHz)"
+    },
+    "group": {
+     "de": "17 m",
+     "en": "17 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 18100000,
+    "name": "17 m FT8",
+    "group": {
+     "de": "17 m",
+     "en": "17 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 18150000,
+    "name": {
+     "de": "17 m digitale Sprache (DV)",
+     "en": "17 m digital voice (DV)"
+    },
+    "group": {
+     "de": "17 m",
+     "en": "17 m"
+    },
+    "mode": "usb"
    },
    {
     "hz": 21300000,
     "name": {
      "de": "15 m Sprechfunk (21151–21450 kHz)",
      "en": "15 m phone (21151–21450 kHz)"
+    },
+    "group": {
+     "de": "15 m",
+     "en": "15 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 21285000,
+    "name": {
+     "de": "15 m QRP Sprechfunk",
+     "en": "15 m QRP phone"
+    },
+    "group": {
+     "de": "15 m",
+     "en": "15 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "Aktivitätszentrum für kleine Leistung",
+     "en": "centre of activity for low power"
     }
+   },
+   {
+    "hz": 21360000,
+    "name": {
+     "de": "15 m Notfunk",
+     "en": "15 m emergency"
+    },
+    "group": {
+     "de": "15 m",
+     "en": "15 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "weltweites Aktivitätszentrum",
+     "en": "global centre of activity"
+    }
+   },
+   {
+    "hz": 21149300,
+    "name": {
+     "de": "15 m Weltbaken NCDXF/IARU (21150 kHz)",
+     "en": "15 m world beacons NCDXF/IARU (21150 kHz)"
+    },
+    "group": {
+     "de": "15 m",
+     "en": "15 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "18 Baken rund um die Welt, jede sendet alle 3 Minuten 10 Sekunden lang",
+     "en": "18 beacons around the world, each sends for 10 seconds every 3 minutes"
+    }
+   },
+   {
+    "hz": 21059300,
+    "name": {
+     "de": "15 m QRP Telegrafie (21060 kHz)",
+     "en": "15 m QRP CW (21060 kHz)"
+    },
+    "group": {
+     "de": "15 m",
+     "en": "15 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 21054300,
+    "name": {
+     "de": "15 m langsame Telegrafie, QRS (21055 kHz)",
+     "en": "15 m slow CW, QRS (21055 kHz)"
+    },
+    "group": {
+     "de": "15 m",
+     "en": "15 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 21074000,
+    "name": "15 m FT8",
+    "group": {
+     "de": "15 m",
+     "en": "15 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 21180000,
+    "name": {
+     "de": "15 m digitale Sprache (DV)",
+     "en": "15 m digital voice (DV)"
+    },
+    "group": {
+     "de": "15 m",
+     "en": "15 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 21340000,
+    "name": {
+     "de": "15 m Bildfunk (SSTV)",
+     "en": "15 m pictures (SSTV)"
+    },
+    "group": {
+     "de": "15 m",
+     "en": "15 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 24970000,
+    "name": {
+     "de": "12 m Sprechfunk (24931–24990 kHz)",
+     "en": "12 m phone (24931–24990 kHz)"
+    },
+    "group": {
+     "de": "12 m",
+     "en": "12 m"
+    },
+    "mode": "usb"
    },
    {
     "hz": 24950000,
     "name": {
-     "de": "12 m Sprechfunk (24931–24990 kHz)",
-     "en": "12 m phone (24931–24990 kHz)"
+     "de": "12 m QRP Sprechfunk",
+     "en": "12 m QRP phone"
+    },
+    "group": {
+     "de": "12 m",
+     "en": "12 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "Aktivitätszentrum für kleine Leistung",
+     "en": "centre of activity for low power"
     }
+   },
+   {
+    "hz": 24929300,
+    "name": {
+     "de": "12 m Weltbaken NCDXF/IARU (24930 kHz)",
+     "en": "12 m world beacons NCDXF/IARU (24930 kHz)"
+    },
+    "group": {
+     "de": "12 m",
+     "en": "12 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "18 Baken rund um die Welt, jede sendet alle 3 Minuten 10 Sekunden lang",
+     "en": "18 beacons around the world, each sends for 10 seconds every 3 minutes"
+    }
+   },
+   {
+    "hz": 24905300,
+    "name": {
+     "de": "12 m QRP Telegrafie (24906 kHz)",
+     "en": "12 m QRP CW (24906 kHz)"
+    },
+    "group": {
+     "de": "12 m",
+     "en": "12 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 24915000,
+    "name": "12 m FT8",
+    "group": {
+     "de": "12 m",
+     "en": "12 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 24960000,
+    "name": {
+     "de": "12 m digitale Sprache (DV)",
+     "en": "12 m digital voice (DV)"
+    },
+    "group": {
+     "de": "12 m",
+     "en": "12 m"
+    },
+    "mode": "usb"
    },
    {
     "hz": 28500000,
     "name": {
      "de": "10 m Sprechfunk (28320–29000 kHz)",
      "en": "10 m phone (28320–29000 kHz)"
+    },
+    "group": {
+     "de": "10 m",
+     "en": "10 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 28360000,
+    "name": {
+     "de": "10 m QRP Sprechfunk",
+     "en": "10 m QRP phone"
+    },
+    "group": {
+     "de": "10 m",
+     "en": "10 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "Aktivitätszentrum für kleine Leistung",
+     "en": "centre of activity for low power"
     }
    },
    {
+    "hz": 28199300,
+    "name": {
+     "de": "10 m Weltbaken NCDXF/IARU (28200 kHz)",
+     "en": "10 m world beacons NCDXF/IARU (28200 kHz)"
+    },
+    "group": {
+     "de": "10 m",
+     "en": "10 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "18 Baken rund um die Welt, jede sendet alle 3 Minuten 10 Sekunden lang",
+     "en": "18 beacons around the world, each sends for 10 seconds every 3 minutes"
+    }
+   },
+   {
+    "hz": 28249300,
+    "name": {
+     "de": "10 m Bakenband (28190–28300 kHz)",
+     "en": "10 m beacon band (28190–28300 kHz)"
+    },
+    "group": {
+     "de": "10 m",
+     "en": "10 m"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "Dauerbaken; sind sie zu hören, ist das Band offen",
+     "en": "continuous beacons; if they are heard, the band is open"
+    }
+   },
+   {
+    "hz": 28059300,
+    "name": {
+     "de": "10 m QRP Telegrafie (28060 kHz)",
+     "en": "10 m QRP CW (28060 kHz)"
+    },
+    "group": {
+     "de": "10 m",
+     "en": "10 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 28054300,
+    "name": {
+     "de": "10 m langsame Telegrafie, QRS (28055 kHz)",
+     "en": "10 m slow CW, QRS (28055 kHz)"
+    },
+    "group": {
+     "de": "10 m",
+     "en": "10 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 28074000,
+    "name": "10 m FT8",
+    "group": {
+     "de": "10 m",
+     "en": "10 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 28330000,
+    "name": {
+     "de": "10 m digitale Sprache (DV)",
+     "en": "10 m digital voice (DV)"
+    },
+    "group": {
+     "de": "10 m",
+     "en": "10 m"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 28680000,
+    "name": {
+     "de": "10 m Bildfunk (SSTV)",
+     "en": "10 m pictures (SSTV)"
+    },
+    "group": {
+     "de": "10 m",
+     "en": "10 m"
+    },
+    "mode": "usb"
+   },
+   {
     "hz": 29600000,
-    "mode": "nfm",
     "name": {
      "de": "10 m FM-Anruffrequenz",
      "en": "10 m FM calling"
+    },
+    "group": {
+     "de": "10 m",
+     "en": "10 m"
+    },
+    "mode": "nfm"
+   },
+   {
+    "hz": 29620000,
+    "name": {
+     "de": "10 m FM-Relais RH1–RH8 (Ausgaben)",
+     "en": "10 m FM repeaters RH1–RH8 (outputs)"
+    },
+    "group": {
+     "de": "10 m",
+     "en": "10 m"
+    },
+    "mode": "nfm",
+    "note": {
+     "de": "29620–29690 kHz, Eingabe 100 kHz tiefer",
+     "en": "29620–29690 kHz, input 100 kHz lower"
     }
+   },
+   {
+    "hz": 4995300,
+    "name": {
+     "de": "RWM Moskau (4996 kHz)",
+     "en": "RWM Moscow (4996 kHz)"
+    },
+    "group": {
+     "de": "Zeitzeichen (kein Amateurfunk)",
+     "en": "Time signals (not amateur radio)"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "Zeitzeichen in Telegrafie",
+     "en": "time signal in CW"
+    }
+   },
+   {
+    "hz": 9995300,
+    "name": {
+     "de": "RWM Moskau (9996 kHz)",
+     "en": "RWM Moscow (9996 kHz)"
+    },
+    "group": {
+     "de": "Zeitzeichen (kein Amateurfunk)",
+     "en": "Time signals (not amateur radio)"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 14995300,
+    "name": {
+     "de": "RWM Moskau (14996 kHz)",
+     "en": "RWM Moscow (14996 kHz)"
+    },
+    "group": {
+     "de": "Zeitzeichen (kein Amateurfunk)",
+     "en": "Time signals (not amateur radio)"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 5000000,
+    "name": {
+     "de": "Zeitzeichen 5 MHz (WWV, BPM)",
+     "en": "Time signal 5 MHz (WWV, BPM)"
+    },
+    "group": {
+     "de": "Zeitzeichen (kein Amateurfunk)",
+     "en": "Time signals (not amateur radio)"
+    },
+    "mode": "am",
+    "note": {
+     "de": "Sekundentakt mit Ansage; aus den USA und China",
+     "en": "second ticks with announcements; from the USA and China"
+    }
+   },
+   {
+    "hz": 10000000,
+    "name": {
+     "de": "Zeitzeichen 10 MHz (WWV, BPM)",
+     "en": "Time signal 10 MHz (WWV, BPM)"
+    },
+    "group": {
+     "de": "Zeitzeichen (kein Amateurfunk)",
+     "en": "Time signals (not amateur radio)"
+    },
+    "mode": "am"
+   },
+   {
+    "hz": 15000000,
+    "name": {
+     "de": "Zeitzeichen 15 MHz (WWV, BPM)",
+     "en": "Time signal 15 MHz (WWV, BPM)"
+    },
+    "group": {
+     "de": "Zeitzeichen (kein Amateurfunk)",
+     "en": "Time signals (not amateur radio)"
+    },
+    "mode": "am"
+   },
+   {
+    "hz": 3330000,
+    "name": {
+     "de": "CHU Kanada (3330 kHz)",
+     "en": "CHU Canada (3330 kHz)"
+    },
+    "group": {
+     "de": "Zeitzeichen (kein Amateurfunk)",
+     "en": "Time signals (not amateur radio)"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 7850000,
+    "name": {
+     "de": "CHU Kanada (7850 kHz)",
+     "en": "CHU Canada (7850 kHz)"
+    },
+    "group": {
+     "de": "Zeitzeichen (kein Amateurfunk)",
+     "en": "Time signals (not amateur radio)"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 14670000,
+    "name": {
+     "de": "CHU Kanada (14670 kHz)",
+     "en": "CHU Canada (14670 kHz)"
+    },
+    "group": {
+     "de": "Zeitzeichen (kein Amateurfunk)",
+     "en": "Time signals (not amateur radio)"
+    },
+    "mode": "usb"
    }
   ]
  },
@@ -210,79 +1145,936 @@
    {
     "hz": 145500000,
     "name": {
-     "de": "FM-Anruffrequenz",
-     "en": "FM calling"
+     "de": "FM-Anruffrequenz V40",
+     "en": "FM calling V40"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": {
+     "de": "auch Mobil-, Notfunk- und Bergfunk-Anruf (SOTA); nach dem Anruf wechselt man auf einen Nachbarkanal",
+     "en": "also mobile, emergency and summit (SOTA) calling; after the call one moves to a channel nearby"
+    }
+   },
+   {
+    "hz": 145225000,
+    "name": {
+     "de": "Simplex V18",
+     "en": "Simplex V18"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 145237500,
+    "name": {
+     "de": "Simplex V19",
+     "en": "Simplex V19"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": {
+     "de": "FM-Internet-Sprach-Gateway",
+     "en": "FM internet voice gateway"
+    }
+   },
+   {
+    "hz": 145250000,
+    "name": {
+     "de": "Simplex V20",
+     "en": "Simplex V20"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 145275000,
+    "name": {
+     "de": "Simplex V22",
+     "en": "Simplex V22"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 145287500,
+    "name": {
+     "de": "Simplex V23",
+     "en": "Simplex V23"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": {
+     "de": "FM-Internet-Sprach-Gateway",
+     "en": "FM internet voice gateway"
+    }
+   },
+   {
+    "hz": 145300000,
+    "name": {
+     "de": "Simplex V24",
+     "en": "Simplex V24"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": {
+     "de": "RTTY lokal",
+     "en": "local RTTY"
+    }
+   },
+   {
+    "hz": 145325000,
+    "name": {
+     "de": "Simplex V26",
+     "en": "Simplex V26"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 145337500,
+    "name": {
+     "de": "Simplex V27",
+     "en": "Simplex V27"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": {
+     "de": "FM-Internet-Sprach-Gateway",
+     "en": "FM internet voice gateway"
+    }
+   },
+   {
+    "hz": 145350000,
+    "name": {
+     "de": "Simplex V28",
+     "en": "Simplex V28"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 145375000,
+    "name": {
+     "de": "Simplex V30",
+     "en": "Simplex V30"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": {
+     "de": "Anruf für digitale Sprache (DV)",
+     "en": "digital voice (DV) calling"
+    }
+   },
+   {
+    "hz": 145400000,
+    "name": {
+     "de": "Simplex V32",
+     "en": "Simplex V32"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 145425000,
+    "name": {
+     "de": "Simplex V34",
+     "en": "Simplex V34"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 145450000,
+    "name": {
+     "de": "Simplex V36",
+     "en": "Simplex V36"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 145475000,
+    "name": {
+     "de": "Simplex V38",
+     "en": "Simplex V38"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 145525000,
+    "name": {
+     "de": "Simplex V42",
+     "en": "Simplex V42"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 145550000,
+    "name": {
+     "de": "Simplex V44",
+     "en": "Simplex V44"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 145575000,
+    "name": {
+     "de": "Relais RV46",
+     "en": "Repeater RV46"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 144,975 MHz (−600 kHz)",
+     "en": "input 144.975 MHz (−600 kHz)"
+    }
+   },
+   {
+    "hz": 145587500,
+    "name": {
+     "de": "Relais RV47",
+     "en": "Repeater RV47"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 144,9875 MHz (−600 kHz)",
+     "en": "input 144.9875 MHz (−600 kHz)"
     }
    },
    {
     "hz": 145600000,
     "name": {
-     "de": "Relais 145.600",
-     "en": "Repeater 145.600"
+     "de": "Relais RV48 (alt R0)",
+     "en": "Repeater RV48 (old R0)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,000 MHz (−600 kHz)",
+     "en": "input 145.000 MHz (−600 kHz)"
+    }
+   },
+   {
+    "hz": 145612500,
+    "name": {
+     "de": "Relais RV49",
+     "en": "Repeater RV49"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,0125 MHz (−600 kHz)",
+     "en": "input 145.0125 MHz (−600 kHz)"
     }
    },
    {
     "hz": 145625000,
     "name": {
-     "de": "Relais 145.625",
-     "en": "Repeater 145.625"
+     "de": "Relais RV50 (alt R1)",
+     "en": "Repeater RV50 (old R1)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,025 MHz (−600 kHz)",
+     "en": "input 145.025 MHz (−600 kHz)"
+    }
+   },
+   {
+    "hz": 145637500,
+    "name": {
+     "de": "Relais RV51",
+     "en": "Repeater RV51"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,0375 MHz (−600 kHz)",
+     "en": "input 145.0375 MHz (−600 kHz)"
     }
    },
    {
     "hz": 145650000,
     "name": {
-     "de": "Relais 145.650",
-     "en": "Repeater 145.650"
+     "de": "Relais RV52 (alt R2)",
+     "en": "Repeater RV52 (old R2)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,050 MHz (−600 kHz)",
+     "en": "input 145.050 MHz (−600 kHz)"
+    }
+   },
+   {
+    "hz": 145662500,
+    "name": {
+     "de": "Relais RV53",
+     "en": "Repeater RV53"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,0625 MHz (−600 kHz)",
+     "en": "input 145.0625 MHz (−600 kHz)"
     }
    },
    {
     "hz": 145675000,
     "name": {
-     "de": "Relais 145.675",
-     "en": "Repeater 145.675"
+     "de": "Relais RV54 (alt R3)",
+     "en": "Repeater RV54 (old R3)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,075 MHz (−600 kHz)",
+     "en": "input 145.075 MHz (−600 kHz)"
+    }
+   },
+   {
+    "hz": 145687500,
+    "name": {
+     "de": "Relais RV55",
+     "en": "Repeater RV55"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,0875 MHz (−600 kHz)",
+     "en": "input 145.0875 MHz (−600 kHz)"
     }
    },
    {
     "hz": 145700000,
     "name": {
-     "de": "Relais 145.700",
-     "en": "Repeater 145.700"
+     "de": "Relais RV56 (alt R4)",
+     "en": "Repeater RV56 (old R4)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,100 MHz (−600 kHz)",
+     "en": "input 145.100 MHz (−600 kHz)"
+    }
+   },
+   {
+    "hz": 145712500,
+    "name": {
+     "de": "Relais RV57",
+     "en": "Repeater RV57"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,1125 MHz (−600 kHz)",
+     "en": "input 145.1125 MHz (−600 kHz)"
     }
    },
    {
     "hz": 145725000,
     "name": {
-     "de": "Relais 145.725",
-     "en": "Repeater 145.725"
+     "de": "Relais RV58 (alt R5)",
+     "en": "Repeater RV58 (old R5)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,125 MHz (−600 kHz)",
+     "en": "input 145.125 MHz (−600 kHz)"
+    }
+   },
+   {
+    "hz": 145737500,
+    "name": {
+     "de": "Relais RV59",
+     "en": "Repeater RV59"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,1375 MHz (−600 kHz)",
+     "en": "input 145.1375 MHz (−600 kHz)"
     }
    },
    {
     "hz": 145750000,
     "name": {
-     "de": "Relais 145.750",
-     "en": "Repeater 145.750"
+     "de": "Relais RV60 (alt R6)",
+     "en": "Repeater RV60 (old R6)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,150 MHz (−600 kHz)",
+     "en": "input 145.150 MHz (−600 kHz)"
+    }
+   },
+   {
+    "hz": 145762500,
+    "name": {
+     "de": "Relais RV61",
+     "en": "Repeater RV61"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,1625 MHz (−600 kHz)",
+     "en": "input 145.1625 MHz (−600 kHz)"
     }
    },
    {
     "hz": 145775000,
     "name": {
-     "de": "Relais 145.775",
-     "en": "Repeater 145.775"
+     "de": "Relais RV62 (alt R7)",
+     "en": "Repeater RV62 (old R7)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,175 MHz (−600 kHz)",
+     "en": "input 145.175 MHz (−600 kHz)"
+    }
+   },
+   {
+    "hz": 145787500,
+    "name": {
+     "de": "Relais RV63",
+     "en": "Repeater RV63"
+    },
+    "group": {
+     "de": "Relais-Ausgaben (hier hört man das Relais)",
+     "en": "Repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 145,1875 MHz (−600 kHz)",
+     "en": "input 145.1875 MHz (−600 kHz)"
+    }
+   },
+   {
+    "hz": 144975000,
+    "name": {
+     "de": "Eingabe RV46",
+     "en": "Input RV46"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,575 MHz",
+     "en": "output 145.575 MHz"
+    }
+   },
+   {
+    "hz": 144987500,
+    "name": {
+     "de": "Eingabe RV47",
+     "en": "Input RV47"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,5875 MHz",
+     "en": "output 145.5875 MHz"
+    }
+   },
+   {
+    "hz": 145000000,
+    "name": {
+     "de": "Eingabe RV48",
+     "en": "Input RV48"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,600 MHz",
+     "en": "output 145.600 MHz"
+    }
+   },
+   {
+    "hz": 145012500,
+    "name": {
+     "de": "Eingabe RV49",
+     "en": "Input RV49"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,6125 MHz",
+     "en": "output 145.6125 MHz"
+    }
+   },
+   {
+    "hz": 145025000,
+    "name": {
+     "de": "Eingabe RV50",
+     "en": "Input RV50"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,625 MHz",
+     "en": "output 145.625 MHz"
+    }
+   },
+   {
+    "hz": 145037500,
+    "name": {
+     "de": "Eingabe RV51",
+     "en": "Input RV51"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,6375 MHz",
+     "en": "output 145.6375 MHz"
+    }
+   },
+   {
+    "hz": 145050000,
+    "name": {
+     "de": "Eingabe RV52",
+     "en": "Input RV52"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,650 MHz",
+     "en": "output 145.650 MHz"
+    }
+   },
+   {
+    "hz": 145062500,
+    "name": {
+     "de": "Eingabe RV53",
+     "en": "Input RV53"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,6625 MHz",
+     "en": "output 145.6625 MHz"
+    }
+   },
+   {
+    "hz": 145075000,
+    "name": {
+     "de": "Eingabe RV54",
+     "en": "Input RV54"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,675 MHz",
+     "en": "output 145.675 MHz"
+    }
+   },
+   {
+    "hz": 145087500,
+    "name": {
+     "de": "Eingabe RV55",
+     "en": "Input RV55"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,6875 MHz",
+     "en": "output 145.6875 MHz"
+    }
+   },
+   {
+    "hz": 145100000,
+    "name": {
+     "de": "Eingabe RV56",
+     "en": "Input RV56"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,700 MHz",
+     "en": "output 145.700 MHz"
+    }
+   },
+   {
+    "hz": 145112500,
+    "name": {
+     "de": "Eingabe RV57",
+     "en": "Input RV57"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,7125 MHz",
+     "en": "output 145.7125 MHz"
+    }
+   },
+   {
+    "hz": 145125000,
+    "name": {
+     "de": "Eingabe RV58",
+     "en": "Input RV58"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,725 MHz",
+     "en": "output 145.725 MHz"
+    }
+   },
+   {
+    "hz": 145137500,
+    "name": {
+     "de": "Eingabe RV59",
+     "en": "Input RV59"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,7375 MHz",
+     "en": "output 145.7375 MHz"
+    }
+   },
+   {
+    "hz": 145150000,
+    "name": {
+     "de": "Eingabe RV60",
+     "en": "Input RV60"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,750 MHz",
+     "en": "output 145.750 MHz"
+    }
+   },
+   {
+    "hz": 145162500,
+    "name": {
+     "de": "Eingabe RV61",
+     "en": "Input RV61"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,7625 MHz",
+     "en": "output 145.7625 MHz"
+    }
+   },
+   {
+    "hz": 145175000,
+    "name": {
+     "de": "Eingabe RV62",
+     "en": "Input RV62"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,775 MHz",
+     "en": "output 145.775 MHz"
+    }
+   },
+   {
+    "hz": 145187500,
+    "name": {
+     "de": "Eingabe RV63",
+     "en": "Input RV63"
+    },
+    "group": {
+     "de": "Relais-Eingaben (hier senden die Stationen)",
+     "en": "Repeater inputs (where the stations transmit)"
+    },
+    "note": {
+     "de": "Ausgabe 145,7875 MHz",
+     "en": "output 145.7875 MHz"
     }
    },
    {
     "hz": 145800000,
     "name": {
-     "de": "ISS Sprechfunk",
-     "en": "ISS voice"
+     "de": "ISS Sprechfunk und SSTV",
+     "en": "ISS voice and SSTV"
+    },
+    "group": {
+     "de": "Weltraum",
+     "en": "Space"
+    },
+    "note": {
+     "de": "Funk Weltraum→Erde, Kanal V64",
+     "en": "space to Earth, channel V64"
+    }
+   },
+   {
+    "hz": 145825000,
+    "name": {
+     "de": "ISS APRS",
+     "en": "ISS APRS"
+    },
+    "group": {
+     "de": "Weltraum",
+     "en": "Space"
+    },
+    "note": {
+     "de": "Datenpakete über den Digipeater der ISS",
+     "en": "packets through the ISS digipeater"
+    }
+   },
+   {
+    "hz": 145200000,
+    "name": {
+     "de": "ISS Sprechfunk aufwärts (V16)",
+     "en": "ISS voice uplink (V16)"
+    },
+    "group": {
+     "de": "Weltraum",
+     "en": "Space"
+    },
+    "note": {
+     "de": "Erde→Weltraum: hier rufen die Bodenstationen in Europa",
+     "en": "Earth to space: where ground stations in Europe call"
+    }
+   },
+   {
+    "hz": 145990000,
+    "name": {
+     "de": "ISS Relais aufwärts",
+     "en": "ISS repeater uplink"
+    },
+    "group": {
+     "de": "Weltraum",
+     "en": "Space"
+    },
+    "note": {
+     "de": "Ausgabe auf 437,800 MHz (70 cm)",
+     "en": "output on 437.800 MHz (70 cm)"
     }
    },
    {
     "hz": 144300000,
-    "mode": "usb",
     "name": {
      "de": "SSB-Anruffrequenz",
      "en": "SSB calling"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 144049300,
+    "name": {
+     "de": "CW-Anruffrequenz 144,050",
+     "en": "CW calling 144.050"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "700 Hz tiefer abgestimmt, damit ein Ton zu hören ist",
+     "en": "tuned 700 Hz low so a tone is heard"
+    }
+   },
+   {
+    "hz": 144174000,
+    "name": "FT8",
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 144370000,
+    "name": {
+     "de": "Anruf digitale Betriebsarten (MGM)",
+     "en": "Digital modes (MGM) calling"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 144400000,
+    "name": {
+     "de": "Bakenband (144,400–144,490)",
+     "en": "Beacon band (144.400–144.490)"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "nur Baken, kein Funkbetrieb",
+     "en": "beacons only"
+    }
+   },
+   {
+    "hz": 144500000,
+    "name": {
+     "de": "SSTV-Anruf",
+     "en": "SSTV calling"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 144600000,
+    "name": {
+     "de": "RTTY-Anruf",
+     "en": "RTTY calling"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 144700000,
+    "name": {
+     "de": "FAX-Anruf",
+     "en": "FAX calling"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 144750000,
+    "name": {
+     "de": "ATV An- und Rückruf (FM)",
+     "en": "ATV calling and talkback (FM)"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    }
+   },
+   {
+    "hz": 144800000,
+    "name": "APRS",
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "note": {
+     "de": "Positions- und Wetterpakete; dekodiert die Kachel APRS",
+     "en": "position and weather packets; the APRS tile decodes them"
     }
    }
   ]
@@ -300,37 +2092,901 @@
    {
     "hz": 433500000,
     "name": {
-     "de": "FM-Anruffrequenz",
-     "en": "FM calling"
+     "de": "FM-Anruffrequenz U280 (international)",
+     "en": "FM calling U280 (international)"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": {
+     "de": "liegt im ISM-Bereich 433,05–434,79 MHz: Funkthermometer, Funksteckdosen und LPD-Handfunkgeräte senden hier mit",
+     "en": "inside the ISM range 433.05–434.79 MHz: wireless thermometers, remote sockets and LPD handhelds share it"
+    }
+   },
+   {
+    "hz": 433300000,
+    "name": {
+     "de": "Simplex U264",
+     "en": "Simplex U264"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": {
+     "de": "RTTY lokal",
+     "en": "local RTTY"
+    }
+   },
+   {
+    "hz": 433400000,
+    "name": {
+     "de": "Simplex U272",
+     "en": "Simplex U272"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": {
+     "de": "SSTV",
+     "en": "SSTV"
+    }
+   },
+   {
+    "hz": 433425000,
+    "name": {
+     "de": "Simplex U274",
+     "en": "Simplex U274"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 433450000,
+    "name": {
+     "de": "Simplex U276",
+     "en": "Simplex U276"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": {
+     "de": "Anruf für digitale Sprache (DV)",
+     "en": "digital voice (DV) calling"
+    }
+   },
+   {
+    "hz": 433475000,
+    "name": {
+     "de": "Simplex U278",
+     "en": "Simplex U278"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 433525000,
+    "name": {
+     "de": "Simplex U282",
+     "en": "Simplex U282"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 433550000,
+    "name": {
+     "de": "Simplex U284",
+     "en": "Simplex U284"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 433575000,
+    "name": {
+     "de": "Simplex U286",
+     "en": "Simplex U286"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    }
+   },
+   {
+    "hz": 433600000,
+    "name": {
+     "de": "Simplex U288",
+     "en": "Simplex U288"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": "RTTY"
+   },
+   {
+    "hz": 433700000,
+    "name": {
+     "de": "Simplex U296",
+     "en": "Simplex U296"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": "FAX"
+   },
+   {
+    "hz": 433775000,
+    "name": {
+     "de": "Simplex U302",
+     "en": "Simplex U302"
+    },
+    "group": {
+     "de": "Anruf und Simplex (FM)",
+     "en": "Calling and simplex (FM)"
+    },
+    "note": {
+     "de": "auch LoRa-APRS",
+     "en": "also LoRa APRS"
+    }
+   },
+   {
+    "hz": 438550000,
+    "name": {
+     "de": "Relais RU684",
+     "en": "Repeater RU684"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 430,950 MHz (−7,6 MHz)",
+     "en": "input 430.950 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438575000,
+    "name": {
+     "de": "Relais RU686",
+     "en": "Repeater RU686"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 430,975 MHz (−7,6 MHz)",
+     "en": "input 430.975 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438600000,
+    "name": {
+     "de": "Relais RU688",
+     "en": "Repeater RU688"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,000 MHz (−7,6 MHz)",
+     "en": "input 431.000 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438625000,
+    "name": {
+     "de": "Relais RU690",
+     "en": "Repeater RU690"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,025 MHz (−7,6 MHz)",
+     "en": "input 431.025 MHz (−7.6 MHz)"
     }
    },
    {
     "hz": 438650000,
     "name": {
-     "de": "Relais ab 438,650 (25-kHz-Raster)",
-     "en": "Repeaters from 438.650 (25 kHz grid)"
+     "de": "Relais RU692 (alt R70)",
+     "en": "Repeater RU692 (old R70)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,050 MHz (−7,6 MHz)",
+     "en": "input 431.050 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438675000,
+    "name": {
+     "de": "Relais RU694 (alt R71)",
+     "en": "Repeater RU694 (old R71)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,075 MHz (−7,6 MHz)",
+     "en": "input 431.075 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438700000,
+    "name": {
+     "de": "Relais RU696 (alt R72)",
+     "en": "Repeater RU696 (old R72)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,100 MHz (−7,6 MHz)",
+     "en": "input 431.100 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438725000,
+    "name": {
+     "de": "Relais RU698 (alt R73)",
+     "en": "Repeater RU698 (old R73)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,125 MHz (−7,6 MHz)",
+     "en": "input 431.125 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438750000,
+    "name": {
+     "de": "Relais RU700 (alt R74)",
+     "en": "Repeater RU700 (old R74)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,150 MHz (−7,6 MHz)",
+     "en": "input 431.150 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438775000,
+    "name": {
+     "de": "Relais RU702 (alt R75)",
+     "en": "Repeater RU702 (old R75)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,175 MHz (−7,6 MHz)",
+     "en": "input 431.175 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438800000,
+    "name": {
+     "de": "Relais RU704 (alt R76)",
+     "en": "Repeater RU704 (old R76)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,200 MHz (−7,6 MHz)",
+     "en": "input 431.200 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438825000,
+    "name": {
+     "de": "Relais RU706 (alt R77)",
+     "en": "Repeater RU706 (old R77)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,225 MHz (−7,6 MHz)",
+     "en": "input 431.225 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438850000,
+    "name": {
+     "de": "Relais RU708 (alt R78)",
+     "en": "Repeater RU708 (old R78)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,250 MHz (−7,6 MHz)",
+     "en": "input 431.250 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438875000,
+    "name": {
+     "de": "Relais RU710 (alt R79)",
+     "en": "Repeater RU710 (old R79)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,275 MHz (−7,6 MHz)",
+     "en": "input 431.275 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438900000,
+    "name": {
+     "de": "Relais RU712 (alt R80)",
+     "en": "Repeater RU712 (old R80)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,300 MHz (−7,6 MHz)",
+     "en": "input 431.300 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438925000,
+    "name": {
+     "de": "Relais RU714 (alt R81)",
+     "en": "Repeater RU714 (old R81)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,325 MHz (−7,6 MHz)",
+     "en": "input 431.325 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438950000,
+    "name": {
+     "de": "Relais RU716 (alt R82)",
+     "en": "Repeater RU716 (old R82)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,350 MHz (−7,6 MHz)",
+     "en": "input 431.350 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 438975000,
+    "name": {
+     "de": "Relais RU718 (alt R83)",
+     "en": "Repeater RU718 (old R83)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,375 MHz (−7,6 MHz)",
+     "en": "input 431.375 MHz (−7.6 MHz)"
     }
    },
    {
     "hz": 439000000,
     "name": {
-     "de": "Relais ab 439,000",
-     "en": "Repeaters from 439.000"
+     "de": "Relais RU720 (alt R84)",
+     "en": "Repeater RU720 (old R84)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,400 MHz (−7,6 MHz)",
+     "en": "input 431.400 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439025000,
+    "name": {
+     "de": "Relais RU722 (alt R85)",
+     "en": "Repeater RU722 (old R85)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,425 MHz (−7,6 MHz)",
+     "en": "input 431.425 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439050000,
+    "name": {
+     "de": "Relais RU724 (alt R86)",
+     "en": "Repeater RU724 (old R86)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,450 MHz (−7,6 MHz)",
+     "en": "input 431.450 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439075000,
+    "name": {
+     "de": "Relais RU726 (alt R87)",
+     "en": "Repeater RU726 (old R87)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,475 MHz (−7,6 MHz)",
+     "en": "input 431.475 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439100000,
+    "name": {
+     "de": "Relais RU728 (alt R88)",
+     "en": "Repeater RU728 (old R88)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,500 MHz (−7,6 MHz)",
+     "en": "input 431.500 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439125000,
+    "name": {
+     "de": "Relais RU730 (alt R89)",
+     "en": "Repeater RU730 (old R89)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,525 MHz (−7,6 MHz)",
+     "en": "input 431.525 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439150000,
+    "name": {
+     "de": "Relais RU732 (alt R90)",
+     "en": "Repeater RU732 (old R90)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,550 MHz (−7,6 MHz)",
+     "en": "input 431.550 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439175000,
+    "name": {
+     "de": "Relais RU734 (alt R91)",
+     "en": "Repeater RU734 (old R91)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,575 MHz (−7,6 MHz)",
+     "en": "input 431.575 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439200000,
+    "name": {
+     "de": "Relais RU736 (alt R92)",
+     "en": "Repeater RU736 (old R92)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,600 MHz (−7,6 MHz)",
+     "en": "input 431.600 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439225000,
+    "name": {
+     "de": "Relais RU738 (alt R93)",
+     "en": "Repeater RU738 (old R93)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,625 MHz (−7,6 MHz)",
+     "en": "input 431.625 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439250000,
+    "name": {
+     "de": "Relais RU740 (alt R94)",
+     "en": "Repeater RU740 (old R94)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,650 MHz (−7,6 MHz)",
+     "en": "input 431.650 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439275000,
+    "name": {
+     "de": "Relais RU742 (alt R95)",
+     "en": "Repeater RU742 (old R95)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,675 MHz (−7,6 MHz)",
+     "en": "input 431.675 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439300000,
+    "name": {
+     "de": "Relais RU744 (alt R96)",
+     "en": "Repeater RU744 (old R96)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,700 MHz (−7,6 MHz)",
+     "en": "input 431.700 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439325000,
+    "name": {
+     "de": "Relais RU746 (alt R97)",
+     "en": "Repeater RU746 (old R97)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,725 MHz (−7,6 MHz)",
+     "en": "input 431.725 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439350000,
+    "name": {
+     "de": "Relais RU748 (alt R98)",
+     "en": "Repeater RU748 (old R98)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,750 MHz (−7,6 MHz)",
+     "en": "input 431.750 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439375000,
+    "name": {
+     "de": "Relais RU750 (alt R99)",
+     "en": "Repeater RU750 (old R99)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,775 MHz (−7,6 MHz)",
+     "en": "input 431.775 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439400000,
+    "name": {
+     "de": "Relais RU752 (alt R100)",
+     "en": "Repeater RU752 (old R100)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,800 MHz (−7,6 MHz)",
+     "en": "input 431.800 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 439425000,
+    "name": {
+     "de": "Relais RU754 (alt R101)",
+     "en": "Repeater RU754 (old R101)"
+    },
+    "group": {
+     "de": "Relais-Ausgaben FM (hier hört man das Relais)",
+     "en": "FM repeater outputs (where the repeater is heard)"
+    },
+    "note": {
+     "de": "Eingabe 431,825 MHz (−7,6 MHz)",
+     "en": "input 431.825 MHz (−7.6 MHz)"
+    }
+   },
+   {
+    "hz": 430950000,
+    "name": {
+     "de": "FM-Relais-Eingaben ab 430,950",
+     "en": "FM repeater inputs from 430.950"
+    },
+    "group": {
+     "de": "Relais-Eingaben und digitale Relais",
+     "en": "Repeater inputs and digital repeaters"
+    },
+    "note": {
+     "de": "bis 431,825 MHz, Ausgabe 7,6 MHz höher",
+     "en": "up to 431.825 MHz, output 7.6 MHz higher"
+    }
+   },
+   {
+    "hz": 431825000,
+    "name": {
+     "de": "FM-Relais-Eingaben bis 431,825",
+     "en": "FM repeater inputs up to 431.825"
+    },
+    "group": {
+     "de": "Relais-Eingaben und digitale Relais",
+     "en": "Repeater inputs and digital repeaters"
+    }
+   },
+   {
+    "hz": 438200000,
+    "name": {
+     "de": "Digital-Relais ab 438,200",
+     "en": "Digital repeaters from 438.200"
+    },
+    "group": {
+     "de": "Relais-Eingaben und digitale Relais",
+     "en": "Repeater inputs and digital repeaters"
+    },
+    "note": {
+     "de": "bis 438,5375 MHz, Eingabe −7,6 MHz; digitale Sprache ist nur als Rauschen zu hören",
+     "en": "up to 438.5375 MHz, input −7.6 MHz; digital voice sounds like noise"
+    }
+   },
+   {
+    "hz": 439450000,
+    "name": {
+     "de": "Digital-Relais ab 439,450",
+     "en": "Digital repeaters from 439.450"
+    },
+    "group": {
+     "de": "Relais-Eingaben und digitale Relais",
+     "en": "Repeater inputs and digital repeaters"
+    },
+    "note": {
+     "de": "bis 439,5875 MHz, Eingabe −7,6 MHz",
+     "en": "up to 439.5875 MHz, input −7.6 MHz"
+    }
+   },
+   {
+    "hz": 439812500,
+    "name": {
+     "de": "Digital-Relais ab 439,8125",
+     "en": "Digital repeaters from 439.8125"
+    },
+    "group": {
+     "de": "Relais-Eingaben und digitale Relais",
+     "en": "Repeater inputs and digital repeaters"
+    },
+    "note": {
+     "de": "bis 439,975 MHz, Eingabe −9,4 MHz",
+     "en": "up to 439.975 MHz, input −9.4 MHz"
+    }
+   },
+   {
+    "hz": 439987500,
+    "name": {
+     "de": "Funkruf (DAPNET, POCSAG)",
+     "en": "Paging (DAPNET, POCSAG)"
+    },
+    "group": {
+     "de": "Relais-Eingaben und digitale Relais",
+     "en": "Repeater inputs and digital repeaters"
+    },
+    "note": {
+     "de": "nur Aussendung, Datentöne",
+     "en": "transmit only, data tones"
     }
    },
    {
     "hz": 437800000,
     "name": {
-     "de": "ISS Relais",
-     "en": "ISS repeater"
+     "de": "ISS Relais (Ausgabe)",
+     "en": "ISS repeater (output)"
+    },
+    "group": {
+     "de": "Weltraum",
+     "en": "Space"
+    },
+    "note": {
+     "de": "Eingabe 145,990 MHz (2 m); Satellitenband 435–438 MHz",
+     "en": "input 145.990 MHz (2 m); satellite band 435–438 MHz"
     }
    },
    {
     "hz": 432200000,
-    "mode": "usb",
     "name": {
      "de": "SSB-Anruffrequenz",
      "en": "SSB calling"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 432049300,
+    "name": {
+     "de": "CW-Anruffrequenz 432,050",
+     "en": "CW calling 432.050"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "700 Hz tiefer abgestimmt, damit ein Ton zu hören ist",
+     "en": "tuned 700 Hz low so a tone is heard"
+    }
+   },
+   {
+    "hz": 432088000,
+    "name": {
+     "de": "PSK31-Anruf",
+     "en": "PSK31 calling"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb"
+   },
+   {
+    "hz": 432400000,
+    "name": {
+     "de": "Bakenband (432,400–432,490)",
+     "en": "Beacon band (432.400–432.490)"
+    },
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "nur Baken, kein Funkbetrieb",
+     "en": "beacons only"
+    }
+   },
+   {
+    "hz": 432500000,
+    "name": "APRS",
+    "group": {
+     "de": "SSB, Telegrafie, digital, Baken",
+     "en": "SSB, CW, digital, beacons"
+    }
+   },
+   {
+    "hz": 433075000,
+    "name": {
+     "de": "LPD Kanal 1",
+     "en": "LPD channel 1"
+    },
+    "group": {
+     "de": "Mitnutzer im Band (kein Amateurfunk)",
+     "en": "Others sharing the band (not amateur radio)"
+    },
+    "note": {
+     "de": "69 Kanäle im 25-kHz-Raster bis 434,775 MHz, 10 mW",
+     "en": "69 channels on a 25 kHz grid up to 434.775 MHz, 10 mW"
+    }
+   },
+   {
+    "hz": 433920000,
+    "name": {
+     "de": "Funksensoren (433,92 MHz)",
+     "en": "Wireless sensors (433.92 MHz)"
+    },
+    "group": {
+     "de": "Mitnutzer im Band (kein Amateurfunk)",
+     "en": "Others sharing the band (not amateur radio)"
+    },
+    "note": {
+     "de": "kurze Datenpakete; liest die Kachel Funksensoren",
+     "en": "short data bursts; the sensors tile reads them"
+    }
+   },
+   {
+    "hz": 434775000,
+    "name": {
+     "de": "LPD Kanal 69",
+     "en": "LPD channel 69"
+    },
+    "group": {
+     "de": "Mitnutzer im Band (kein Amateurfunk)",
+     "en": "Others sharing the band (not amateur radio)"
     }
    }
   ]
@@ -520,24 +3176,553 @@
    {
     "hz": 26965000,
     "name": {
-     "de": "Kanal 1 (FM-Anruf)",
-     "en": "Channel 1 (FM calling)"
+     "de": "Kanal 1",
+     "en": "Channel 1"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "empfohlener Anrufkanal (FM)",
+     "en": "recommended calling channel (FM)"
+    }
+   },
+   {
+    "hz": 26975000,
+    "name": {
+     "de": "Kanal 2",
+     "en": "Channel 2"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "inoffizieller Berg-DX-Kanal",
+     "en": "unofficial mountain DX channel"
+    }
+   },
+   {
+    "hz": 26985000,
+    "name": {
+     "de": "Kanal 3",
+     "en": "Channel 3"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "Notrufkanal (D)",
+     "en": "emergency channel (D)"
+    }
+   },
+   {
+    "hz": 27005000,
+    "name": {
+     "de": "Kanal 4",
+     "en": "Channel 4"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "empfohlener Anrufkanal",
+     "en": "recommended calling channel"
+    }
+   },
+   {
+    "hz": 27015000,
+    "name": {
+     "de": "Kanal 5",
+     "en": "Channel 5"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "italienische Fernfahrer",
+     "en": "Italian truckers"
+    }
+   },
+   {
+    "hz": 27025000,
+    "name": {
+     "de": "Kanal 6",
+     "en": "Channel 6"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "Datenkanal (D)",
+     "en": "data channel (D)"
+    }
+   },
+   {
+    "hz": 27035000,
+    "name": {
+     "de": "Kanal 7",
+     "en": "Channel 7"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "Datenkanal (D)",
+     "en": "data channel (D)"
+    }
+   },
+   {
+    "hz": 27055000,
+    "name": {
+     "de": "Kanal 8",
+     "en": "Channel 8"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
     }
    },
    {
     "hz": 27065000,
-    "mode": "am",
     "name": {
-     "de": "Kanal 9 (AM, Notruf/Fernfahrer)",
-     "en": "Channel 9 (AM, emergency/truckers)"
+     "de": "Kanal 9",
+     "en": "Channel 9"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "mode": "am",
+    "note": {
+     "de": "Notruf weltweit, Fernfahrer (AM)",
+     "en": "emergency worldwide, truckers (AM)"
+    }
+   },
+   {
+    "hz": 27075000,
+    "name": {
+     "de": "Kanal 10",
+     "en": "Channel 10"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    }
+   },
+   {
+    "hz": 27085000,
+    "name": {
+     "de": "Kanal 11",
+     "en": "Channel 11"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "Internet-Gateway (D)",
+     "en": "internet gateway (D)"
+    }
+   },
+   {
+    "hz": 27105000,
+    "name": {
+     "de": "Kanal 12",
+     "en": "Channel 12"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    }
+   },
+   {
+    "hz": 27115000,
+    "name": {
+     "de": "Kanal 13",
+     "en": "Channel 13"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    }
+   },
+   {
+    "hz": 27125000,
+    "name": {
+     "de": "Kanal 14",
+     "en": "Channel 14"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "oft Funkfernsteuerungen von Spielzeug",
+     "en": "often toy remote controls"
+    }
+   },
+   {
+    "hz": 27135000,
+    "name": {
+     "de": "Kanal 15",
+     "en": "Channel 15"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "inoffizieller Anruf- und DX-Kanal (SSB)",
+     "en": "unofficial calling and DX channel (SSB)"
+    }
+   },
+   {
+    "hz": 27155000,
+    "name": {
+     "de": "Kanal 16",
+     "en": "Channel 16"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "SSB-Anruf, Wasser- und Geländefahrzeuge",
+     "en": "SSB calling, boats and off-road vehicles"
+    }
+   },
+   {
+    "hz": 27165000,
+    "name": {
+     "de": "Kanal 17",
+     "en": "Channel 17"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "dänische Schwertransporte",
+     "en": "Danish heavy transports"
+    }
+   },
+   {
+    "hz": 27175000,
+    "name": {
+     "de": "Kanal 18",
+     "en": "Channel 18"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
     }
    },
    {
     "hz": 27185000,
-    "mode": "am",
     "name": {
-     "de": "Kanal 19 (AM, Fernfahrer)",
-     "en": "Channel 19 (AM, truckers)"
+     "de": "Kanal 19",
+     "en": "Channel 19"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "mode": "am",
+    "note": {
+     "de": "empfohlener Fernfahrerkanal (AM); auch Babyfone",
+     "en": "recommended truckers' channel (AM); also baby monitors"
+    }
+   },
+   {
+    "hz": 27205000,
+    "name": {
+     "de": "Kanal 20",
+     "en": "Channel 20"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "Schwertransporte in Österreich",
+     "en": "heavy transports in Austria"
+    }
+   },
+   {
+    "hz": 27215000,
+    "name": {
+     "de": "Kanal 21",
+     "en": "Channel 21"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "türkischer Anrufkanal in Europa",
+     "en": "Turkish calling channel in Europe"
+    }
+   },
+   {
+    "hz": 27225000,
+    "name": {
+     "de": "Kanal 22",
+     "en": "Channel 22"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "rumänische Fernfahrer; auch Babyfone",
+     "en": "Romanian truckers; also baby monitors"
+    }
+   },
+   {
+    "hz": 27255000,
+    "name": {
+     "de": "Kanal 23",
+     "en": "Channel 23"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "liegt außerhalb der Reihenfolge („Dreher“)",
+     "en": "out of sequence"
+    }
+   },
+   {
+    "hz": 27235000,
+    "name": {
+     "de": "Kanal 24",
+     "en": "Channel 24"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "Datenkanal (D), Packet Radio",
+     "en": "data channel (D), packet radio"
+    }
+   },
+   {
+    "hz": 27245000,
+    "name": {
+     "de": "Kanal 25",
+     "en": "Channel 25"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "Datenkanal (D), international",
+     "en": "data channel (D), international"
+    }
+   },
+   {
+    "hz": 27265000,
+    "name": {
+     "de": "Kanal 26",
+     "en": "Channel 26"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    }
+   },
+   {
+    "hz": 27275000,
+    "name": {
+     "de": "Kanal 27",
+     "en": "Channel 27"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    }
+   },
+   {
+    "hz": 27285000,
+    "name": {
+     "de": "Kanal 28",
+     "en": "Channel 28"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "polnische Fernfahrer",
+     "en": "Polish truckers"
+    }
+   },
+   {
+    "hz": 27295000,
+    "name": {
+     "de": "Kanal 29",
+     "en": "Channel 29"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "Internet-Gateway (D)",
+     "en": "internet gateway (D)"
+    }
+   },
+   {
+    "hz": 27305000,
+    "name": {
+     "de": "Kanal 30",
+     "en": "Channel 30"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "inoffizieller DX-Kanal",
+     "en": "unofficial DX channel"
+    }
+   },
+   {
+    "hz": 27315000,
+    "name": {
+     "de": "Kanal 31",
+     "en": "Channel 31"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "inoffizieller DX-Kanal",
+     "en": "unofficial DX channel"
+    }
+   },
+   {
+    "hz": 27325000,
+    "name": {
+     "de": "Kanal 32",
+     "en": "Channel 32"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    }
+   },
+   {
+    "hz": 27335000,
+    "name": {
+     "de": "Kanal 33",
+     "en": "Channel 33"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "Notrufkanal SSB (D)",
+     "en": "emergency channel SSB (D)"
+    }
+   },
+   {
+    "hz": 27345000,
+    "name": {
+     "de": "Kanal 34",
+     "en": "Channel 34"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "Internet-Gateway (D)",
+     "en": "internet gateway (D)"
+    }
+   },
+   {
+    "hz": 27355000,
+    "name": {
+     "de": "Kanal 35",
+     "en": "Channel 35"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    }
+   },
+   {
+    "hz": 27365000,
+    "name": {
+     "de": "Kanal 36",
+     "en": "Channel 36"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "Datenkanal SSB (ROS, WSPR)",
+     "en": "data channel SSB (ROS, WSPR)"
+    }
+   },
+   {
+    "hz": 27375000,
+    "name": {
+     "de": "Kanal 37",
+     "en": "Channel 37"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    }
+   },
+   {
+    "hz": 27385000,
+    "name": {
+     "de": "Kanal 38",
+     "en": "Channel 38"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "mode": "lsb",
+    "note": {
+     "de": "inoffizieller internationaler DX-Kanal (LSB)",
+     "en": "unofficial international DX channel (LSB)"
+    }
+   },
+   {
+    "hz": 27395000,
+    "name": {
+     "de": "Kanal 39",
+     "en": "Channel 39"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "Internet-Gateway (D)",
+     "en": "internet gateway (D)"
     }
    },
    {
@@ -545,6 +3730,506 @@
     "name": {
      "de": "Kanal 40",
      "en": "Channel 40"
+    },
+    "group": {
+     "de": "Kanäle 1–40 (FM, AM, SSB)",
+     "en": "Channels 1–40 (FM, AM, SSB)"
+    },
+    "note": {
+     "de": "Internet-Gateway (D)",
+     "en": "internet gateway (D)"
+    }
+   },
+   {
+    "hz": 26565000,
+    "name": {
+     "de": "Kanal 41",
+     "en": "Channel 41"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    },
+    "note": {
+     "de": "Internet-Gateway (D), inoffizieller DX-Kanal",
+     "en": "internet gateway (D), unofficial DX channel"
+    }
+   },
+   {
+    "hz": 26575000,
+    "name": {
+     "de": "Kanal 42",
+     "en": "Channel 42"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    },
+    "note": {
+     "de": "inoffizieller DX-Kanal",
+     "en": "unofficial DX channel"
+    }
+   },
+   {
+    "hz": 26585000,
+    "name": {
+     "de": "Kanal 43",
+     "en": "Channel 43"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26595000,
+    "name": {
+     "de": "Kanal 44",
+     "en": "Channel 44"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26605000,
+    "name": {
+     "de": "Kanal 45",
+     "en": "Channel 45"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26615000,
+    "name": {
+     "de": "Kanal 46",
+     "en": "Channel 46"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26625000,
+    "name": {
+     "de": "Kanal 47",
+     "en": "Channel 47"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26635000,
+    "name": {
+     "de": "Kanal 48",
+     "en": "Channel 48"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26645000,
+    "name": {
+     "de": "Kanal 49",
+     "en": "Channel 49"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26655000,
+    "name": {
+     "de": "Kanal 50",
+     "en": "Channel 50"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26665000,
+    "name": {
+     "de": "Kanal 51",
+     "en": "Channel 51"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26675000,
+    "name": {
+     "de": "Kanal 52",
+     "en": "Channel 52"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    },
+    "note": {
+     "de": "Datenkanal (D)",
+     "en": "data channel (D)"
+    }
+   },
+   {
+    "hz": 26685000,
+    "name": {
+     "de": "Kanal 53",
+     "en": "Channel 53"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    },
+    "note": {
+     "de": "Datenkanal (D)",
+     "en": "data channel (D)"
+    }
+   },
+   {
+    "hz": 26695000,
+    "name": {
+     "de": "Kanal 54",
+     "en": "Channel 54"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26705000,
+    "name": {
+     "de": "Kanal 55",
+     "en": "Channel 55"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26715000,
+    "name": {
+     "de": "Kanal 56",
+     "en": "Channel 56"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26725000,
+    "name": {
+     "de": "Kanal 57",
+     "en": "Channel 57"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26735000,
+    "name": {
+     "de": "Kanal 58",
+     "en": "Channel 58"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26745000,
+    "name": {
+     "de": "Kanal 59",
+     "en": "Channel 59"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26755000,
+    "name": {
+     "de": "Kanal 60",
+     "en": "Channel 60"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26765000,
+    "name": {
+     "de": "Kanal 61",
+     "en": "Channel 61"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    },
+    "note": {
+     "de": "Internet-Gateway (D)",
+     "en": "internet gateway (D)"
+    }
+   },
+   {
+    "hz": 26775000,
+    "name": {
+     "de": "Kanal 62",
+     "en": "Channel 62"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26785000,
+    "name": {
+     "de": "Kanal 63",
+     "en": "Channel 63"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26795000,
+    "name": {
+     "de": "Kanal 64",
+     "en": "Channel 64"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26805000,
+    "name": {
+     "de": "Kanal 65",
+     "en": "Channel 65"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26815000,
+    "name": {
+     "de": "Kanal 66",
+     "en": "Channel 66"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26825000,
+    "name": {
+     "de": "Kanal 67",
+     "en": "Channel 67"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26835000,
+    "name": {
+     "de": "Kanal 68",
+     "en": "Channel 68"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26845000,
+    "name": {
+     "de": "Kanal 69",
+     "en": "Channel 69"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26855000,
+    "name": {
+     "de": "Kanal 70",
+     "en": "Channel 70"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26865000,
+    "name": {
+     "de": "Kanal 71",
+     "en": "Channel 71"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    },
+    "note": {
+     "de": "Internet-Gateway (D)",
+     "en": "internet gateway (D)"
+    }
+   },
+   {
+    "hz": 26875000,
+    "name": {
+     "de": "Kanal 72",
+     "en": "Channel 72"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26885000,
+    "name": {
+     "de": "Kanal 73",
+     "en": "Channel 73"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26895000,
+    "name": {
+     "de": "Kanal 74",
+     "en": "Channel 74"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26905000,
+    "name": {
+     "de": "Kanal 75",
+     "en": "Channel 75"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26915000,
+    "name": {
+     "de": "Kanal 76",
+     "en": "Channel 76"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    },
+    "note": {
+     "de": "Datenkanal (D)",
+     "en": "data channel (D)"
+    }
+   },
+   {
+    "hz": 26925000,
+    "name": {
+     "de": "Kanal 77",
+     "en": "Channel 77"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    },
+    "note": {
+     "de": "Datenkanal (D)",
+     "en": "data channel (D)"
+    }
+   },
+   {
+    "hz": 26935000,
+    "name": {
+     "de": "Kanal 78",
+     "en": "Channel 78"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26945000,
+    "name": {
+     "de": "Kanal 79",
+     "en": "Channel 79"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    }
+   },
+   {
+    "hz": 26955000,
+    "name": {
+     "de": "Kanal 80",
+     "en": "Channel 80"
+    },
+    "group": {
+     "de": "Kanäle 41–80 (nur Deutschland, nur FM)",
+     "en": "Channels 41–80 (Germany only, FM only)"
+    },
+    "note": {
+     "de": "Internet-Gateway (D)",
+     "en": "internet gateway (D)"
+    }
+   },
+   {
+    "hz": 27555000,
+    "name": {
+     "de": "Triple Five (27,555 MHz)",
+     "en": "Triple five (27.555 MHz)"
+    },
+    "group": {
+     "de": "Außerhalb des CB-Bands (nur hören)",
+     "en": "Outside the CB band (listening only)"
+    },
+    "mode": "usb",
+    "note": {
+     "de": "internationale DX-Anruffrequenz im 11-m-Freiband",
+     "en": "international DX calling frequency of the 11 m free band"
     }
    }
   ]
