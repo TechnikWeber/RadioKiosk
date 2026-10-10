@@ -69,6 +69,8 @@ const STRINGS = {
     idleContent: "Idle screen shows", idleContents: { clock: "clock", gallery: "gallery", feed: "news" },
     galleryFit: "Pictures", galleryFits: { whole: "whole picture", smart: "zoom slightly", fill: "fill the screen" },
     subfoldersToo: "Subfolders", demoPictures: "Demo pictures (no folder of your own chosen yet)",
+    sectionPlayback: "Playback", sectionDisplay: "Display", sectionContent: "Content", sectionReception: "Reception",
+    sectionDevice: "Device and network", idleAfter: "Starts after",
     suggestions: "Suggestions", tiles: "Tiles on the start screen", tilesHint: "Tap a tile to hide it or bring it back.",
     shown: "shown", hiddenTile: "hidden",
     theme: "Design", themes: { dark: "dark", light: "light" },
@@ -154,6 +156,8 @@ const STRINGS = {
     idleContent: "Ruhebildschirm zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", feed: "Nachrichten" },
     galleryFit: "Bilder", galleryFits: { whole: "ganzes Bild", smart: "leicht zoomen", fill: "Bildschirm füllen" },
     subfoldersToo: "Unterordner", demoPictures: "Demobilder (noch kein eigener Ordner gewählt)",
+    sectionPlayback: "Wiedergabe", sectionDisplay: "Anzeige", sectionContent: "Inhalte", sectionReception: "Empfang",
+    sectionDevice: "Gerät und Netz", idleAfter: "Beginnt nach",
     suggestions: "Vorschläge", tiles: "Kacheln auf dem Startbildschirm", tilesHint: "Tippe eine Kachel an, um sie auszublenden oder zurückzuholen.",
     shown: "sichtbar", hiddenTile: "ausgeblendet",
     theme: "Design", themes: { dark: "dunkel", light: "hell" },
@@ -1445,7 +1449,7 @@ const news = {
   leave() { clearTimeout(this.timer); },
   draw() {
     const parts = [h("div", { className: "toolbar" },
-      h("button", { textContent: t.manageFeeds, onclick: () => show(feedList) }))];
+      h("button", { textContent: t.manageFeeds, onclick: () => { feedList.origin = news; show(feedList); } }))];
     if (this.articles === null) parts.push(hint(t.loading));
     else if (!this.articles.length) parts.push(hint(t.noArticles));
     else for (const a of this.articles) {
@@ -1494,7 +1498,7 @@ const feedList = {
           catch (error) { note.textContent = say(error.message); e.target.disabled = false; }
         } }))));
   },
-  back() { show(news); return true; },
+  back() { show(this.origin || news); return true; },
 };
 
 /* ---------- wireless sensors ---------- */
@@ -1874,8 +1878,21 @@ const settings = {
       [api("/api/audio"), api("/api/location"), api("/api/settings")]);
     const SLEEP = [0, 15, 30, 60, 90];
     const left = state.sleep_until ? Math.max(1, Math.round((state.sleep_until - Date.now() / 1000) / 60)) : 0;
+    const section = (name, ...buttons) => [h("h2", { className: "section", textContent: name }),
+      ...(buttons.length ? [h("div", { className: "toolbar wrap" }, ...buttons)] : [])];
+    // a setting of this display that steps through its choices
+    const cycle = (label, key, fallback, names, apply) => h("button", {
+      textContent: `${label}: ${names[pref(key, fallback)]}`,
+      onclick: () => {
+        const choices = Object.keys(names);
+        setPref(key, choices[(choices.indexOf(pref(key, fallback)) + 1) % choices.length]);
+        if (apply) apply();
+        this.render();
+      },
+    });
+    const top = view.scrollTop;
     view.replaceChildren(
-      h("div", { className: "toolbar wrap" },
+      ...section(t.sectionPlayback,
         h("button", {
           textContent: `${t.sleepTimer}: ${left ? left + " " + t.minutes : t.off}`,
           onclick: async () => {
@@ -1884,8 +1901,31 @@ const settings = {
             setTimeout(() => this.render(), 150);
           },
         }),
-        h("button", { textContent: `${t.alarm}: ${state.alarm || t.off}`, onclick: () => show(alarm) }),
-        h("button", { textContent: t.device, onclick: () => show(deviceView) }),
+        h("button", { textContent: `${t.alarm}: ${state.alarm || t.off}`, onclick: () => show(alarm) })),
+      h("p", { className: "label", textContent: t.output }),
+      ...sinks.map(s => stationRow({
+        title: s.label, info: t.kinds[s.kind], active: s.active,
+        onPlay: async () => { await api("/api/audio", { name: s.name }); this.render(); },
+      })),
+
+      ...section(t.sectionDisplay,
+        h("button", {
+          textContent: `${t.language}: ${t.languages[lang]}`,
+          onclick: () => { setPref("lang", lang === "en" ? "de" : "en"); location.hash = "settings"; location.reload(); },
+        }),
+        cycle(t.theme, "theme", "dark", t.themes, () => { document.documentElement.dataset.theme = pref("theme", "dark"); }),
+        cycle(t.bar, "bar", "medium", t.barSizes, () => { document.body.dataset.bar = pref("bar", "medium"); }),
+        cycle(t.keyboard, "keyboard", "auto", t.keyboardModes),
+        h("button", { textContent: t.tiles, onclick: () => show(tilesView) })),
+
+      ...section(t.idle,
+        h("button", {
+          textContent: `${t.idleAfter}: ${Number(pref("idle", "2")) ? pref("idle", "2") + " " + t.minutes : t.off}`,
+          onclick: () => {
+            setPref("idle", IDLE_CHOICES[(IDLE_CHOICES.indexOf(Number(pref("idle", "2"))) + 1) % IDLE_CHOICES.length]);
+            this.render();
+          },
+        }),
         h("button", {
           textContent: `${t.idleContent}: ${t.idleContents[state.idle_content || "clock"]}`,
           onclick: async () => {
@@ -1893,71 +1933,35 @@ const settings = {
             await api("/api/settings", { key: "idle_content", value: kinds[(kinds.indexOf(state.idle_content || "clock") + 1) % kinds.length] });
             this.render();
           },
-        }),
+        })),
+
+      ...section(t.sectionContent,
+        h("button", { textContent: t.gallery, onclick: () => show(gallerySettings) }),
+        h("button", { textContent: t.podcastDirectory, onclick: () => show(podcastSettings) }),
+        h("button", { textContent: t.manageFeeds, onclick: () => { feedList.origin = settings; show(feedList); } }),
         h("button", {
-          textContent: `${t.idle}: ${Number(pref("idle", "2")) ? pref("idle", "2") + " " + t.minutes : t.off}`,
-          onclick: () => {
-            setPref("idle", IDLE_CHOICES[(IDLE_CHOICES.indexOf(Number(pref("idle", "2"))) + 1) % IDLE_CHOICES.length]);
-            this.render();
-          },
-        }),
-        h("button", {
-          textContent: `${t.language}: ${t.languages[lang]}`,
-          onclick: () => { setPref("lang", lang === "en" ? "de" : "en"); location.hash = "settings"; location.reload(); },
-        }),
+          textContent: `${t.location}: ${position ? place || t.locationSet : t.locationUnset}`, onclick: () => show(locationPicker),
+        })),
+
+      ...section(t.sectionReception,
+        h("button", { textContent: t.receiverSetting, onclick: () => show(receiverView) }),
+        h("button", { textContent: t.relevel, onclick: e => { e.target.disabled = true; api("/api/gain/reset", {}); } })),
+      h("p", { className: "label", textContent: t.relevelHint }),
+
+      ...section(t.sectionDevice,
+        h("button", { textContent: t.device, onclick: () => show(deviceView) }),
         h("button", {
           className: receivers.remote ? "primary" : "",
           textContent: `${t.remote}: ${receivers.remote ? t.remoteOn : t.off}`,
           onclick: async () => { await api("/api/settings", { key: "remote", value: !receivers.remote }); this.render(); },
-        }),
-        h("button", {
-          textContent: `${t.theme}: ${t.themes[pref("theme", "dark")]}`,
-          onclick: () => {
-            setPref("theme", pref("theme", "dark") === "dark" ? "light" : "dark");
-            document.documentElement.dataset.theme = pref("theme", "dark");
-            this.render();
-          },
-        }),
-        h("button", {
-          textContent: `${t.bar}: ${t.barSizes[pref("bar", "medium")]}`,
-          onclick: () => {
-            const sizes = Object.keys(t.barSizes);
-            setPref("bar", sizes[(sizes.indexOf(pref("bar", "medium")) + 1) % sizes.length]);
-            document.documentElement.dataset.theme = pref("theme", "dark");
-document.body.dataset.bar = pref("bar", "medium");
-            this.render();
-          },
-        }),
-        h("button", {
-          textContent: `${t.keyboard}: ${t.keyboardModes[pref("keyboard", "auto")]}`,
-          onclick: () => {
-            const modes = Object.keys(t.keyboardModes);
-            setPref("keyboard", modes[(modes.indexOf(pref("keyboard", "auto")) + 1) % modes.length]);
-            this.render();
-          },
-        }),
-        h("button", {
-          textContent: `${t.location}: ${position ? place || t.locationSet : t.locationUnset}`, onclick: () => show(locationPicker),
         })),
-      h("p", { className: "hint", textContent: t.output }),
-      ...sinks.map(s => stationRow({
-        title: s.label, info: t.kinds[s.kind], active: s.active,
-        onPlay: async () => { await api("/api/audio", { name: s.name }); this.render(); },
-      })),
-      ...(receivers.remote ? [h("p", { className: "hint" },
+      ...(receivers.remote ? [h("p", { className: "label" },
         t.remoteHint, h("br"), h("b", { textContent: receivers.addresses.join("  ·  ") }), h("br"), t.remoteWarning,
         ...(receivers.stream ? [h("br"), h("br"), t.liveStream, h("br"),
           h("b", { textContent: receivers.addresses[receivers.addresses.length - 1] + "/live.mp3" })] : []))] : []),
-      h("div", { className: "toolbar wrap" },
-        h("button", { textContent: t.receiverSetting, onclick: () => show(receiverView) }),
-        h("button", { textContent: t.gallery, onclick: () => show(gallerySettings) }),
-        h("button", { textContent: t.podcastDirectory, onclick: () => show(podcastSettings) }),
-        h("button", { textContent: t.tiles, onclick: () => show(tilesView) })),
-      h("p", { className: "hint", textContent: t.relevelHint }),
-      h("div", { className: "toolbar" },
-        h("button", { textContent: t.relevel, onclick: e => { e.target.disabled = true; api("/api/gain/reset", {}); } })),
       h("p", { className: "label meter", textContent: `RadioKiosk ${receivers.version}` }),
     );
+    view.scrollTop = top;
   },
 };
 

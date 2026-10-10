@@ -470,7 +470,7 @@ def build(cfg):
 
     @routes.get("/api/podcasts")
     async def podcasts_get(request):
-        return web.json_response({"subscribed": podcasts.subscribed, "suggested": podcasts.suggestions(),
+        return web.json_response({"subscribed": podcasts.subscribed, "suggested": await podcasts.suggestions(),
                                   "provider": cfg["podcast_provider"]})
 
     @routes.get("/api/podcasts/search")

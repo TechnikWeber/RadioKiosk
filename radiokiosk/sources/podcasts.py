@@ -19,18 +19,26 @@ SAVE_EVERY = 5      # seconds between notes of the playing position
 REWIND = 5          # seconds an episode steps back when it is picked up again
 
 
-# Offered until something is subscribed: the four at the top of Apple's German podcast
-# chart and the first of the US chart, as of October 2026.
-SUGGESTIONS = [
-    {"title": "RONZHEIMER.", "author": "Paul Ronzheimer", "feed": "https://ronzheimer.podigee.io/feed/mp3", "image": ""},
-    {"title": "Lanz + Precht", "author": "ZDF, Markus Lanz & Richard David Precht",
-     "feed": "https://cdn.julephosting.de/podcasts/1355-lanz-precht/feed.rss", "image": ""},
-    {"title": "Machtwechsel", "author": "Dagmar Rosenfeld und Robin Alexander",
-     "feed": "https://machtwechsel.podigee.io/feed/mp3", "image": ""},
-    {"title": "Baywatch Berlin", "author": "Klaas Heufer-Umlauf, Thomas Schmitt & Jakob Lundt",
-     "feed": "https://baywatch-berlin.podigee.io/feed/mp3", "image": ""},
-    {"title": "The Daily", "author": "The New York Times", "feed": "https://feeds.simplecast.com/Sl5CSM3S", "image": ""},
-]
+# Subscribed from the start, so the tile never opens onto nothing.
+STARTER = {"title": "Lanz + Precht", "author": "ZDF, Markus Lanz & Richard David Precht",
+           "feed": "https://cdn.julephosting.de/podcasts/1355-lanz-precht/feed.rss", "image": ""}
+# Suggestions come from Apple's podcast charts, which need no key: the most heard in the
+# own country and in the US. This list only stands in while the charts cannot be reached
+# and have never been read before.
+CHARTS = "https://rss.marketingtools.apple.com/api/v2/{country}/podcasts/top/10/podcasts.json"
+CHARTS_FOR = 24 * 3600   # seconds the charts are trusted
+SUGGESTED = 2            # from each chart
+STAND_IN = {
+    "local": [
+        {"title": "RONZHEIMER.", "author": "Paul Ronzheimer", "feed": "https://ronzheimer.podigee.io/feed/mp3", "image": ""},
+        {"title": "Machtwechsel", "author": "Dagmar Rosenfeld und Robin Alexander",
+         "feed": "https://machtwechsel.podigee.io/feed/mp3", "image": ""},
+    ],
+    "world": [
+        {"title": "The Daily", "author": "The New York Times", "feed": "https://feeds.simplecast.com/Sl5CSM3S", "image": ""},
+        {"title": "Up First from NPR", "author": "NPR", "feed": "https://feeds.npr.org/510318/podcast.xml", "image": ""},
+    ],
+}
 
 
 async def _json(url, params, headers=None):
@@ -71,12 +79,24 @@ async def search(cfg, query):
             for title, author, feed, image in rows if title and feed]
 
 
+async def chart(country):
+    """The most heard podcasts of a country, each with its feed."""
+    listed = (await _json(CHARTS.format(country=country.lower()), {})).get("feed", {}).get("results", [])
+    looked_up = await _json("https://itunes.apple.com/lookup", {"id": ",".join(p["id"] for p in listed)})
+    feeds = {str(r.get("collectionId")): r.get("feedUrl") for r in looked_up.get("results", [])}
+    return [{"title": p["name"], "author": p.get("artistName", ""), "feed": feeds[p["id"]],
+             "image": p.get("artworkUrl100", "")} for p in listed if feeds.get(p["id"])]
+
+
 class Podcasts:
     name = "podcast"
 
     def __init__(self, core):
         self.core = core
-        self.subscribed = load_json("podcasts.json", [])
+        self.subscribed = load_json("podcasts.json", None)
+        if self.subscribed is None:
+            self.subscribed = [dict(STARTER)]
+        self.charts = load_json("podcast_charts.json", None)   # {"read": time, "local": [...], "world": [...]}
         self.positions = load_json("podcast_positions.json", {})   # episode id -> seconds heard
         self.episode = None
         self.watch = None
@@ -88,8 +108,25 @@ class Podcasts:
             self.subscribed.sort(key=lambda p: p["title"].lower())
         save_json("podcasts.json", self.subscribed)
 
-    def suggestions(self):
-        return [s for s in SUGGESTIONS if all(p["feed"] != s["feed"] for p in self.subscribed)]
+    async def suggestions(self):
+        """The top of the charts of the own country and of the US, without what is subscribed already."""
+        if not self.charts or time.time() - self.charts["read"] > CHARTS_FOR:
+            country = self.core.cfg["country"]
+            try:
+                # for listeners in the US the British chart is the look abroad
+                self.charts = {"read": time.time(), "local": await chart(country),
+                               "world": await chart("gb" if country.upper() == "US" else "us")}
+                save_json("podcast_charts.json", self.charts)
+            except (RuntimeError, KeyError, TypeError):
+                pass   # keep what was read last
+        lists = self.charts or STAND_IN
+        taken = {p["feed"] for p in self.subscribed}
+        picked = []
+        for part in ("local", "world"):
+            fresh = [p for p in lists[part] if p["feed"] not in taken]
+            picked += fresh[:SUGGESTED]
+            taken.update(p["feed"] for p in fresh[:SUGGESTED])
+        return picked
 
     async def episodes(self, feed):
         parsed = await fetch_feed(feed)
