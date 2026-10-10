@@ -47,6 +47,7 @@ const STRINGS = {
     wakesWithNothing: "Play a station once; the alarm can then wake with it.",
     wakeLast: "Station heard last", wakeFixed: "Always", wakeFix: "Always wake with",
     sound: "Sound", soundModes: { auto: "Auto", stereo: "Stereo", mono: "Mono" },
+    bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
     bluetooth: "Bluetooth", btSub: "Speakers and phone", btVisible: "Let a phone connect", btVisibleFor: "Visible for",
     btPhoneHint: "Then pick this device in the phone's Bluetooth settings and play music.",
@@ -98,6 +99,7 @@ const STRINGS = {
     wakesWithNothing: "Spiele einmal einen Sender; danach kann der Wecker damit wecken.",
     wakeLast: "Zuletzt gehörter Sender", wakeFixed: "Immer", wakeFix: "Immer wecken mit",
     sound: "Ton", soundModes: { auto: "Auto", stereo: "Stereo", mono: "Mono" },
+    bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
     bluetooth: "Bluetooth", btSub: "Lautsprecher und Handy", btVisible: "Handy verbinden lassen", btVisibleFor: "Sichtbar für",
     btPhoneHint: "Wähle danach dieses Gerät in den Bluetooth-Einstellungen des Handys und spiele Musik ab.",
@@ -1206,6 +1208,15 @@ const settings = {
           onclick: async () => { await api("/api/settings", { key: "remote", value: !receivers.remote }); this.render(); },
         }),
         h("button", {
+          textContent: `${t.bar}: ${t.barSizes[pref("bar", "medium")]}`,
+          onclick: () => {
+            const sizes = Object.keys(t.barSizes);
+            setPref("bar", sizes[(sizes.indexOf(pref("bar", "medium")) + 1) % sizes.length]);
+            document.body.dataset.bar = pref("bar", "medium");
+            this.render();
+          },
+        }),
+        h("button", {
           textContent: `${t.keyboard}: ${t.keyboardModes[pref("keyboard", "auto")]}`,
           onclick: () => {
             const modes = Object.keys(t.keyboardModes);
@@ -1278,13 +1289,28 @@ function showIdle() {
   dim(true);
 }
 
-for (const event of ["pointerdown", "keydown"]) {
-  addEventListener(event, () => {
-    lastTouch = Date.now();
-    if (!idle.hidden) dim(false);
-    idle.hidden = true;
-  }, true);
+// The first touch on the idle screen only wakes the display. The screen stays up until that
+// tap is over; hidden at once, the tap would land on whatever tile lies beneath the finger.
+let waking = false;
+addEventListener("pointerdown", () => {
+  lastTouch = Date.now();
+  waking = !idle.hidden;
+  if (waking) dim(false);
+}, true);
+for (const event of ["pointerup", "pointercancel"]) {
+  addEventListener(event, () => { if (waking) setTimeout(() => { idle.hidden = true; waking = false; }, 350); }, true);
 }
+addEventListener("click", e => {   // the tap that woke the display ends here
+  if (!waking) return;
+  e.stopPropagation();
+  idle.hidden = true;
+  waking = false;
+}, true);
+addEventListener("keydown", () => {
+  lastTouch = Date.now();
+  if (!idle.hidden) dim(false);
+  idle.hidden = true;
+}, true);
 setInterval(() => {
   const minutes = Number(pref("idle", "2"));
   const watching = current === adsb || current === locationPicker;   // a map is there to be looked at
@@ -1333,6 +1359,7 @@ async function openLink() {
   }
 }
 
+document.body.dataset.bar = pref("bar", "medium");
 let loadedVersion = null;
 function connect() {
   const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
@@ -1348,9 +1375,10 @@ function connect() {
   };
   // after an update the service comes back with new files: load them
   ws.onopen = async () => {
-    const { version } = await api("/api/settings");
-    if (loadedVersion && version !== loadedVersion) location.reload();
-    loadedVersion = version;
+    const { version, build } = await api("/api/settings");
+    if (loadedVersion && build !== loadedVersion) location.reload();
+    loadedVersion = build;
+    $("version").textContent = version;
   };
   ws.onclose = () => setTimeout(connect, 1500);
 }

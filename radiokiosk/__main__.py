@@ -44,6 +44,16 @@ def addresses(port):
     return found
 
 
+def _build_id():
+    """Changes with every update, also one that keeps the version number: an open interface reloads when it differs."""
+    files = (p for d in (WEB_DIR, WEB_DIR.parent / "radiokiosk") for p in d.rglob("*")
+             if p.is_file() and "__pycache__" not in p.parts)
+    return f"{__version__}.{int(max(p.stat().st_mtime for p in files))}"
+
+
+BUILD = _build_id()
+
+
 def build(cfg):
     core = Core(cfg)
 
@@ -230,7 +240,7 @@ def build(cfg):
                                   "fm_backend_used": fm.backend_id(), "tuner_backend_used": tuner.backend_id(),
                                   "fm_stereo": cfg["fm_stereo"],
                                   "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
-                                  "version": __version__, "stream": network_audio.can_stream(),
+                                  "version": __version__, "build": BUILD, "stream": network_audio.can_stream(),
                                   "backends": available_backends()})
 
     @routes.post("/api/settings")
