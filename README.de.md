@@ -14,7 +14,7 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 | ![Freier Empfänger auf dem 2-m-Amateurfunkband](docs/screenshots/receiver.png) | ![Live-Flugzeugkarte mit Liste](docs/screenshots/aircraft.png) |
 | ![Ruhebildschirm mit Uhrzeit, Wetter und Sender](docs/screenshots/idle.png) | |
 
-> Version 0.14: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
+> Version 0.15: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
 
 ## Installation
 
@@ -60,8 +60,8 @@ Nach dem nächsten Start öffnet der Pi RadioKiosk von selbst im Vollbild. Wisse
 |---|---|---|
 | Rechner | 64-bit-Linux auf x86 oder ARM mit Fedora, Debian, Ubuntu oder Raspberry Pi OS | Fedora 44 auf einem x86-Laptop |
 | Raspberry Pi | Pi 3, 4 und 5 mit Raspberry Pi OS 64-bit | Pi 3 B+ mit dem offiziellen 7-Zoll-Display: Installer, Kiosk-Start, Webradio, UKW, Flugzeugkarte |
-| SDR-Stick | RTL-SDR Blog V4 und V3, andere RTL2832U-Sticks | RTL-SDR Blog V4 |
-| Display | beliebig; die Oberfläche ist für Touch ab 800×480 gebaut | 800×480-Layout im Browser |
+| SDR-Stick | jeder Stick, den die Bibliothek `librtlsdr` kennt: RTL-SDR Blog V4 und V3, Nooelec NESDR und andere RTL2832U-Sticks, auch ältere DVB-T-Sticks mit E4000-, FC0012/13- oder FC2580-Tuner. Kurzwelle nur mit V4 (eingebauter Umsetzer) oder Sticks mit Direct Sampling wie dem V3. Andere SDR-Familien (Airspy, HackRF, SDRplay) werden nicht unterstützt. | RTL-SDR Blog V4 |
+| Display | beliebig; die Oberfläche ist für Touch ab 800×480 gebaut und wird auf großen Bildschirmen (ab 1500 Pixel Breite) eine Stufe größer | 800×480 am offiziellen 7-Zoll-Display; 480×320 bis 1920×1080 im Browser |
 | Ton | jede Ausgabe, die PipeWire oder PulseAudio anbietet: Klinke, USB, Bluetooth, HDMI | eingebauter Ton |
 
 Kurzwelle braucht einen Stick, der unter 24 MHz abstimmen kann: Der V4 macht das mit seinem eingebauten Umsetzer, der V3 über Direct Sampling. In beiden Fällen ist eine lange Drahtantenne nötig. Ohne Stick funktioniert weiterhin das Webradio.
@@ -96,7 +96,7 @@ Der Ruhebildschirm hat drei Arten, wählbar in den Einstellungen: die Uhr auf sc
 
 Mondphase und Funkwetter lassen sich in den Einstellungen zuschalten; sie erscheinen dann im Ruhebildschirm und in der Wetter-Kachel. Beides ist standardmäßig aus.
 
-Die Funk-Analyse misst grob: Über den ganzen Bereich von 24 bis 1766 MHz dauert ein Durchlauf auf einem Raspberry Pi 3 etwa 25 Sekunden, und der Stick ist nicht überall gleich empfindlich. Ob auf einem Band gerade jemand funkt, zeigt sie am zuverlässigsten, wenn du nur dieses Band wählst (2 m: etwa ein Durchlauf pro Sekunde). Träger, die der Stick selbst erzeugt, tauchen als Dauersignale auf.
+Die Funk-Analyse misst grob: Über den ganzen Bereich von 24 bis 1766 MHz dauert ein Durchlauf auf einem Raspberry Pi 3 etwa 25 Sekunden, und der Stick ist nicht überall gleich empfindlich. Ob auf einem Band gerade jemand funkt, zeigt sie am zuverlässigsten, wenn du nur dieses Band wählst (2 m: etwa ein Durchlauf pro Sekunde). Jeder zweite Durchlauf wird anders abgestimmt; was nur eine der beiden Abstimmungen zeigt, erzeugt der Stick selbst und wird weggelassen. „Alles“ reicht so weit, wie der angeschlossene Stick abstimmt, mit einem Blog V4 ab 0,5 MHz.
 
 Für die Podcast-Suche stehen drei Verzeichnisse zur Wahl (Einstellungen › Podcast-Verzeichnis). fyyd ist voreingestellt und braucht wie Apple Podcasts keinen Schlüssel; für den Podcast Index trägst du dort Schlüssel und Geheimnis ein, die es kostenlos auf podcastindex.org gibt.
 

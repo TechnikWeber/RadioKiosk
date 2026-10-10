@@ -14,7 +14,7 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 | ![Free receiver on the 2 m amateur band](docs/screenshots/receiver.png) | ![Live aircraft map with list](docs/screenshots/aircraft.png) |
 | ![Idle screen with time, weather and station](docs/screenshots/idle.png) | |
 
-> Version 0.14: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
+> Version 0.15: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
 
 ## Install
 
@@ -60,8 +60,8 @@ After the next start the Pi opens RadioKiosk full screen by itself. Things worth
 |---|---|---|
 | Computer | 64-bit Linux on x86 or ARM with Fedora, Debian, Ubuntu or Raspberry Pi OS | Fedora 44 on an x86 laptop |
 | Raspberry Pi | Pi 3, 4 and 5 with Raspberry Pi OS 64-bit | Pi 3 B+ with the official 7 inch display: installer, kiosk start, web radio, FM, aircraft map |
-| SDR stick | RTL-SDR Blog V4 and V3, other RTL2832U sticks | RTL-SDR Blog V4 |
-| Display | any; the interface is built for touch from 800×480 upwards | 800×480 layout in a browser |
+| SDR stick | any stick the `librtlsdr` library knows: RTL-SDR Blog V4 and V3, Nooelec NESDR and other RTL2832U sticks, also older DVB-T sticks with an E4000, FC0012/13 or FC2580 tuner. Shortwave only with a V4 (built-in upconverter) or sticks with direct sampling such as the V3. Other SDR families (Airspy, HackRF, SDRplay) are not supported. | RTL-SDR Blog V4 |
+| Display | any; the interface is built for touch from 800×480 upwards and goes one size up on large screens (1500 pixels wide or more) | 800×480 on the official 7 inch display; 480×320 to 1920×1080 in a browser |
 | Audio | every output PipeWire or PulseAudio offers: headphone jack, USB, Bluetooth, HDMI | built-in audio |
 
 Shortwave needs a stick that can tune below 24 MHz: the V4 does it with its built-in upconverter, the V3 through direct sampling. Either way it needs a long wire antenna. Without a stick, web radio still works.
@@ -96,7 +96,7 @@ The idle screen comes in three kinds, chosen in the settings: the clock on black
 
 Moon phase and propagation can be switched on in the settings; they then appear on the idle screen and in the weather tile. Both are off by default.
 
-The radio survey measures coarsely: over the whole range from 24 to 1766 MHz one sweep takes about 25 seconds on a Raspberry Pi 3, and the stick is not equally sensitive everywhere. Whether somebody is on the air on a band shows most reliably when you choose only that band (2 m: about one sweep per second). Carriers the stick produces itself show up as signals that are always there.
+The radio survey measures coarsely: over the whole range from 24 to 1766 MHz one sweep takes about 25 seconds on a Raspberry Pi 3, and the stick is not equally sensitive everywhere. Whether somebody is on the air on a band shows most reliably when you choose only that band (2 m: about one sweep per second). Every second sweep is tuned differently; what only one of the two tunings shows is produced by the stick itself and left out. "Everything" reaches as far as the connected stick tunes, from 0.5 MHz with a Blog V4.
 
 The podcast search can use three directories (Settings › Podcast directory). fyyd is the default and, like Apple Podcasts, needs no key; for the Podcast Index, enter the key and secret you get for free at podcastindex.org.
 
