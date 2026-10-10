@@ -934,7 +934,11 @@ const tuner = {
     const scanning = state.source === "tuner" && state.detail.scan;
     if (scanning) return this.tune(this.hz, this.mode, this.label);   // tuning by hand ends the scan
     clearTimeout(this.timer);
-    api("/api/tuner/scan", { channels: this.channels(), mode: this.mode, squelch: this.squelch || 6,
+    // broadcasters never stop talking: there the scan looks for the next station above and ends on it
+    const seek = this.mode !== "nfm", all = this.channels(), next = all.findIndex(hz => hz > this.hz);
+    const channels = seek && next > 0 ? [...all.slice(next), ...all.slice(0, next)] : all;
+    this.scanning = true;
+    api("/api/tuner/scan", { channels, mode: this.mode, squelch: this.squelch || 6, seek, back: this.hz,
       waterfall: waterfallOn("tuner") }).catch(e => { this.error = e.message; this.draw(); });
   },
   async loadOnAir() {
@@ -1010,10 +1014,14 @@ const tuner = {
   },
   onState() {
     // while the service scans, the display follows it
-    if (this.band && state.source === "tuner" && state.detail.scan && state.detail.hz !== this.hz) {
+    const scanning = state.source === "tuner" && state.detail.scan;
+    // the channel a station search ended on comes with the scan already over
+    if (this.band && state.source === "tuner" && (scanning || this.scanning) && state.detail.hz !== this.hz) {
       this.hz = state.detail.hz;
       this.label = "";
+      if (!scanning) this.loadOnAir();
     }
+    if (state.source === "tuner" && state.detail.hz) this.scanning = scanning;
     if (this.band && this.entry === null) this.draw();
   },
   drawBands() {

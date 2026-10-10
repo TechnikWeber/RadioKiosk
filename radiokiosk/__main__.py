@@ -231,7 +231,8 @@ def build(cfg):
     @routes.post("/api/tuner/scan")
     async def tuner_scan(request):
         body = await request.json()
-        await tuner.scan(body["channels"], body["mode"], body.get("squelch", 6), body.get("waterfall", False))
+        await tuner.scan(body["channels"], body["mode"], body.get("squelch", 6), body.get("waterfall", False),
+                         bool(body.get("seek")), body.get("back"))
         return ok()
 
     @routes.get("/api/alarm")

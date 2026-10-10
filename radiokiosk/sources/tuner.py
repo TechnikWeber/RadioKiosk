@@ -33,21 +33,33 @@ class Tuner(Receiver):
                                 {"hz": hz, "mode": mode, "squelch": squelch, "zoom": zoom, "scan": scanning},
                                 squelch, zoom, wide=wide)
 
-    async def scan(self, channels, mode, squelch, wide=False):
-        """Step through `channels` and stay wherever somebody is talking."""
+    async def scan(self, channels, mode, squelch, wide=False, seek=False, back=None):
+        """Step through `channels` and stay wherever somebody is talking.
+
+        With `seek` it is a station search instead: a broadcaster's carrier never goes away, so the scan
+        ends on the first channel that has one, or on `back` after one round without."""
         if self.backend_id() != "engine":
             raise RuntimeError("the scan needs the own receiver")
         if not channels or len(channels) > 400:
             raise RuntimeError("nothing to scan")
         self._end_scan()
-        self.scanner = asyncio.create_task(self._scan([int(c) for c in channels], mode, squelch or 6, wide))
+        self.scanner = asyncio.create_task(self._scan([int(c) for c in channels], mode, squelch or 6, wide,
+                                                      seek, back or channels[-1]))
 
-    async def _scan(self, channels, mode, squelch, wide):
+    async def _scan(self, channels, mode, squelch, wide, seek=False, back=None):
         engine = self.backends["engine"]
         while True:
             for hz in channels:
                 await self.tune(hz, mode, squelch, 1, "", wide, scanning=True)
                 await asyncio.sleep(0.4)    # the engine needs a few spectrum lines on the new channel
+                if seek:
+                    if engine.snr >= squelch:
+                        await asyncio.sleep(0.4)   # a second look: the gain settling can pass for a signal
+                        if engine.snr >= squelch:
+                            return await self.tune(hz, mode, 0, 1, "", wide)
+                    if self.core.active is not self:
+                        return
+                    continue
                 gone = None   # seconds since the signal went away; None while nothing was heard
                 while True:
                     if engine.snr >= squelch:
@@ -61,6 +73,8 @@ class Tuner(Receiver):
                     await asyncio.sleep(0.25)
                 if self.core.active is not self:
                     return
+            if seek:
+                return await self.tune(back, mode, 0, 1, "", wide)   # nothing on the whole band
 
     def _end_scan(self):
         if self.scanner and self.scanner is not asyncio.current_task():
