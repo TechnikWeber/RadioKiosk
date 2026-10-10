@@ -2717,10 +2717,8 @@ async function idleNews() {
       const entry = h("div", {}, h("b", { textContent: a.title }), a.summary ? h("p", { textContent: a.summary }) : null,
         h("small", { textContent: [a.source, timeOf(a.date)].filter(Boolean).join(" · ") }));
       box.append(entry);
-      if (box.children.length > 1 && box.scrollHeight > box.clientHeight) {
-        entry.remove();
-        break;
-      }
+      // one that is too long for the room left makes way for a shorter one further down
+      if (box.children.length > 1 && box.scrollHeight > box.clientHeight) entry.remove();
     }
     return newest.length > 0;
   } catch (e) { return false; }
