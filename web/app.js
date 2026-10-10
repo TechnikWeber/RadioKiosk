@@ -2016,7 +2016,7 @@ async function idleNews() {
   idleNewsAt = Date.now();
   try {
     // as many headlines as fit above the clock: three on a small screen
-    const room = Math.max(1, Math.min(6, Math.floor((innerHeight - 200) / 92)));
+    const room = Math.max(1, Math.min(6, Math.floor((innerHeight - 180) / 90)));
     const newest = (await api("/api/feeds")).articles.slice(0, room);
     $("idle-news").replaceChildren(...newest.map(a => h("div", {},
       h("b", { textContent: a.title }), h("small", { textContent: [a.source, timeOf(a.date)].filter(Boolean).join(" · ") }))));
