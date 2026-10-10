@@ -404,6 +404,13 @@ def build(cfg):
         return ok()
 
     app = web.Application(middlewares=[local_first, errors])
+
+    async def revalidate(request, response):
+        # Browsers guess how long a file without this header stays fresh; after an update
+        # the kiosk then mixed an old page with a new script.
+        response.headers.setdefault("Cache-Control", "no-cache")
+
+    app.on_response_prepare.append(revalidate)
     app.add_routes(routes)
     app.router.add_static("/", WEB_DIR)
 
