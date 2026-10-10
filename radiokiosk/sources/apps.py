@@ -5,7 +5,7 @@ import json
 
 from ..config import CONFIG_DIR
 from ..gain import TUNER_GAINS
-from ..util import kill, sdr_devices, spawn
+from ..util import kill, memory_mb, sdr_devices, spawn
 
 
 def seed_sdrpp(gain_db):
