@@ -50,6 +50,10 @@ DEFAULTS = {
     "podcast_key": "",
     "podcast_secret": "",
     # logbook: the own call sign, and whether the log is that of a listener (SWL)
+    # where the music tile looks; None is the system's music folder
+    "music_folder": None,
+    # official weather warnings for the location (Germany only)
+    "alerts": True,
     "callsign": "",
     "swl": False,
     "apps": [

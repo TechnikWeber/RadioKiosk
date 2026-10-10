@@ -22,7 +22,7 @@ from .util import memory_mb, sdr_present
 
 # errors that mean the stick itself is stuck rather than the reception being poor
 SDR_HANG = ("no data from the SDR stick", "stopped delivering data", "does not respond")
-MPV_SOURCES = ("webradio", "dab", "fm", "tuner", "podcast")
+MPV_SOURCES = ("webradio", "dab", "fm", "tuner", "podcast", "music")
 
 
 def music_dir():
@@ -65,6 +65,7 @@ class Core:
             "sensors": shutil.which("rtl_433") is not None,
             "ais": shutil.which("rtl_ais") is not None,
             "survey": shutil.which("rtl_power") is not None,
+            "aprs": shutil.which("direwolf") is not None and shutil.which("rtl_fm") is not None,
             "bluetooth": shutil.which("bluetoothctl") is not None,
             "stream": shutil.which("ffmpeg") is not None,
             "apps": [

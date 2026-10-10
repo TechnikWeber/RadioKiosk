@@ -152,6 +152,12 @@ footer button.icon svg { width: calc(var(--bar-touch) * .5); height: calc(var(--
 .signal.l1 i:nth-of-type(-n+1), .signal.l2 i:nth-of-type(-n+2), .signal.l3 i:nth-of-type(-n+3), .signal.l4 i { background: var(--accent); opacity: 1; }
 .section { margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); font-size: 16px; font-weight: 600; color: var(--accent); }
 .section:first-child { margin-top: 0; }
+#warn.alert { background: #6b1410; color: #ffd8d2; }
+#warn[onclick], #warn { cursor: default; }
+.alert-box { margin-bottom: 8px; padding: 12px 14px; border: 1px solid var(--accent); border-radius: 12px; background: var(--panel); }
+.alert-box.severe, .alert-box.extreme { border-color: var(--danger); }
+.alert-box p { margin: 6px 0; font-size: 16px; }
+.alert-box small { color: var(--muted); }
 .toast { position: fixed; left: 50%; bottom: calc(var(--bar-touch) + 2 * var(--bar-pad) + 12px); transform: translateX(-50%); z-index: 1500; max-width: 90%; padding: 10px 16px; border-radius: 12px; background: var(--warn-bg); color: var(--warn-ink); font-size: 16px; text-align: center; }
 .explain { margin: 0 0 12px; line-height: 1.4; }
 .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }

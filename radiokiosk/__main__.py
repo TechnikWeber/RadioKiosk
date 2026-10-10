@@ -4,6 +4,7 @@ import asyncio
 import ipaddress
 import logging
 import socket
+from pathlib import Path
 
 import aiohttp
 from aiohttp import web
@@ -26,6 +27,10 @@ from .qsolog import BANDS as LOG_BANDS, MODES as LOG_MODES, QsoLog
 from .sources.survey import RANGES, Survey, as_text
 from .spaceweather import SpaceWeather
 from .spots import Spots
+from . import audiobooks, satellites as satellite_passes
+from .alerts import Alerts
+from .sources.aprs import Aprs
+from .sources.music import Music
 from .sources import podcasts as podcast_directory
 from .sources.ais import Ais
 from .sources.podcasts import PROVIDERS, Podcasts
@@ -91,6 +96,7 @@ def build(cfg):
     gallery = Gallery(cfg)
     feeds = Feeds(cfg)
     space, log, survey, spots = SpaceWeather(), QsoLog(cfg), Survey(core), Spots()
+    music, aprs, shelf, sky, alerts = Music(core), Aprs(core), audiobooks.Shelf(), satellite_passes.Satellites(), Alerts(core)
     podcasts, sensors, ais = Podcasts(core), Sensors(core), Ais(core)
     alarm = Alarm(core)
     timer = Timer(core)
@@ -103,6 +109,7 @@ def build(cfg):
         "fm": lambda last: fm.tune(last["mhz"]),
         "tuner": lambda last: tuner.tune(last["hz"], last["mode"], last.get("squelch", 0), 1, last["title"]),
         "podcast": lambda last: podcasts.play(last["episode"]),
+        "music": lambda last: music.play(last["path"]),
     }
     core.sources.update(fm=fm, tuner=tuner)
     core.receiver_backends = available_backends()
@@ -267,7 +274,8 @@ def build(cfg):
                                   "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
                                   "idle_content": cfg["idle_content"], "podcast_provider": cfg["podcast_provider"],
                                   "podcast_key": cfg["podcast_key"], "podcast_secret": cfg["podcast_secret"],
-                                  "callsign": cfg["callsign"], "swl": cfg["swl"],
+                                  "callsign": cfg["callsign"], "swl": cfg["swl"], "alerts": cfg["alerts"],
+                                  "music_folder": str(music.root()),
                                   "version": __version__, "build": BUILD, "stream": network_audio.can_stream(),
                                   "backends": available_backends(),
                                   "engine_load": engine_load(), "engine_load_limit": ENGINE_LOAD_LIMIT})
@@ -281,6 +289,15 @@ def build(cfg):
                 raise ValueError("unknown setting")
             save_setting(cfg, "hidden_tiles", sorted(set(body["value"])))
             await core._broadcast()
+            return ok()
+        if body["key"] == "music_folder" and isinstance(body["value"], str):
+            if body["value"] and not Path(body["value"]).expanduser().is_dir():
+                raise ValueError("this folder cannot be opened")
+            save_setting(cfg, "music_folder", str(Path(body["value"]).expanduser()) if body["value"] else None)
+            return ok()
+        if body["key"] == "alerts" and isinstance(body["value"], bool):
+            save_setting(cfg, "alerts", body["value"])
+            await alerts.look()
             return ok()
         if body["key"] == "callsign" and isinstance(body["value"], str):
             save_setting(cfg, "callsign", body["value"].strip().upper()[:15])
@@ -313,6 +330,7 @@ def build(cfg):
         body = await request.json()
         save_setting(cfg, "location", [round(float(body["lat"]), 4), round(float(body["lon"]), 4)])
         await name_location(request)
+        asyncio.create_task(alerts.look())   # the warnings are those of the new place
         return ok()
 
     # Looking into folders and scaling photos takes its time on a slow disk or share: off the event loop.
@@ -529,6 +547,55 @@ def build(cfg):
     async def propagation_get(request):
         return web.json_response(await space.get(cfg.get("location")))
 
+    @routes.get("/api/music")
+    async def music_get(request):
+        return web.json_response(await asyncio.to_thread(music.listing, request.query.get("path", "")))
+
+    @routes.post("/api/music/{action}")
+    async def music_do(request):
+        action, body = request.match_info["action"], await request.json()
+        if action == "play":
+            await music.play(body.get("path", ""), body.get("file"), bool(body.get("shuffle")))
+        elif action == "skip":
+            await music.skip(int(body["step"]))
+        else:
+            raise web.HTTPNotFound()
+        return ok()
+
+    @routes.get("/api/audiobooks")
+    async def audiobooks_get(request):
+        return web.json_response({"shelf": shelf.books})
+
+    @routes.get("/api/audiobooks/search")
+    async def audiobooks_search(request):
+        return web.json_response(await audiobooks.search(cfg["country"], request.query.get("q", "")))
+
+    @routes.get("/api/audiobooks/chapters")
+    async def audiobooks_chapters(request):
+        book = await audiobooks.chapters(request.query["id"])
+        for chapter in book["episodes"]:
+            chapter["heard"] = round(podcasts.positions.get(chapter["id"], 0))
+        return web.json_response(book)
+
+    @routes.post("/api/audiobooks/shelf")
+    async def audiobooks_shelf(request):
+        body = await request.json()
+        shelf.keep(body["book"], bool(body["on"]))
+        return ok()
+
+    @routes.get("/api/satellites")
+    async def satellites_get(request):
+        return web.json_response(await sky.get(cfg.get("location")))
+
+    @routes.post("/api/aprs/start")
+    async def aprs_start(request):
+        await aprs.start()
+        return ok()
+
+    @routes.get("/api/aprs/stations")
+    async def aprs_stations(request):
+        return web.json_response({"stations": aprs.list(), "location": cfg.get("location"), "mhz": aprs.mhz()})
+
     @routes.get("/api/spots")
     async def spots_get(request):
         return web.json_response(await spots.get(request.query.get("kind", "dx")))
@@ -615,6 +682,7 @@ def build(cfg):
         app["audio_watch"] = asyncio.create_task(audio.watch(core.refresh_volume))
         app["alarm"] = asyncio.create_task(alarm.run())
         app["health"] = asyncio.create_task(core.watch_health())
+        app["alerts"] = asyncio.create_task(alerts.run())
         await receivers.start_enabled()
         core.update(alarm=alarm.data["time"] if alarm.data["enabled"] else None)
 
@@ -622,6 +690,7 @@ def build(cfg):
         app["audio_watch"].cancel()
         app["alarm"].cancel()
         app["health"].cancel()
+        app["alerts"].cancel()
         await receivers.close()
         if bt.pairing:
             await bt.set_visible(False)
