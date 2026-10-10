@@ -55,8 +55,8 @@ class SurveyTest(unittest.TestCase):
         freqs, rows = self.sweeps(8)
         for i, row in enumerate(rows):
             row[299:302] = -35 if i in (0, 1, 4, 5) else row[298]   # the station now talks during both tunings
-            if i % 2 == 0:
-                row[50] = -30                    # 144.250: a spike of the stick, there with the first tuning only
+            if i % 2 == 0 or i == 3:
+                row[50] = -30                    # 144.250: a spike of the stick, nearly only with the first tuning
         report = analyse(freqs, rows, 5e3, [i % 2 for i in range(8)])
         found = [s["mhz"] for key in ("now_and_then", "suspects", "steady") for s in report[key]]
         self.assertNotIn(144.25, found)

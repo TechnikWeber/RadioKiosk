@@ -157,10 +157,10 @@ def own_oscillator(mhz, width_khz):
     return multiple >= 1 and abs(mhz - multiple * 28.8) <= max(0.03, width_khz / 2000)
 
 
-def _widen(mask, by=2):
-    """A mask with every hit spread to its neighbours: the two tunings do not share exact slices."""
-    padded = np.pad(mask, by)
-    return np.lib.stride_tricks.sliding_window_view(padded, 2 * by + 1).any(axis=1)
+def _widen(values, by=2):
+    """Every value replaced by the largest among its neighbours: the two tunings do not share exact slices."""
+    padded = np.pad(values, by)
+    return np.lib.stride_tricks.sliding_window_view(padded, 2 * by + 1).max(axis=1)
 
 
 def analyse(freqs, sweeps, slice_hz, tunings=None):
@@ -179,8 +179,11 @@ def analyse(freqs, sweeps, slice_hz, tunings=None):
         tunings = np.asarray(tunings)
         first, second = occupied[tunings == 0], occupied[tunings == 1]
         if len(first) >= 2 and len(second) >= 2:
-            # seen with one tuning but never with the other: made by the stick, not received
-            real = _widen(first.any(axis=0)) & _widen(second.any(axis=0))
+            # A transmission does not care how the stick is tuned: both tunings see it about
+            # equally often. Seen with one and never or hardly with the other: made by the stick.
+            one, other = _widen(first.mean(axis=0)), _widen(second.mean(axis=0))
+            real = np.minimum(one, other) >= 0.3 * np.maximum(one, other)
+            real &= np.minimum(one, other) > 0
             ghosts = int(np.count_nonzero(np.diff(np.flatnonzero((share > 0) & ~real), prepend=-9) > 1))
             share = np.where(real, share, 0.0)
             peak = np.where(real, peak, 0.0)
