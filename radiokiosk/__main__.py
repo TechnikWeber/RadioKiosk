@@ -18,7 +18,13 @@ from .sources.receiver import CHOICES, ENGINE_LOAD_LIMIT, available_backends, en
 from .sources.tuner import BANDS, Tuner
 from .sources.webradio import Webradio
 from .schedule import Schedule
+from .feeds import Feeds
 from .gallery import Gallery, subfolders
+from .sources import podcasts as podcast_directory
+from .sources.ais import Ais
+from .sources.podcasts import PROVIDERS, Podcasts
+from .sources.sensors import Sensors
+from .timer import Timer
 from .weather import Weather, place_name
 
 
@@ -71,7 +77,10 @@ def build(cfg):
     adsb = Adsb(core)
     weather = Weather()
     gallery = Gallery(cfg)
+    feeds = Feeds(cfg)
+    podcasts, sensors, ais = Podcasts(core), Sensors(core), Ais(core)
     alarm = Alarm(core)
+    timer = Timer(core)
     schedule = Schedule()
     receivers = network_audio.Receivers(cfg)
     bt = bluetooth.Bluetooth()
@@ -80,6 +89,7 @@ def build(cfg):
         "dab": lambda last: dab.play(last["sid"]),
         "fm": lambda last: fm.tune(last["mhz"]),
         "tuner": lambda last: tuner.tune(last["hz"], last["mode"], last.get("squelch", 0), 1, last["title"]),
+        "podcast": lambda last: podcasts.play(last["episode"]),
     }
     core.sources.update(fm=fm, tuner=tuner)
     core.receiver_backends = available_backends()
@@ -242,6 +252,8 @@ def build(cfg):
                                   "fm_backend_used": fm.backend_id(), "tuner_backend_used": tuner.backend_id(),
                                   "fm_stereo": cfg["fm_stereo"],
                                   "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
+                                  "idle_content": cfg["idle_content"], "podcast_provider": cfg["podcast_provider"],
+                                  "podcast_key": cfg["podcast_key"], "podcast_secret": cfg["podcast_secret"],
                                   "version": __version__, "build": BUILD, "stream": network_audio.can_stream(),
                                   "backends": available_backends(),
                                   "engine_load": engine_load(), "engine_load_limit": ENGINE_LOAD_LIMIT})
@@ -249,12 +261,18 @@ def build(cfg):
     @routes.post("/api/settings")
     async def settings_set(request):
         body = await request.json()
-        allowed = {"fm_backend": CHOICES, "tuner_backend": CHOICES, "remote": (True, False)}
+        if body["key"] in ("podcast_key", "podcast_secret") and isinstance(body["value"], str):
+            save_setting(cfg, body["key"], body["value"].strip())
+            return ok()
+        allowed = {"fm_backend": CHOICES, "tuner_backend": CHOICES, "remote": (True, False),
+                   "idle_content": ("clock", "gallery", "feed"), "podcast_provider": PROVIDERS}
         if body["value"] not in allowed.get(body["key"], ()):
             raise ValueError("unknown setting")
-        if body["key"] != "remote":
+        if body["key"].endswith("_backend"):
             await core.stop()
         save_setting(cfg, body["key"], body["value"])
+        if body["key"] == "idle_content":
+            await core._broadcast()   # every open interface learns what its idle screen shows now
         return ok()
 
     async def name_location(request):
@@ -424,6 +442,70 @@ def build(cfg):
     @routes.get("/api/adsb/aircraft")
     async def adsb_aircraft(request):
         return web.json_response({"aircraft": adsb.list(), "location": cfg.get("location")})
+
+    @routes.post("/api/sensors/start")
+    async def sensors_start(request):
+        await sensors.start()
+        return ok()
+
+    @routes.get("/api/sensors")
+    async def sensors_get(request):
+        return web.json_response({"sensors": sensors.list()})
+
+    @routes.post("/api/ais/start")
+    async def ais_start(request):
+        await ais.start()
+        return ok()
+
+    @routes.get("/api/ais/ships")
+    async def ais_ships(request):
+        return web.json_response({"ships": ais.list(), "location": cfg.get("location")})
+
+    @routes.get("/api/podcasts")
+    async def podcasts_get(request):
+        return web.json_response({"subscribed": podcasts.subscribed, "provider": cfg["podcast_provider"]})
+
+    @routes.get("/api/podcasts/search")
+    async def podcasts_search(request):
+        return web.json_response(await podcast_directory.search(cfg, request.query.get("q", "")))
+
+    @routes.get("/api/podcasts/episodes")
+    async def podcasts_episodes(request):
+        return web.json_response(await podcasts.episodes(request.query["feed"]))
+
+    @routes.post("/api/podcasts/{action}")
+    async def podcasts_do(request):
+        action, body = request.match_info["action"], await request.json()
+        if action == "subscribe":
+            podcasts.subscribe(body["podcast"], bool(body["on"]))
+        elif action == "play":
+            await podcasts.play(body)
+        elif action == "seek":
+            await podcasts.seek(float(body["seconds"]))
+        else:
+            raise web.HTTPNotFound()
+        return ok()
+
+    @routes.get("/api/feeds")
+    async def feeds_get(request):
+        return web.json_response({"feeds": feeds.feeds, "articles": await feeds.articles()})
+
+    @routes.post("/api/feeds")
+    async def feeds_set(request):
+        body = await request.json()
+        if body["action"] == "add":
+            await feeds.add(body["url"])
+        else:
+            feeds.remove(body["url"])
+        return ok()
+
+    @routes.post("/api/timer")
+    async def timer_set(request):
+        seconds = float((await request.json())["seconds"])
+        if not 0 <= seconds <= 24 * 3600:
+            raise ValueError("a timer runs for at most a day")
+        await timer.set(seconds)
+        return ok()
 
     @routes.post("/api/apps/{id}/start")
     async def app_start(request):

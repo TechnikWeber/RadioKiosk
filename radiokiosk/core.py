@@ -22,7 +22,7 @@ from .util import memory_mb, sdr_present
 
 # errors that mean the stick itself is stuck rather than the reception being poor
 SDR_HANG = ("no data from the SDR stick", "stopped delivering data", "does not respond")
-MPV_SOURCES = ("webradio", "dab", "fm", "tuner")
+MPV_SOURCES = ("webradio", "dab", "fm", "tuner", "podcast")
 
 
 def music_dir():
@@ -62,6 +62,8 @@ class Core:
             "dab": shutil.which("welle-cli") is not None,
             "fm": any(self.receiver_backends.values()),
             "adsb": adsb_decoder() is not None,
+            "sensors": shutil.which("rtl_433") is not None,
+            "ais": shutil.which("rtl_ais") is not None,
             "bluetooth": shutil.which("bluetoothctl") is not None,
             "stream": shutil.which("ffmpeg") is not None,
             "apps": [
@@ -75,7 +77,7 @@ class Core:
 
     def snapshot(self):
         backends = {name: self.sources[name].backend_id() for name in ("fm", "tuner") if name in self.sources}
-        return {**self.state, "caps": self.caps(), "backends": backends}
+        return {**self.state, "caps": self.caps(), "backends": backends, "idle_content": self.cfg["idle_content"]}
 
     def update(self, **changes):
         if all(self.state.get(k) == v for k, v in changes.items()):

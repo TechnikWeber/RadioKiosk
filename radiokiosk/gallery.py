@@ -13,7 +13,7 @@ import os
 import time
 from pathlib import Path
 
-from .config import CACHE_DIR
+from .config import CACHE_DIR, WEB_DIR
 
 try:
     from PIL import Image, ImageOps
@@ -21,7 +21,10 @@ except ImportError:   # without Pillow the pictures go out as they are
     Image = None
 
 KINDS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"}
-DEFAULTS = {"folder": None, "seconds": 15, "shuffle": True, "idle": True}
+# fit: "whole" shows all of a picture, "fill" crops it to the screen, "smart" crops only where little is lost
+DEFAULTS = {"folder": None, "seconds": 15, "shuffle": True, "fit": "whole", "subfolders": True}
+FITS = ("whole", "smart", "fill")
+DEMO = WEB_DIR.parent / "demo-pictures"   # shown until a folder is chosen
 SECONDS = (5, 10, 15, 30, 60, 300)
 LIMIT = 5000              # pictures taken from one folder
 RESCAN_AFTER = 120        # seconds a list of pictures is trusted
@@ -33,11 +36,11 @@ def is_picture(path):
     return path.suffix.lower() in KINDS and not path.name.startswith(".")
 
 
-def find_pictures(folder):
-    """All pictures below a folder, sorted by path. Hidden folders are left out."""
+def find_pictures(folder, deep=True):
+    """The pictures in a folder, with `deep` also those below it, sorted by path. Hidden folders are left out."""
     found = []
     for root, folders, files in os.walk(folder, followlinks=True):
-        folders[:] = sorted(f for f in folders if not f.startswith("."))
+        folders[:] = sorted(f for f in folders if not f.startswith(".")) if deep else []
         found += [Path(root) / name for name in sorted(files) if is_picture(Path(name))]
         if len(found) >= LIMIT:
             break
@@ -106,17 +109,18 @@ class Gallery:
         return {**DEFAULTS, **(self.cfg.get("gallery") or {})}
 
     def refresh(self, force=False):
-        folder = self.settings["folder"]
+        settings = self.settings
+        folder = settings["folder"] or str(DEMO)
         if not force and self.scanned and self.scanned[0] == folder and time.time() - self.scanned[1] < RESCAN_AFTER:
             return
-        self.pictures = find_pictures(folder) if folder and Path(folder).is_dir() else []
+        self.pictures = find_pictures(folder, settings["subfolders"]) if Path(folder).is_dir() else []
         self.scanned = (folder, time.time())
 
     def info(self):
         self.refresh()
         folder = self.settings["folder"]
         return {**self.settings, "count": len(self.pictures), "missing": bool(folder) and not Path(folder).is_dir(),
-                "start": folder or str(Path.home()), "places": places()}
+                "demo": not folder, "start": folder or str(Path.home()), "places": places()}
 
     def check(self, key, value):
         """A setting from the interface, validated; raises ValueError for anything else."""
@@ -124,7 +128,9 @@ class Gallery:
             return str(Path(value).expanduser())
         if key == "seconds" and value in SECONDS:
             return value
-        if key in ("shuffle", "idle") and isinstance(value, bool):
+        if key in ("shuffle", "subfolders") and isinstance(value, bool):
+            return value
+        if key == "fit" and value in FITS:
             return value
         raise ValueError("unknown setting")
 

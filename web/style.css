@@ -229,6 +229,22 @@ main.flush { padding: 0; overflow: hidden; position: relative; }
 #idle.pictures #idle-extra { color: #fff; min-height: 0; }
 #idle.pictures #idle-title { margin-top: 8px; }
 #idle.pictures #idle-text { color: #fff; }
+#idle-news { display: none; }
+#idle.news #idle-news { display: block; position: absolute; left: 28px; right: 28px; top: 24px; text-align: left; color: #fff; }
+#idle-news b { display: block; font-size: min(7vh, 34px); line-height: 1.2; font-weight: 600; }
+#idle-news p { margin: 12px 0 8px; font-size: min(4.6vh, 22px); line-height: 1.35; color: #c9d1da; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+#idle-news small { color: var(--muted); font-size: 16px; }
+#idle.news #idle-box { position: absolute; left: 28px; bottom: 18px; text-align: left; }
+#idle.news #idle-time { font-size: min(13vh, 11vw); font-weight: 300; }
+#idle.news #idle-date, #idle.news #idle-extra { font-size: 16px; min-height: 0; }
+#idle.news #idle-title { font-size: 18px; margin-top: 6px; }
+#idle.news #idle-text { display: none; }
+.big { text-align: center; font-size: min(26vh, 20vw); font-weight: 200; line-height: 1.1; font-variant-numeric: tabular-nums; margin: 4px 0 12px; }
+.big.words { font-size: min(12vh, 9vw); font-weight: 400; margin: 28px 0; }
+.article { max-width: 46em; margin: 0 auto; user-select: text; }
+.article h2 { margin: 6px 0 12px; font-size: 26px; line-height: 1.2; }
+.article p { font-size: 20px; line-height: 1.45; }
+.article small { color: var(--muted); word-break: break-all; }
 body.immersive header, body.immersive footer, body.immersive #warn { display: none; }
 .toolbar.center { justify-content: center; }
 #idle-box { max-width: 92%; transition: transform 2s; }

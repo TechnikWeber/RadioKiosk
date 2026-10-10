@@ -16,6 +16,9 @@ class GalleryTest(unittest.TestCase):
         names = [str(p.relative_to(self.folder)) for p in find_pictures(self.folder)]
         self.assertEqual(names, ["a.PNG", "b.jpg", "trip/c.jpeg"])
 
+    def test_without_subfolders_only_the_folder_itself_counts(self):
+        self.assertEqual([p.name for p in find_pictures(self.folder, deep=False)], ["a.PNG", "b.jpg"])
+
     def test_folder_picker_counts_only_what_lies_directly_in_the_folder(self):
         listing = subfolders(self.folder)
         self.assertEqual((listing["folders"], listing["pictures"]), (["trip"], 2))
@@ -26,7 +29,7 @@ class GalleryTest(unittest.TestCase):
     def test_settings_from_the_interface_are_validated(self):
         gallery = Gallery({})
         self.assertEqual(gallery.check("folder", str(self.folder)), str(self.folder))
-        for key, value in (("folder", "/no/such/folder"), ("seconds", 7), ("shuffle", "yes")):
+        for key, value in (("folder", "/no/such/folder"), ("seconds", 7), ("shuffle", "yes"), ("fit", "stretch")):
             with self.assertRaises(ValueError):
                 gallery.check(key, value)
 

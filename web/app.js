@@ -48,12 +48,27 @@ const STRINGS = {
     wakeLast: "Station heard last", wakeFixed: "Always", wakeFix: "Always wake with",
     sound: "Sound", soundModes: { auto: "Auto", stereo: "Stereo", mono: "Mono" },
     gallery: "Gallery", gallerySub: "Slide show", gallerySetup: "Set up the gallery", chooseFolder: "Choose folder",
-    galleryIntro: "Shows the pictures of a folder as a slide show: without anything on top through the Gallery tile, and behind the clock on the idle screen. Subfolders are included.",
+    galleryIntro: "Shows the pictures of a folder as a slide show: without anything on top through the Gallery tile, and behind the clock where the idle screen is set to show the gallery.",
     galleryNetwork: "A USB stick or a network folder can be chosen once this computer has mounted it.",
     galleryUnset: "No folder chosen yet.", galleryEmpty: "There are no pictures in the chosen folder.",
     folderMissing: "folder not found – stick or network folder missing?", pictures: "pictures",
     slideTime: "Change every", shuffle: "Shuffle", galleryIdle: "On the idle screen",
     takeFolder: "Use this folder", picturesHere: "pictures directly in it",
+    podcasts: "Podcasts", subscriptions: "Subscribed", noSubscriptions: "No podcasts subscribed yet. Find one under Search.",
+    subscribe: "Subscribe", subscribedOn: "Subscribed", noEpisodes: "This podcast has no episodes to play.", heardTo: "heard to",
+    podcastDirectory: "Podcast directory", directories: { fyyd: "fyyd", apple: "Apple Podcasts", podcastindex: "Podcast Index" },
+    directoryHint: "Where the search looks for podcasts. fyyd and Apple work without a key; the Podcast Index is free as well, but needs a key and a secret from podcastindex.org.",
+    apiKey: "Key", apiSecret: "Secret", notSet: "not set", isSet: "set",
+    news: "News", newsSub: "RSS reader", manageFeeds: "Feeds", addFeed: "Add feed", feedAddress: "Address of the feed (RSS or Atom)",
+    noArticles: "No articles yet.", remove: "Remove",
+    sensors: "Sensors", sensorsSub: "433 MHz", sensorsWaiting: "Listening for wireless sensors … many only report every few minutes.",
+    sensorWords: { humidity: "humidity", battery: "battery low", wind: "wind", rain: "rain", ago: "ago", channel: "channel" },
+    ais: "Ships", aisSub: "Live map (AIS)", shipsSeen: "ships received",
+    timer: "Timer", timerSub: "and stopwatch", stopwatch: "Stopwatch", start: "Start", stopIt: "Stop", reset: "Reset", cancel: "Cancel",
+    timeUp: "Time is up",
+    idleContent: "Idle screen shows", idleContents: { clock: "clock", gallery: "gallery", feed: "news" },
+    galleryFit: "Pictures", galleryFits: { whole: "whole picture", smart: "zoom slightly", fill: "fill the screen" },
+    subfoldersToo: "Subfolders", demoPictures: "Demo pictures (no folder of your own chosen yet)",
     theme: "Design", themes: { dark: "dark", light: "light" },
     bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
@@ -116,12 +131,27 @@ const STRINGS = {
     wakeLast: "Zuletzt gehörter Sender", wakeFixed: "Immer", wakeFix: "Immer wecken mit",
     sound: "Ton", soundModes: { auto: "Auto", stereo: "Stereo", mono: "Mono" },
     gallery: "Galerie", gallerySub: "Diashow", gallerySetup: "Galerie einrichten", chooseFolder: "Ordner wählen",
-    galleryIntro: "Zeigt die Bilder eines Ordners als Diashow: über die Kachel Galerie ohne alles darüber, im Ruhebildschirm hinter der Uhr. Unterordner zählen mit.",
+    galleryIntro: "Zeigt die Bilder eines Ordners als Diashow: über die Kachel Galerie ohne alles darüber, und hinter der Uhr, wenn der Ruhebildschirm auf Galerie gestellt ist.",
     galleryNetwork: "Ein USB-Stick oder ein Netzwerkordner lässt sich wählen, sobald dieser Rechner ihn eingebunden hat.",
     galleryUnset: "Noch kein Ordner gewählt.", galleryEmpty: "Im gewählten Ordner liegen keine Bilder.",
     folderMissing: "Ordner nicht gefunden – fehlt der Stick oder der Netzwerkordner?", pictures: "Bilder",
     slideTime: "Wechsel alle", shuffle: "Zufällige Reihenfolge", galleryIdle: "Im Ruhebildschirm",
     takeFolder: "Diesen Ordner nehmen", picturesHere: "Bilder direkt darin",
+    podcasts: "Podcasts", subscriptions: "Abonniert", noSubscriptions: "Noch kein Podcast abonniert. Unter Suche findest du welche.",
+    subscribe: "Abonnieren", subscribedOn: "Abonniert", noEpisodes: "Dieser Podcast hat keine abspielbaren Folgen.", heardTo: "gehört bis",
+    podcastDirectory: "Podcast-Verzeichnis", directories: { fyyd: "fyyd", apple: "Apple Podcasts", podcastindex: "Podcast Index" },
+    directoryHint: "Wo die Suche nach Podcasts schaut. fyyd und Apple gehen ohne Schlüssel; der Podcast Index ist ebenfalls kostenlos, braucht aber Schlüssel und Geheimnis von podcastindex.org.",
+    apiKey: "Schlüssel", apiSecret: "Geheimnis", notSet: "nicht eingetragen", isSet: "eingetragen",
+    news: "Nachrichten", newsSub: "RSS-Reader", manageFeeds: "Feeds", addFeed: "Feed hinzufügen", feedAddress: "Adresse des Feeds (RSS oder Atom)",
+    noArticles: "Noch keine Artikel.", remove: "Entfernen",
+    sensors: "Funksensoren", sensorsSub: "433 MHz", sensorsWaiting: "Lausche auf Funksensoren … viele melden sich nur alle paar Minuten.",
+    sensorWords: { humidity: "Feuchte", battery: "Batterie schwach", wind: "Wind", rain: "Regen", ago: "vor", channel: "Kanal" },
+    ais: "Schiffe", aisSub: "Live-Karte (AIS)", shipsSeen: "Schiffe empfangen",
+    timer: "Timer", timerSub: "und Stoppuhr", stopwatch: "Stoppuhr", start: "Start", stopIt: "Stopp", reset: "Zurücksetzen", cancel: "Abbrechen",
+    timeUp: "Die Zeit ist um",
+    idleContent: "Ruhebildschirm zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", feed: "Nachrichten" },
+    galleryFit: "Bilder", galleryFits: { whole: "ganzes Bild", smart: "leicht zoomen", fill: "Bildschirm füllen" },
+    subfoldersToo: "Unterordner", demoPictures: "Demobilder (noch kein eigener Ordner gewählt)",
     theme: "Design", themes: { dark: "dunkel", light: "hell" },
     bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
@@ -202,6 +232,11 @@ const ICONS = {
   app: '<path d="M3 17l4-9 3 6 3-10 3 8 2-3 3 8"/>',
   tuner: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v3M12 10V7M5.6 5.6l2 2M3 12h3M18.4 5.6l-2 2M21 12h-3"/>',
   adsb: '<path d="M12 3l2 7 7 4v2l-7-2v4l2 2v1l-4-1-4 1v-1l2-2v-4l-7 2v-2l7-4z"/>',
+  podcast: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>',
+  news: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/>',
+  sensors: '<path d="M10 14V5a2 2 0 014 0v9a4 4 0 11-4 0z"/><path d="M12 17v-6"/>',
+  ais: '<path d="M3 17l2 4h14l2-4M5 17v-6h14v6M9 11V6h6v5M12 6V3"/>',
+  timer: '<circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6"/>',
   gallery: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-8 8"/>',
   weather: '<circle cx="8" cy="8" r="3"/><path d="M8 2v1M2 8h1M3.8 3.8l.7.7M12.2 3.8l-.7.7M8 20h9a4 4 0 000-8 6 6 0 00-11 2 3 3 0 002 6z"/>',
   bluetooth: '<path d="M7 7l10 10-5 4V3l5 4L7 17"/>',
@@ -303,7 +338,7 @@ const keyboardWanted = () => {
 const KEYS = {
   de: ["qwertzuiopü", "asdfghjklöä", "yxcvbnmß"],
   en: ["qwertyuiop", "asdfghjkl", "zxcvbnm"],
-  numbers: ["1234567890", "-/:;()&@+", ".,?!'\"#"],
+  numbers: ["1234567890", "-/:;()&@+", ".,?!'\"#_=~%"],
 };
 
 function keyboard(input, onEnter) {
@@ -448,8 +483,13 @@ const home = {
         return el;
       }),
       ...(c.bluetooth ? [tile("bluetooth", t.bluetooth, null, () => show(bluetooth), t.btSub)] : []),
+      tile("podcast", t.podcasts, c.mpv ? null : t.noMpv, () => show(podcasts)),
+      tile("news", t.news, null, () => show(news), t.newsSub),
+      tile("sensors", t.sensors, c.sensors ? sdrProblem : `rtl_433 ${t.notInstalled}`, () => show(sensors), t.sensorsSub),
+      tile("ais", t.ais, c.ais ? sdrProblem : `rtl_ais ${t.notInstalled}`, () => show(ships), t.aisSub),
       tile("weather", t.weather, null, () => show(weather)),
       tile("gallery", t.gallery, null, () => show(galleryView), t.gallerySub),
+      tile("timer", t.timer, null, () => show(timerView), t.timerSub),
       tile("settings", t.settings, null, () => show(settings)),
     ));
   },
@@ -1197,6 +1237,393 @@ const wifiView = {
 
 /* ---------- settings ---------- */
 
+/* ---------- typing a text ---------- */
+
+// One view for every text that has to be typed: a feed's address, a key. It brings the on-screen keyboard.
+const textPrompt = {
+  title: "",
+  label: "", value: "", done: null, origin: null,
+  ask(options) { Object.assign(this, { value: "" }, options); show(this); },
+  render() {
+    const input = h("input", { type: "text", value: this.value, placeholder: this.label, autocapitalize: "off", spellcheck: false });
+    const note = h("p", { className: "hint" });
+    const finish = async () => {
+      try { await this.done(input.value.trim()); } catch (e) { note.textContent = say(e.message); return; }
+      show(this.origin);
+    };
+    input.onkeydown = e => { if (e.key === "Enter") finish(); };
+    const own = keyboardWanted();
+    if (own) input.inputMode = "none";
+    view.replaceChildren(h("p", { className: "label", textContent: this.label }),
+      h("div", { className: "toolbar" }, input, h("button", { className: "primary", textContent: "OK", onclick: finish })),
+      note, ...(own ? [keyboard(input, finish)] : []));
+    if (!own) input.focus();
+  },
+  back() { show(this.origin); return true; },
+};
+
+const clockTime = seconds => {
+  const s = Math.max(0, Math.round(seconds)), hours = Math.floor(s / 3600);
+  const rest = `${String(Math.floor(s % 3600 / 60)).padStart(hours ? 2 : 1, "0")}:${String(s % 60).padStart(2, "0")}`;
+  return hours ? `${hours}:${rest}` : rest;
+};
+const dayOf = unix => unix ? new Date(unix * 1000).toLocaleDateString(lang, { day: "numeric", month: "short", year: "numeric" }) : "";
+const timeOf = unix => unix ? new Date(unix * 1000).toLocaleString(lang, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+
+/* ---------- podcasts ---------- */
+
+const podcasts = {
+  title: t.podcasts,
+  tab: "subscriptions",
+  typing: false,
+  subscribed: [],
+  results: [],
+  query: "",
+  error: null,
+  async render() {
+    ({ subscribed: this.subscribed } = await api("/api/podcasts"));
+    if (!this.subscribed.length && this.tab === "subscriptions") Object.assign(this, { tab: "search", typing: true });
+    this.draw();
+  },
+  async load(query) {
+    this.results = null;
+    this.error = null;
+    this.draw();
+    try { this.results = await api("/api/podcasts/search?q=" + encodeURIComponent(query)); }
+    catch (e) { this.results = []; this.error = e.message; }
+    if (current === this) this.draw();
+  },
+  draw() {
+    const tabButton = id => h("button", {
+      className: this.tab === id ? "on" : "", textContent: t[id],
+      onclick: () => { Object.assign(this, { tab: id, typing: id === "search" && !this.results.length }); this.draw(); },
+    });
+    const parts = [h("div", { className: "tabs" }, tabButton("subscriptions"), tabButton("search"))];
+    if (this.tab === "search") {
+      const input = h("input", { type: "search", value: this.query, placeholder: t.search, enterKeyHint: "search" });
+      const run = () => { this.query = input.value.trim(); this.typing = false; if (this.query) this.load(this.query); else this.draw(); };
+      input.oninput = () => { this.query = input.value; };
+      input.onkeydown = e => { if (e.key === "Enter") run(); };
+      parts.push(h("div", { className: "toolbar" }, input, h("button", { className: "primary", textContent: t.go, onclick: run })));
+      if (keyboardWanted()) {
+        if (this.typing) {
+          input.inputMode = "none";
+          view.replaceChildren(...parts, keyboard(input, run));
+          return;
+        }
+        input.onfocus = () => { this.typing = true; this.draw(); };
+      }
+    }
+    const list = this.tab === "subscriptions" ? this.subscribed : this.results;
+    if (list === null) parts.push(hint(t.loading));
+    else if (this.error) parts.push(hint(say(this.error)));
+    else if (!list.length) parts.push(hint(this.tab === "subscriptions" ? t.noSubscriptions : this.query ? t.noResults : ""));
+    else for (const p of list) {
+      parts.push(stationRow({ title: p.title, info: p.author, logo: p.image, onPlay: () => episodes.open(p) }));
+    }
+    const top = view.scrollTop;
+    view.replaceChildren(...parts);
+    view.scrollTop = top;
+  },
+};
+
+// The episodes of one podcast, with the controls of the one that is playing.
+const episodes = {
+  title: t.podcasts,
+  podcast: null,
+  list: null,
+  error: null,
+  open(podcast) { Object.assign(this, { podcast, list: null, error: null, title: podcast.title }); show(this); },
+  async render() {
+    this.draw();
+    try { this.list = (await api("/api/podcasts/episodes?feed=" + encodeURIComponent(this.podcast.feed))).episodes; }
+    catch (e) { this.list = []; this.error = e.message; }
+    if (current === this) this.draw();
+  },
+  draw() {
+    const subscribed = podcasts.subscribed.some(p => p.feed === this.podcast.feed);
+    const mine = state.source === "podcast" && this.list && this.list.some(e => e.id === state.detail.id);
+    const seek = seconds => h("button", { textContent: `${seconds > 0 ? "+" : "−"}${Math.abs(seconds)} s`,
+      onclick: () => api("/api/podcasts/seek", { seconds }) });
+    const parts = [h("div", { className: "toolbar wrap" },
+      h("button", { className: subscribed ? "on" : "", textContent: subscribed ? t.subscribedOn : t.subscribe, onclick: async () => {
+        await api("/api/podcasts/subscribe", { podcast: this.podcast, on: !subscribed });
+        ({ subscribed: podcasts.subscribed } = await api("/api/podcasts"));
+        this.draw();
+      } }),
+      ...(mine ? [seek(-30), seek(30), h("span", { className: "label", textContent:
+        state.detail.position === undefined ? "" : `${clockTime(state.detail.position)} / ${clockTime(state.detail.length)}` })] : []))];
+    if (this.list === null) parts.push(hint(t.loading));
+    else if (this.error) parts.push(hint(say(this.error)));
+    else if (!this.list.length) parts.push(hint(t.noEpisodes));
+    else for (const e of this.list) {
+      parts.push(stationRow({
+        title: e.title,
+        info: [dayOf(e.date), e.seconds ? clockTime(e.seconds) : null, e.heard ? `${t.heardTo} ${clockTime(e.heard)}` : null]
+          .filter(Boolean).join(" · "),
+        active: state.source === "podcast" && state.detail.id === e.id,
+        onPlay: () => api("/api/podcasts/play", { id: e.id, title: e.title, audio: e.audio, podcast: this.podcast.title }),
+      }));
+    }
+    const top = view.scrollTop;
+    view.replaceChildren(...parts);
+    view.scrollTop = top;
+  },
+  onState() { this.draw(); },
+  back() { show(podcasts); return true; },
+};
+
+const podcastSettings = {
+  title: t.podcastDirectory,
+  async render() {
+    const s = await api("/api/settings");
+    const set = async (key, value) => { await api("/api/settings", { key, value }); };
+    const secretField = (key, label) => h("button", {
+      textContent: `${label}: ${s[key] ? t.isSet : t.notSet}`,
+      onclick: () => textPrompt.ask({ title: label, label, value: s[key], origin: this, done: value => set(key, value) }),
+    });
+    view.replaceChildren(
+      h("p", { className: "explain", textContent: t.directoryHint }),
+      h("div", { className: "toolbar wrap" }, ...Object.keys(t.directories).map(id => h("button", {
+        className: s.podcast_provider === id ? "on" : "", textContent: t.directories[id],
+        onclick: async () => { await set("podcast_provider", id); this.render(); },
+      }))),
+      ...(s.podcast_provider === "podcastindex" ? [h("div", { className: "toolbar wrap" },
+        secretField("podcast_key", t.apiKey), secretField("podcast_secret", t.apiSecret))] : []));
+  },
+  back() { show(settings); return true; },
+};
+
+/* ---------- news reader ---------- */
+
+// Refreshes itself while it is open; like the gallery it is there to be looked at, so no idle screen.
+const news = {
+  title: t.news,
+  articles: null,
+  feeds: [],
+  timer: null,
+  async render() {
+    this.draw();
+    await this.load();
+  },
+  async load() {
+    clearTimeout(this.timer);
+    try { ({ articles: this.articles, feeds: this.feeds } = await api("/api/feeds")); }
+    catch (e) { this.articles = this.articles || []; }
+    if (current !== this) return;
+    this.draw();
+    this.timer = setTimeout(() => this.load(), 60e3);
+  },
+  leave() { clearTimeout(this.timer); },
+  draw() {
+    const parts = [h("div", { className: "toolbar" },
+      h("button", { textContent: t.manageFeeds, onclick: () => show(feedList) }))];
+    if (this.articles === null) parts.push(hint(t.loading));
+    else if (!this.articles.length) parts.push(hint(t.noArticles));
+    else for (const a of this.articles) {
+      parts.push(stationRow({ title: a.title, info: [a.source, timeOf(a.date)].filter(Boolean).join(" · "),
+        onPlay: () => article.open(a) }));
+    }
+    const top = view.scrollTop;
+    view.replaceChildren(...parts);
+    view.scrollTop = top;
+  },
+};
+
+const article = {
+  title: t.news,
+  item: null,
+  open(item) { this.item = item; show(this); },
+  render() {
+    const a = this.item;
+    view.replaceChildren(h("div", { className: "article" },
+      h("small", { textContent: [a.source, timeOf(a.date)].filter(Boolean).join(" · ") }),
+      h("h2", { textContent: a.title }), h("p", { textContent: a.summary }), h("small", { textContent: a.link })));
+  },
+  back() { show(news); return true; },
+};
+
+const feedList = {
+  title: t.manageFeeds,
+  async render() {
+    const { feeds } = await api("/api/feeds");
+    view.replaceChildren(
+      h("div", { className: "toolbar" }, h("button", { className: "primary", textContent: t.addFeed, onclick: () => textPrompt.ask({
+        title: t.addFeed, label: t.feedAddress, value: "https://", origin: this,
+        done: url => api("/api/feeds", { action: "add", url }),
+      }) })),
+      ...feeds.map(f => h("div", { className: "row" },
+        h("button", {}, h("span", { className: "texts" }, h("b", { textContent: f.title }), h("small", { textContent: f.url }))),
+        h("button", { className: "icon", textContent: "×", ariaLabel: t.remove,
+          onclick: async () => { await api("/api/feeds", { action: "remove", url: f.url }); this.render(); } }))));
+  },
+  back() { show(news); return true; },
+};
+
+/* ---------- wireless sensors ---------- */
+
+const sensors = {
+  title: t.sensors,
+  timer: null,
+  async render() {
+    view.replaceChildren(hint(t.sensorsWaiting));
+    if (state.source !== "sensors") await api("/api/sensors/start", {});
+    this.poll();
+  },
+  leave() { clearTimeout(this.timer); },
+  async poll() {
+    if (current !== this) return;
+    try { this.draw((await api("/api/sensors")).sensors); } catch (e) { /* the next poll tries again */ }
+    this.timer = setTimeout(() => this.poll(), 2000);
+  },
+  draw(list) {
+    const w = t.sensorWords;
+    const top = view.scrollTop;
+    view.replaceChildren(...(list.length ? list.map(s => stationRow({
+      title: [s.temperature_C !== undefined ? `${s.temperature_C.toFixed(1)} °C` : null,
+        s.humidity !== undefined ? `${Math.round(s.humidity)} % ${w.humidity}` : null,
+        s.pressure_hPa !== undefined ? `${Math.round(s.pressure_hPa)} hPa` : null,
+        s.wind_avg_km_h !== undefined ? `${w.wind} ${Math.round(s.wind_avg_km_h)} km/h` : null,
+        s.rain_mm !== undefined ? `${w.rain} ${s.rain_mm} mm` : null].filter(Boolean).join(" · ") || s.model,
+      info: [s.model, s.channel != null ? `${w.channel} ${s.channel}` : null, s.id != null ? `ID ${s.id}` : null,
+        s.battery_ok === 0 ? w.battery : null,
+        lang === "de" ? `${w.ago} ${clockTime(s.seen)}` : `${clockTime(s.seen)} ${w.ago}`].filter(Boolean).join(" · "),
+      onPlay: () => {},
+    })) : [hint(t.sensorsWaiting)]));
+    view.scrollTop = top;
+  },
+};
+
+/* ---------- ships ---------- */
+
+const ships = {
+  title: t.ais,
+  map: null,
+  markers: new Map(),
+  centred: false,
+  box: h("div", { className: "map" }),
+  info: h("div", { className: "map-info" }),
+  list: h("div", { className: "map-list", hidden: true }),
+  async render() {
+    const toggle = h("button", { className: "map-action", textContent: t.list, onclick: () => {
+      this.list.hidden = !this.list.hidden;
+      toggle.classList.toggle("on", !this.list.hidden);
+    } });
+    view.classList.add("flush");
+    view.replaceChildren(this.box, this.info, this.list, toggle);
+    await loadLeaflet();
+    if (!this.map) {
+      this.map = L.map(this.box).setView([51, 10], 6);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 16, attribution: "© OpenStreetMap" }).addTo(this.map);
+    }
+    this.map.invalidateSize();
+    if (state.source !== "ais") await api("/api/ais/start", {});
+    this.poll();
+  },
+  leave() {
+    view.classList.remove("flush");
+    clearTimeout(this.timer);
+  },
+  async poll() {
+    if (current !== this) return;
+    try { this.update(await api("/api/ais/ships")); } catch (e) { /* the next poll tries again */ }
+    this.timer = setTimeout(() => this.poll(), 3000);
+  },
+  update({ ships: list, location }) {
+    const located = list.filter(s => s.lat !== undefined);
+    this.info.textContent = `${list.length} ${t.shipsSeen} · ${located.length} ${t.withPosition}`;
+    if (!this.centred && (location || located.length)) {
+      if (location) this.map.setView(location, 10);
+      else this.map.fitBounds(located.map(s => [s.lat, s.lon]), { maxZoom: 12, padding: [40, 40] });
+      this.centred = true;
+    }
+    const seen = new Set();
+    for (const s of located) {
+      seen.add(s.mmsi);
+      const icon = L.divIcon({
+        className: "plane", iconSize: [28, 28],
+        html: `<svg viewBox="0 0 24 24" style="transform: rotate(${s.track || 0}deg)"><path d="M12 2l5 8v10H7V10z"/></svg><span></span>`,
+      });
+      let marker = this.markers.get(s.mmsi);
+      if (!marker) this.markers.set(s.mmsi, marker = L.marker([s.lat, s.lon], { icon }).addTo(this.map));
+      marker.setLatLng([s.lat, s.lon]).setIcon(icon);
+      marker.getElement().querySelector("span").textContent = s.name || s.mmsi;
+    }
+    for (const [mmsi, marker] of this.markers) {
+      if (!seen.has(mmsi)) { marker.remove(); this.markers.delete(mmsi); }
+    }
+    const km = s => location && s.lat !== undefined ? distanceKm(location, [s.lat, s.lon]) : Infinity;
+    this.list.replaceChildren(...[...list].sort((a, b) => km(a) - km(b) || a.seen - b.seen).map(s => stationRow({
+      title: s.name || String(s.mmsi),
+      info: [s.speed !== undefined ? `${s.speed.toFixed(1)} kn` : null, s.destination ? `→ ${s.destination}` : null,
+        km(s) < Infinity ? `${km(s).toFixed(1)} km` : null].filter(Boolean).join(" · "),
+      onPlay: () => { if (s.lat !== undefined) this.map.panTo([s.lat, s.lon]); },
+    })));
+  },
+};
+
+/* ---------- timer and stopwatch ---------- */
+
+// The countdown runs in the service and rings whatever the screen shows. The stopwatch
+// only counts on this display; it keeps running while other views are open.
+const timerView = {
+  title: t.timer,
+  tab: "timer",
+  minutes: 5,
+  ticker: null,
+  render() {
+    clearInterval(this.ticker);
+    this.ticker = setInterval(() => this.draw(), 100);
+    this.draw();
+  },
+  leave() { clearInterval(this.ticker); },
+  draw() {
+    const tabButton = (id, label) => h("button", { className: this.tab === id ? "on" : "", textContent: label,
+      onclick: () => { this.tab = id; this.shown = null; this.draw(); } });
+    const tabs = h("div", { className: "tabs" }, tabButton("timer", t.timer), tabButton("stopwatch", t.stopwatch));
+    const timer = state.timer || {};
+    let big, buttons, key;
+    if (this.tab === "stopwatch") {
+      const started = Number(pref("stopwatch_started", "0")), before = Number(pref("stopwatch_elapsed", "0"));
+      const elapsed = before + (started ? Date.now() - started : 0);
+      big = `${clockTime(Math.floor(elapsed / 1000))}.${Math.floor(elapsed % 1000 / 100)}`;
+      key = `stopwatch ${!!started}`;
+      buttons = () => [
+        h("button", { className: "primary", textContent: started ? t.stopIt : t.start, onclick: () => {
+          const since = Number(pref("stopwatch_started", "0"));   // read at the tap, not when the button was drawn
+          if (since) setPref("stopwatch_elapsed", Number(pref("stopwatch_elapsed", "0")) + Date.now() - since);
+          setPref("stopwatch_started", since ? 0 : Date.now());
+        } }),
+        h("button", { textContent: t.reset, onclick: () => { setPref("stopwatch_elapsed", 0); setPref("stopwatch_started", 0); } })];
+    } else if (timer.ringing) {
+      big = t.timeUp;
+      key = "ringing";
+      buttons = () => [h("button", { className: "primary", textContent: t.stopIt, onclick: () => api("/api/timer", { seconds: 0 }) })];
+    } else if (timer.until) {
+      big = clockTime(timer.until - Date.now() / 1000);
+      key = "running";
+      buttons = () => [h("button", { textContent: t.cancel, onclick: () => api("/api/timer", { seconds: 0 }) })];
+    } else {
+      big = clockTime(this.minutes * 60);
+      key = "set";
+      const step = by => h("button", { textContent: `${by > 0 ? "+" : "−"}${Math.abs(by)}`,
+        onclick: () => { this.minutes = Math.max(1, Math.min(600, this.minutes + by)); } });
+      buttons = () => [step(-5), step(-1), step(1), step(5),
+        h("button", { className: "primary", textContent: t.start, onclick: () => api("/api/timer", { seconds: this.minutes * 60 }) })];
+    }
+    // only the digits change ten times a second; rebuilt buttons would swallow taps
+    if (this.shown !== key || !view.querySelector(".big")) {
+      this.shown = key;
+      const presets = key === "set" ? [h("div", { className: "toolbar wrap center" }, ...[1, 3, 5, 10, 15, 20, 30, 45, 60].map(m =>
+        h("button", { textContent: `${m} ${t.minutes}`, onclick: () => api("/api/timer", { seconds: m * 60 }) })))] : [];
+      view.replaceChildren(tabs, h("div", { className: "big" }), h("div", { className: "toolbar wrap center" }, ...buttons()), ...presets);
+    }
+    view.querySelector(".big").classList.toggle("words", key === "ringing");
+    view.querySelector(".big").textContent = big;
+  },
+  onState() { this.draw(); },
+};
+
 /* ---------- gallery ---------- */
 
 let galleryInfo = null;   // folder, timing and number of pictures, as the service reports them
@@ -1226,6 +1653,10 @@ function slideShow() {
     at = (Math.max(at, 0) + (at < 0 ? 0 : step) + order.length) % order.length;
     const next = el.children[1 - front];
     next.onload = () => {
+      // "smart" crops a picture to the screen only where that costs less than a seventh of it
+      const shape = next.naturalWidth / next.naturalHeight, screen = el.clientWidth / el.clientHeight;
+      const little = Math.min(shape, screen) / Math.max(shape, screen) > 0.85;
+      next.style.objectFit = galleryInfo.fit === "fill" || (galleryInfo.fit === "smart" && little) ? "cover" : "contain";
       el.children[front].classList.remove("shown");
       next.classList.add("shown");
       front = 1 - front;
@@ -1296,7 +1727,7 @@ const gallerySettings = {
     const every = g.seconds < 60 ? `${g.seconds} s` : `${g.seconds / 60} min`;
     view.replaceChildren(
       h("p", { className: "explain", textContent: t.galleryIntro }),
-      h("p", { className: "label", textContent: !g.folder ? t.galleryUnset
+      h("p", { className: "label", textContent: !g.folder ? t.demoPictures
         : g.missing ? `${g.folder} · ${t.folderMissing}` : `${g.folder} · ${g.count} ${t.pictures}` }),
       h("div", { className: "toolbar wrap" },
         h("button", { className: g.folder ? "" : "primary", textContent: t.chooseFolder, onclick: () => folderPicker.open(g.start) }),
@@ -1304,8 +1735,12 @@ const gallerySettings = {
           onclick: () => set("seconds", SLIDE_SECONDS[(SLIDE_SECONDS.indexOf(g.seconds) + 1) % SLIDE_SECONDS.length]) }),
         h("button", { className: g.shuffle ? "on" : "", textContent: `${t.shuffle}: ${g.shuffle ? t.on : t.off}`,
           onclick: () => set("shuffle", !g.shuffle) }),
-        h("button", { className: g.idle ? "on" : "", textContent: `${t.galleryIdle}: ${g.idle ? t.on : t.off}`,
-          onclick: () => set("idle", !g.idle) })),
+        h("button", { className: g.subfolders ? "on" : "", textContent: `${t.subfoldersToo}: ${g.subfolders ? t.on : t.off}`,
+          onclick: () => set("subfolders", !g.subfolders) }),
+        h("button", { textContent: `${t.galleryFit}: ${t.galleryFits[g.fit]}`, onclick: () => {
+          const fits = Object.keys(t.galleryFits);
+          set("fit", fits[(fits.indexOf(g.fit) + 1) % fits.length]);
+        } })),
       h("p", { className: "explain", textContent: t.galleryNetwork }));
   },
   back() { show(settings); return true; },
@@ -1390,6 +1825,14 @@ const settings = {
         h("button", { textContent: `${t.alarm}: ${state.alarm || t.off}`, onclick: () => show(alarm) }),
         h("button", { textContent: t.device, onclick: () => show(deviceView) }),
         h("button", {
+          textContent: `${t.idleContent}: ${t.idleContents[state.idle_content || "clock"]}`,
+          onclick: async () => {
+            const kinds = Object.keys(t.idleContents);
+            await api("/api/settings", { key: "idle_content", value: kinds[(kinds.indexOf(state.idle_content || "clock") + 1) % kinds.length] });
+            this.render();
+          },
+        }),
+        h("button", {
           textContent: `${t.idle}: ${Number(pref("idle", "2")) ? pref("idle", "2") + " " + t.minutes : t.off}`,
           onclick: () => {
             setPref("idle", IDLE_CHOICES[(IDLE_CHOICES.indexOf(Number(pref("idle", "2"))) + 1) % IDLE_CHOICES.length]);
@@ -1445,7 +1888,8 @@ document.body.dataset.bar = pref("bar", "medium");
           h("b", { textContent: receivers.addresses[receivers.addresses.length - 1] + "/live.mp3" })] : []))] : []),
       h("div", { className: "toolbar wrap" },
         h("button", { textContent: t.receiverSetting, onclick: () => show(receiverView) }),
-        h("button", { textContent: t.gallery, onclick: () => show(gallerySettings) })),
+        h("button", { textContent: t.gallery, onclick: () => show(gallerySettings) }),
+        h("button", { textContent: t.podcastDirectory, onclick: () => show(podcastSettings) })),
       h("p", { className: "hint", textContent: t.relevelHint }),
       h("div", { className: "toolbar" },
         h("button", { textContent: t.relevel, onclick: e => { e.target.disabled = true; api("/api/gain/reset", {}); } })),
@@ -1494,19 +1938,47 @@ function dim(on) {
 // With a gallery set up, its pictures run behind the clock and the display stays bright.
 const idleSlides = slideShow();
 idle.prepend(idleSlides.el);
+let idleNewsAt = 0;
+async function idleNews() {
+  idleNewsAt = Date.now();
+  try {
+    const [newest] = (await api("/api/feeds")).articles;
+    if (!newest) return false;
+    const [title, summary, source] = $("idle-news").children;
+    title.textContent = newest.title;
+    summary.textContent = newest.summary;
+    source.textContent = [newest.source, timeOf(newest.date)].filter(Boolean).join(" · ");
+    return true;
+  } catch (e) { return false; }
+}
+// Three kinds, a setting: the classic clock on black with the display dimmed, the gallery
+// behind the clock, or the newest article. The last two keep the display bright.
 async function showIdle() {
   idle.hidden = false;
-  idle.classList.remove("pictures");
+  idle.classList.remove("pictures", "news");
   drawIdle();
-  await loadGallery();
-  if (idle.hidden) return;
-  if (galleryInfo && galleryInfo.idle && galleryInfo.count) {
-    idle.classList.add("pictures");
-    idleSlides.start();
-  } else dim(true);
+  const content = state.idle_content;
+  if (content === "gallery") {
+    await loadGallery();
+    if (idle.hidden) return;
+    if (galleryInfo && galleryInfo.count) {
+      idle.classList.add("pictures");
+      idleSlides.start();
+      return;
+    }
+  } else if (content === "feed") {
+    const found = await idleNews();
+    if (idle.hidden) return;
+    if (found) {
+      idle.classList.add("news");
+      return;
+    }
+  }
+  dim(true);
 }
 function hideIdle() {
   idle.hidden = true;
+  idle.classList.remove("pictures", "news");
   idleSlides.stop();
 }
 
@@ -1535,9 +2007,13 @@ addEventListener("keydown", () => {
 setInterval(() => {
   const minutes = Number(pref("idle", "2"));
   // a map is there to be looked at, and so is the gallery
-  const watching = current === adsb || current === locationPicker || (current === galleryView && galleryView.slides);
+  const watching = [adsb, ships, locationPicker, news, article, sensors].includes(current)
+    || (current === galleryView && galleryView.slides);
   if (idle.hidden && minutes && !watching && Date.now() - lastTouch > minutes * 60e3) showIdle();
-  else if (!idle.hidden) drawIdle();
+  else if (!idle.hidden) {
+    drawIdle();
+    if (idle.classList.contains("news") && Date.now() - idleNewsAt > 60e3) idleNews();   // stays the newest article
+  }
 }, 1000);
 
 /* ---------- shared chrome ---------- */
@@ -1545,19 +2021,27 @@ setInterval(() => {
 const tick = () => {
   const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const left = state.sleep_until ? Math.max(1, Math.round((state.sleep_until - Date.now() / 1000) / 60)) : 0;
-  $("clock").textContent = [state.alarm ? `⏰ ${state.alarm}` : null, left ? `☾ ${left} ${t.minutes}` : null, time]
+  const timer = state.timer && state.timer.until ? `⏱ ${clockTime(state.timer.until - Date.now() / 1000)}` : null;
+  $("clock").textContent = [timer, state.alarm ? `⏰ ${state.alarm}` : null, left ? `☾ ${left} ${t.minutes}` : null, time]
     .filter(Boolean).join(" · ");
 };
 
 function applyState(next) {
+  const rang = state.timer && state.timer.ringing;
   state = next;
+  if (state.timer && state.timer.ringing && !rang) {   // the timer is up: wake the display and say so
+    dim(false);
+    hideIdle();
+    timerView.tab = "timer";
+    if (current !== timerView) show(timerView);
+  }
   const failed = state.status === "error";
   $("now").classList.toggle("error", failed);
   $("now-title").textContent = state.title || "";
   $("now-text").textContent = failed ? say(state.error) : state.status === "loading" ? t.loading : say(state.text) || "";
   $("vol").textContent = state.volume ?? "";
   $("stop").disabled = !state.source;
-  $("rec").disabled = !state.recording && !(["webradio", "dab", "fm", "tuner"].includes(state.source) && state.status === "playing");
+  $("rec").disabled = !state.recording && !(["webradio", "dab", "fm", "tuner", "podcast"].includes(state.source) && state.status === "playing");
   $("rec").classList.toggle("on", !!state.recording);
   if (state.recording && !failed) $("now-text").textContent = `● ${t.recordingTo}`;
   $("warn").hidden = !state.warnings.length;
@@ -1572,7 +2056,8 @@ async function openLink() {
   if (name === "idle") showIdle();
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
     wifi: wifiView, receiver: receiverView,
-    gallery: galleryView, gallerysettings: gallerySettings }[name] || home;
+    gallery: galleryView, gallerysettings: gallerySettings, podcasts, news, sensors, ais: ships, timer: timerView,
+    podcastsettings: podcastSettings }[name] || home;
   if (target === webradio && band === "search") Object.assign(webradio, { tab: "search", typing: true });
   show(target);
   if (target === tuner && band) {

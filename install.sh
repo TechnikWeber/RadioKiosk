@@ -39,12 +39,12 @@ if command -v apt-get >/dev/null; then
   install() { sudo apt-get install -y "$@"; }
   sudo apt-get update
   REQUIRED=(git python3 python3-aiohttp python3-numpy mpv rtl-sdr pulseaudio-utils bluez)
-  OPTIONAL=(welle.io readsb sdrpp shairport-sync python3-pil)
+  OPTIONAL=(welle.io readsb sdrpp shairport-sync python3-pil rtl-433 rtl-ais)
   FFMPEG=ffmpeg
 elif command -v dnf >/dev/null; then
   install() { sudo dnf install -y "$@"; }
   REQUIRED=(git python3 python3-aiohttp python3-numpy mpv rtl-sdr pulseaudio-utils bluez)
-  OPTIONAL=(welle-io sdrpp dump1090 shairport-sync python3-pillow)
+  OPTIONAL=(welle-io sdrpp dump1090 shairport-sync python3-pillow rtl_433)
   FFMPEG=ffmpeg-free
 else
   echo "Unsupported system: neither apt nor dnf found." >&2

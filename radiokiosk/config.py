@@ -39,8 +39,14 @@ DEFAULTS = {
          "command": ["librespot", "--name", "RadioKiosk", "--backend", "pulseaudio"]},
     ],
     "receivers_on": [],
-    # slide show: {"folder", "seconds", "shuffle", "idle"}, see gallery.py; None until a folder is chosen
+    # slide show, see gallery.py; None until something is set
     "gallery": None,
+    # what the idle screen shows: "clock" (black and dimmed), "gallery" or "feed" (the newest article)
+    "idle_content": "clock",
+    # podcast directory: "fyyd", "apple" or "podcastindex"; only the last needs key and secret
+    "podcast_provider": "fyyd",
+    "podcast_key": "",
+    "podcast_secret": "",
     "apps": [
         # SDR++ gets its own settings folder, so a private SDR++ setup stays untouched.
         # Next to the kiosk browser it needs more than the 1 GB of a Raspberry Pi 3:
