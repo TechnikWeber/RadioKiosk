@@ -2711,14 +2711,23 @@ async function idleNews() {
     // above the clock. Whether one more fits is measured, so nothing is ever cut in half.
     // entries without a text of their own (a video, a bare link) say nothing on a screen nobody taps
     const newest = (await api("/api/feeds")).articles.filter(a => a.summary).slice(0, 6), box = $("idle-news");
-    box.replaceChildren();
     box.style.bottom = `${$("idle-box").offsetHeight + 26}px`;   // everything above the clock
-    for (const a of newest) {
-      const entry = h("div", {}, h("b", { textContent: a.title }), a.summary ? h("p", { textContent: a.summary }) : null,
-        h("small", { textContent: [a.source, timeOf(a.date)].filter(Boolean).join(" · ") }));
-      box.append(entry);
-      // one that is too long for the room left makes way for a shorter one further down
-      if (box.children.length > 1 && box.scrollHeight > box.clientHeight) entry.remove();
+    const fill = () => {
+      box.replaceChildren();
+      for (const a of newest) {
+        const entry = h("div", {}, h("b", { textContent: a.title }), h("p", { textContent: a.summary }),
+          h("small", { textContent: [a.source, timeOf(a.date)].filter(Boolean).join(" · ") }));
+        box.append(entry);
+        // one that is too long for the room left makes way for a shorter one further down
+        if (box.children.length > 1 && box.scrollHeight > box.clientHeight) entry.remove();
+      }
+      return box.children.length;
+    };
+    // Two lines of text each where three articles fit that way; on a small screen one line, so that three still do.
+    box.classList.remove("tight");
+    if (fill() < 3 && newest.length >= 3) {
+      box.classList.add("tight");
+      fill();
     }
     return newest.length > 0;
   } catch (e) { return false; }
