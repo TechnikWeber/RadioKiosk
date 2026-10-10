@@ -92,6 +92,7 @@ const STRINGS = {
     surveyRanges: { all: "Everything (24–1766 MHz)", hf: "Shortwave (0.5–30 MHz)", vhf: "VHF (30–300 MHz)", uhf: "UHF (300–1000 MHz)", air: "Air band", "2m": "2 m", "70cm": "70 cm", pmr: "PMR446" },
     centresTitle: "Where activity is expected", nowAndThen: "On the air now and then (somebody transmitting)",
     suspectsTitle: "Narrow and always there where people talk (possible interference)", steadyTitle: "Always there (broadcast, data links)",
+    alwaysCarrier: "always occupied (a carrier?)", fewSweeps: "With so few sweeps, what comes and goes can hardly be told from what is always there: take more time or a smaller range.",
     bandsTitle: "Bands", quiet: "quiet", activeIn: "active in", ofSweeps: "% of the sweeps", overNoise: "dB over noise",
     occupiedShare: "% occupied", signalsWord: "signals", alwaysWord: "always there", noneFound: "Nothing found.", tapToListen: "Tap a line to listen there.",
     surveySummary: "{signals} signals in {sweeps} sweeps over {seconds} s, slices of {slice} kHz",
@@ -201,6 +202,7 @@ const STRINGS = {
     surveyRanges: { all: "Alles (24–1766 MHz)", hf: "Kurzwelle (0,5–30 MHz)", vhf: "VHF (30–300 MHz)", uhf: "UHF (300–1000 MHz)", air: "Flugfunk", "2m": "2 m", "70cm": "70 cm", pmr: "PMR446" },
     centresTitle: "Wo Aktivität zu erwarten ist", nowAndThen: "Zeitweise auf Sendung (da funkt jemand)",
     suspectsTitle: "Schmal und dauernd da, wo sonst gesprochen wird (mögliche Störung)", steadyTitle: "Dauernd da (Rundfunk, Datenstrecken)",
+    alwaysCarrier: "dauernd belegt (ein Träger?)", fewSweeps: "Bei so wenigen Durchläufen lässt sich kaum unterscheiden, was kommt und geht und was dauernd da ist: mehr Zeit oder einen kleineren Bereich wählen.",
     bandsTitle: "Bänder", quiet: "ruhig", activeIn: "aktiv in", ofSweeps: "% der Durchläufe", overNoise: "dB über Rauschen",
     occupiedShare: "% belegt", signalsWord: "Signale", alwaysWord: "dauernd da", noneFound: "Nichts gefunden.", tapToListen: "Tippe eine Zeile an, um dort zu hören.",
     surveySummary: "{signals} Signale in {sweeps} Durchläufen über {seconds} s, Schrittweite {slice} kHz",
@@ -1907,7 +1909,7 @@ const SURVEY_DE = {
   "Business radio": "Betriebsfunk", "Television (DVB-T2)": "Fernsehen (DVB-T2)", "Mobile phones": "Mobilfunk",
   "ISM 868 MHz (sensors, LoRa)": "ISM 868 MHz (Sensoren, LoRa)", "Air navigation (DME, ADS-B)": "Flugnavigation (DME, ADS-B)",
   "Satellite navigation": "Satellitennavigation", "calling": "Anruf", "repeater outputs": "Relais-Ausgaben", "channel": "Kanal",
-  "Air band emergency": "Flugfunk-Notfrequenz", "Marine": "Seefunk",
+  "Air band emergency": "Flugfunk-Notfrequenz", "Marine": "Seefunk", "Receiver's own oscillator": "Eigener Oszillator des Empfängers",
 };
 const surveyName = name => lang !== "de" ? name
   : Object.entries(SURVEY_DE).sort((a, b) => b[0].length - a[0].length).reduce((text, [en, de]) => text.replace(en, de), name);
@@ -1974,7 +1976,8 @@ const surveyView = {
     return [
       h("h2", { className: "section", textContent: `${t.lastReport}: ${t.surveyRanges[r.range] || r.range}, ${timeOf(r.started)}` }),
       h("p", { className: "explain", textContent: t.surveySummary.replace("{signals}", r.signals).replace("{sweeps}", r.sweeps)
-        .replace("{seconds}", Math.round(r.seconds)).replace("{slice}", r.slice_khz) + ". " + t.tapToListen }),
+        .replace("{seconds}", Math.round(r.seconds)).replace("{slice}", r.slice_khz) + ". "
+        + (r.sweeps < 5 ? t.fewSweeps + " " : "") + t.tapToListen }),
       h("div", { className: "toolbar wrap" },
         h("button", { textContent: t.saveReport, onclick: async () => {
           try { this.note = `${t.savedTo} ${(await api("/api/survey/save", {})).path}`; } catch (e) { this.note = say(e.message); }
@@ -1984,7 +1987,8 @@ const surveyView = {
       h("h2", { className: "section", textContent: t.centresTitle }),
       ...(r.centres.length ? r.centres.map(c => stationRow({
         title: `${surveyName(c.name)}`, active: c.share > 0,
-        info: `${c.mhz} MHz · ` + (c.share ? `${t.activeIn} ${share(c)}, ${c.db} ${t.overNoise}` : t.quiet),
+        info: `${c.mhz} MHz · ` + (!c.share ? t.quiet : c.steady ? `${t.alwaysCarrier}, ${c.db} ${t.overNoise}`
+          : `${t.activeIn} ${share(c)}, ${c.db} ${t.overNoise}`),
         onPlay: listen(c) })) : [hint(t.noneFound)]),
       ...signals(t.nowAndThen, r.now_and_then), ...signals(t.suspectsTitle, r.suspects), ...signals(t.steadyTitle, r.steady),
       h("h2", { className: "section", textContent: t.bandsTitle }),

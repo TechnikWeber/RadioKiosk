@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from radiokiosk.qsolog import adif, as_csv, band_of, clean
-from radiokiosk.sources.survey import analyse, as_text, parse_sweep, service_at
+from radiokiosk.sources.survey import analyse, as_text, noise_floor, own_oscillator, parse_sweep, service_at
 from radiokiosk.spaceweather import nearest_sonde, parse_solar
 
 
@@ -36,6 +36,18 @@ class SurveyTest(unittest.TestCase):
         text = as_text({"range": "2m", "started": 0, "seconds": 12, **analyse(freqs, rows, 5e3)})
         self.assertIn("2 m FM calling", text)
         self.assertIn("active in 50 % of the sweeps", text)
+
+    def test_the_floor_follows_a_step_in_the_noise_but_not_a_wide_transmission(self):
+        levels = np.concatenate([np.full(4000, -60.0), np.full(4000, -50.0)])   # 100 MHz quiet, 100 MHz noisier
+        levels[1000:1320] = -20                                                 # 8 MHz of television in the quiet part
+        floor = noise_floor(levels, 25e3)
+        self.assertAlmostEqual(floor[1160], -60, delta=1)
+        self.assertAlmostEqual(floor[6000], -50, delta=1)
+
+    def test_the_stick_hears_its_own_crystal(self):
+        self.assertTrue(own_oscillator(28.806, 20))
+        self.assertTrue(own_oscillator(144.0, 5))
+        self.assertFalse(own_oscillator(145.5, 12.5))
 
     def test_one_sweep_cannot_call_anything_steady(self):
         freqs, rows = self.sweeps(1)

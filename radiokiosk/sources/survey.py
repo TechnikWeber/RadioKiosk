@@ -93,27 +93,43 @@ def parse_sweep(text):
     return freqs[order], np.nan_to_num(levels[order], nan=-120.0, neginf=-120.0)
 
 
-def noise_floor(levels, window=401):
-    """The level between the signals, slice by slice: a low percentile of the surroundings.
+def noise_floor(levels, slice_hz, block_hz=500e3, widest_hz=20e6):
+    """The level between the signals, slice by slice.
 
-    The stick's sensitivity varies over its range, so one figure for everything
-    would call whole stretches occupied. Wide transmissions (television, DAB)
-    fill a window completely; the minimum over neighbouring windows looks past them.
+    The stick is not equally sensitive everywhere, so one figure for the whole
+    range would call entire bands occupied. The floor is therefore followed along
+    the range: a low percentile of every half megahertz, then lowered to the
+    smallest value nearby and raised again to the largest of those. That keeps
+    steps in the noise that are wider than `widest_hz` and ignores everything
+    narrower, which is every transmission there is, television and mobile phone
+    carriers included.
     """
-    if len(levels) < window:
+    per_block = max(8, int(block_hz / slice_hz))
+    if len(levels) < 2 * per_block:
         return np.full(len(levels), np.percentile(levels, 20) if len(levels) else 0.0)
-    blocks = len(levels) // window
-    low = np.percentile(levels[:blocks * window].reshape(blocks, window), 20, axis=1)
-    padded = np.pad(low, 6, mode="edge")
-    low = np.array([padded[i:i + 13].min() for i in range(blocks)])
-    centres = (np.arange(blocks) + 0.5) * window
+    blocks = len(levels) // per_block
+    low = np.percentile(levels[:blocks * per_block].reshape(blocks, per_block), 20, axis=1)
+    reach = max(1, int(widest_hz / (per_block * slice_hz)) // 2)
+
+    def slide(values, pick):
+        padded = np.pad(values, reach, mode="edge")
+        return pick(np.lib.stride_tricks.sliding_window_view(padded, 2 * reach + 1), axis=1)
+
+    low = slide(slide(low, np.min), np.max)
+    centres = (np.arange(blocks) + 0.5) * per_block
     return np.interp(np.arange(len(levels)), centres, low)
+
+
+def own_oscillator(mhz, width_khz):
+    """Is this the stick hearing itself? Its 28.8 MHz crystal shows up on every multiple of that."""
+    multiple = round(mhz / 28.8)
+    return multiple >= 1 and abs(mhz - multiple * 28.8) <= max(0.03, width_khz / 2000)
 
 
 def analyse(freqs, sweeps, slice_hz):
     """The report for a stack of sweeps (one row per sweep)."""
     sweeps = np.asarray(sweeps)
-    floor = noise_floor(np.median(sweeps, axis=0))
+    floor = noise_floor(np.median(sweeps, axis=0), slice_hz)
     above = sweeps - floor
     occupied = above > THRESHOLD
     share = occupied.mean(axis=0)              # how often each slice was occupied
@@ -128,12 +144,14 @@ def analyse(freqs, sweeps, slice_hz):
             service = service_at(mhz)
             steady = share[run].max() >= STEADY and len(sweeps) >= 3
             kind = service[3] if service else "unknown"
+            width_khz = round(len(run) * float(slice_hz) / 1e3, 1)
+            own = steady and width_khz <= 100 and own_oscillator(mhz, width_khz)
             signals.append({
-                "mhz": round(mhz, 4), "width_khz": round(len(run) * slice_hz / 1e3, 1),
+                "mhz": round(mhz, 4), "width_khz": width_khz,
                 "db": round(float(peak[strongest]), 1), "share": round(float(share[run].max()), 2),
-                "steady": bool(steady), "service": service[2] if service else "",
+                "steady": bool(steady), "service": "Receiver's own oscillator" if own else service[2] if service else "",
                 # always there, narrow, and in a band where people talk: a carrier that does not belong
-                "suspect": bool(steady and len(run) * slice_hz <= 50e3 and kind in ("ham", "talk", "unknown")),
+                "suspect": bool(steady and not own and width_khz <= 50 and kind in ("ham", "talk", "unknown")),
             })
     bands = []
     for low, high, name, kind in SERVICES:
@@ -152,8 +170,10 @@ def analyse(freqs, sweeps, slice_hz):
         inside = (freqs >= mhz * 1e6 - reach) & (freqs <= top * 1e6 + reach)
         if not inside.any() or mhz * 1e6 < freqs[0] or mhz * 1e6 > freqs[-1]:
             continue
-        centres.append({"mhz": mhz, "name": name, "share": round(float(share[inside].max()), 2),
-                        "db": round(float(peak[inside].max()), 1)})
+        heard = float(share[inside].max())
+        centres.append({"mhz": mhz, "name": name, "share": round(heard, 2), "db": round(float(peak[inside].max()), 1),
+                        # never off in several sweeps is a carrier, not a conversation
+                        "steady": bool(heard >= STEADY and len(sweeps) >= 3)})
     by_strength = lambda found: sorted(found, key=lambda s: -s["db"])[:LISTED]
     return {
         "from": round(float(freqs[0]) / 1e6, 4), "to": round(float(freqs[-1]) / 1e6, 4),
@@ -182,7 +202,8 @@ def as_text(report):
 
     lines.append("Where activity is expected")
     lines.extend(f"  {c['mhz']:<10} {c['name']:<42} "
-                 + ("quiet" if not c["share"] else f"active in {round(c['share'] * 100)} % of the sweeps, {c['db']} dB")
+                 + ("quiet" if not c["share"] else f"always occupied (a carrier?), {c['db']} dB" if c["steady"]
+                    else f"active in {round(c['share'] * 100)} % of the sweeps, {c['db']} dB")
                  for c in report["centres"])
     lines.append("")
     table("On the air now and then (somebody transmitting)", report["now_and_then"])
