@@ -79,9 +79,12 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Flugzeuge | Live-Karte und Liste der Flugzeuge in deiner Umgebung (ADS-B) | `dump1090` oder `readsb`, Leaflet, OpenStreetMap |
 | Bluetooth | Bluetooth-Lautsprecher verbinden oder ein Handy über dieses Gerät abspielen lassen | `bluetoothctl`, PipeWire |
 | Wetter | aktuelles Wetter und Vorhersage für vier Tage | Open-Meteo |
+| Galerie | Diashow aus einem Ordner, pur über die Kachel oder im Ruhebildschirm hinter der Uhr; Unterordner zählen mit | Pillow |
 | SDR++ | das vollwertige SDR-Programm für alles Weitere | startet als normales Programm |
 | Einstellungen | Sprache, helles oder dunkles Design, Tonausgabe, Sleep-Timer, Wecker, Ruhebildschirm, Größe der unteren Leiste, Bildschirmtastatur, Standort, Fernbedienung, Empfangsart | PipeWire oder PulseAudio |
 | Gerät | Bildschirmhelligkeit, WLAN, WLAN-Stromsparen ein/aus, Aktualisieren, Neustart und Ausschalten, AirPlay- und Spotify-Connect-Empfänger | NetworkManager, systemd, `shairport-sync`, `librespot` |
+
+Die Galerie zeigt jeden Ordner, den dieser Rechner lesen kann. Soll es ein USB-Stick oder ein Netzwerkordner (SMB, NFS) sein, musst du ihn selbst einbinden, zum Beispiel über den Dateimanager oder die `/etc/fstab`; danach lässt er sich in den Einstellungen unter *Galerie* wählen. Fotos werden einmal auf Bildschirmgröße verkleinert und zwischengespeichert.
 
 Jeder Sender kann einen Stern bekommen, egal aus welcher Quelle. Favoriten erscheinen als Zeile auf dem Startbildschirm und starten mit einem Tipp; einzelne oder alle entfernst du über den Stern am Ende dieser Zeile, etwa nach einem Ortswechsel.
 

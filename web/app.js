@@ -47,6 +47,13 @@ const STRINGS = {
     wakesWithNothing: "Play a station once; the alarm can then wake with it.",
     wakeLast: "Station heard last", wakeFixed: "Always", wakeFix: "Always wake with",
     sound: "Sound", soundModes: { auto: "Auto", stereo: "Stereo", mono: "Mono" },
+    gallery: "Gallery", gallerySub: "Slide show", gallerySetup: "Set up the gallery", chooseFolder: "Choose folder",
+    galleryIntro: "Shows the pictures of a folder as a slide show: without anything on top through the Gallery tile, and behind the clock on the idle screen. Subfolders are included.",
+    galleryNetwork: "A USB stick or a network folder can be chosen once this computer has mounted it.",
+    galleryUnset: "No folder chosen yet.", galleryEmpty: "There are no pictures in the chosen folder.",
+    folderMissing: "folder not found – stick or network folder missing?", pictures: "pictures",
+    slideTime: "Change every", shuffle: "Shuffle", galleryIdle: "On the idle screen",
+    takeFolder: "Use this folder", picturesHere: "pictures directly in it",
     theme: "Design", themes: { dark: "dark", light: "light" },
     bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
@@ -108,6 +115,13 @@ const STRINGS = {
     wakesWithNothing: "Spiele einmal einen Sender; danach kann der Wecker damit wecken.",
     wakeLast: "Zuletzt gehörter Sender", wakeFixed: "Immer", wakeFix: "Immer wecken mit",
     sound: "Ton", soundModes: { auto: "Auto", stereo: "Stereo", mono: "Mono" },
+    gallery: "Galerie", gallerySub: "Diashow", gallerySetup: "Galerie einrichten", chooseFolder: "Ordner wählen",
+    galleryIntro: "Zeigt die Bilder eines Ordners als Diashow: über die Kachel Galerie ohne alles darüber, im Ruhebildschirm hinter der Uhr. Unterordner zählen mit.",
+    galleryNetwork: "Ein USB-Stick oder ein Netzwerkordner lässt sich wählen, sobald dieser Rechner ihn eingebunden hat.",
+    galleryUnset: "Noch kein Ordner gewählt.", galleryEmpty: "Im gewählten Ordner liegen keine Bilder.",
+    folderMissing: "Ordner nicht gefunden – fehlt der Stick oder der Netzwerkordner?", pictures: "Bilder",
+    slideTime: "Wechsel alle", shuffle: "Zufällige Reihenfolge", galleryIdle: "Im Ruhebildschirm",
+    takeFolder: "Diesen Ordner nehmen", picturesHere: "Bilder direkt darin",
     theme: "Design", themes: { dark: "dunkel", light: "hell" },
     bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
@@ -155,6 +169,7 @@ const MESSAGES_DE = [
   [/^reception on block (.+) is too weak$/, "Der Empfang auf Block $1 ist zu schwach"],
   [/^this computer does not let RadioKiosk change that setting$/, "Dieser Rechner lässt RadioKiosk diese Einstellung nicht ändern"],
   [/^no Wi-Fi connection$/, "Keine WLAN-Verbindung"],
+  [/^this folder cannot be opened$/, "Dieser Ordner lässt sich nicht öffnen"],
   [/^no reception on block (.+)$/, "Kein Empfang auf Block $1"],
   [/^welle-cli could not open the SDR$/, "welle-cli konnte den SDR-Stick nicht öffnen"],
   [/^welle-cli did not start$/, "welle-cli ist nicht gestartet"],
@@ -187,6 +202,7 @@ const ICONS = {
   app: '<path d="M3 17l4-9 3 6 3-10 3 8 2-3 3 8"/>',
   tuner: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v3M12 10V7M5.6 5.6l2 2M3 12h3M18.4 5.6l-2 2M21 12h-3"/>',
   adsb: '<path d="M12 3l2 7 7 4v2l-7-2v4l2 2v1l-4-1-4 1v-1l2-2v-4l-7 2v-2l7-4z"/>',
+  gallery: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-8 8"/>',
   weather: '<circle cx="8" cy="8" r="3"/><path d="M8 2v1M2 8h1M3.8 3.8l.7.7M12.2 3.8l-.7.7M8 20h9a4 4 0 000-8 6 6 0 00-11 2 3 3 0 002 6z"/>',
   bluetooth: '<path d="M7 7l10 10-5 4V3l5 4L7 17"/>',
   settings: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
@@ -433,6 +449,7 @@ const home = {
       }),
       ...(c.bluetooth ? [tile("bluetooth", t.bluetooth, null, () => show(bluetooth), t.btSub)] : []),
       tile("weather", t.weather, null, () => show(weather)),
+      tile("gallery", t.gallery, null, () => show(galleryView), t.gallerySub),
       tile("settings", t.settings, null, () => show(settings)),
     ));
   },
@@ -1180,6 +1197,143 @@ const wifiView = {
 
 /* ---------- settings ---------- */
 
+/* ---------- gallery ---------- */
+
+let galleryInfo = null;   // folder, timing and number of pictures, as the service reports them
+async function loadGallery() {
+  try { galleryInfo = await api("/api/gallery"); } catch (e) { galleryInfo = null; }
+  return galleryInfo;
+}
+
+// One slide show for the gallery tile and the idle screen: two stacked pictures that fade
+// into each other. A picture is shown only once it has loaded, so a slow folder never shows half of one.
+function slideShow() {
+  const el = h("div", { className: "slides" }, h("img", { alt: "" }), h("img", { alt: "" }));
+  let front = 0, order = [], at = -1, timer = null, running = false;
+  const later = seconds => { clearTimeout(timer); if (running) timer = setTimeout(() => go(1), seconds * 1000); };
+  function go(step) {
+    if (!galleryInfo || !galleryInfo.count) return;
+    if (order.length !== galleryInfo.count) {
+      order = Array.from({ length: galleryInfo.count }, (_, i) => i);
+      if (galleryInfo.shuffle) {
+        for (let i = order.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [order[i], order[j]] = [order[j], order[i]];
+        }
+      }
+      at = -1;
+    }
+    at = (Math.max(at, 0) + (at < 0 ? 0 : step) + order.length) % order.length;
+    const next = el.children[1 - front];
+    next.onload = () => {
+      el.children[front].classList.remove("shown");
+      next.classList.add("shown");
+      front = 1 - front;
+    };
+    next.onerror = () => later(1);   // unreadable picture: on to the next one
+    // the service scales to the screen, so it needs to know its size
+    next.src = `/api/gallery/picture/${order[at]}?w=${Math.round(innerWidth * devicePixelRatio)}&h=${Math.round(innerHeight * devicePixelRatio)}`;
+    later(galleryInfo.seconds);
+  }
+  return {
+    el,
+    start() { if (!running) { running = true; go(1); } },
+    stop() { running = false; clearTimeout(timer); },
+    next: () => go(1), previous: () => go(-1),
+  };
+}
+
+// The tile: nothing but the pictures. Header and bar leave after a moment; a tap in the middle
+// brings them back, a tap at the left or right edge turns the page. What is playing keeps playing.
+const galleryView = {
+  title: t.gallery,
+  slides: null,
+  hideTimer: null,
+  async render() {
+    await loadGallery();
+    if (current !== this) return;
+    if (!galleryInfo || !galleryInfo.count) {
+      view.replaceChildren(
+        hint(galleryInfo && galleryInfo.folder ? (galleryInfo.missing ? t.folderMissing : t.galleryEmpty) : t.galleryUnset),
+        h("div", { className: "toolbar center" },
+          h("button", { className: "primary", textContent: t.gallerySetup, onclick: () => show(gallerySettings) })));
+      return;
+    }
+    this.slides = slideShow();
+    this.slides.el.onclick = e => {
+      const x = e.clientX / innerWidth;
+      if (x < 1 / 3) this.slides.previous();
+      else if (x > 2 / 3) this.slides.next();
+      else if (document.body.classList.contains("immersive")) this.immerse(6000);
+      else document.body.classList.add("immersive");
+    };
+    view.classList.add("flush");
+    view.replaceChildren(this.slides.el);
+    this.slides.start();
+    this.immerse(4000);
+  },
+  immerse(after) {
+    clearTimeout(this.hideTimer);
+    document.body.classList.remove("immersive");
+    this.hideTimer = setTimeout(() => document.body.classList.add("immersive"), after);
+  },
+  leave() {
+    clearTimeout(this.hideTimer);
+    document.body.classList.remove("immersive");
+    view.classList.remove("flush");
+    if (this.slides) this.slides.stop();
+    this.slides = null;
+  },
+};
+
+const SLIDE_SECONDS = [5, 10, 15, 30, 60, 300];
+const gallerySettings = {
+  title: t.gallery,
+  async render() {
+    const g = await loadGallery();
+    if (!g) { view.replaceChildren(hint(t.galleryUnset)); return; }
+    const set = async (key, value) => { await api("/api/gallery", { key, value }); this.render(); };
+    const every = g.seconds < 60 ? `${g.seconds} s` : `${g.seconds / 60} min`;
+    view.replaceChildren(
+      h("p", { className: "explain", textContent: t.galleryIntro }),
+      h("p", { className: "label", textContent: !g.folder ? t.galleryUnset
+        : g.missing ? `${g.folder} · ${t.folderMissing}` : `${g.folder} · ${g.count} ${t.pictures}` }),
+      h("div", { className: "toolbar wrap" },
+        h("button", { className: g.folder ? "" : "primary", textContent: t.chooseFolder, onclick: () => folderPicker.open(g.start) }),
+        h("button", { textContent: `${t.slideTime}: ${every}`,
+          onclick: () => set("seconds", SLIDE_SECONDS[(SLIDE_SECONDS.indexOf(g.seconds) + 1) % SLIDE_SECONDS.length]) }),
+        h("button", { className: g.shuffle ? "on" : "", textContent: `${t.shuffle}: ${g.shuffle ? t.on : t.off}`,
+          onclick: () => set("shuffle", !g.shuffle) }),
+        h("button", { className: g.idle ? "on" : "", textContent: `${t.galleryIdle}: ${g.idle ? t.on : t.off}`,
+          onclick: () => set("idle", !g.idle) })),
+      h("p", { className: "explain", textContent: t.galleryNetwork }));
+  },
+  back() { show(settings); return true; },
+};
+
+// Typing a path on a touch screen is no fun: walk through the folders instead.
+const folderPicker = {
+  title: t.chooseFolder,
+  path: null,
+  open(path) { this.path = path; show(this); },
+  async render() {
+    let d;
+    try { d = await api(`/api/gallery/folders?path=${encodeURIComponent(this.path)}`); }
+    catch (e) { view.replaceChildren(hint(say(e.message))); return; }
+    const go = path => { this.path = path; view.scrollTop = 0; this.render(); };
+    view.replaceChildren(
+      h("p", { className: "label", textContent: d.path }),
+      h("div", { className: "toolbar wrap" },
+        h("button", { className: "primary", textContent: `${t.takeFolder} · ${d.pictures} ${t.picturesHere}`,
+          onclick: async () => { await api("/api/gallery", { key: "folder", value: d.path }); show(gallerySettings); } }),
+        ...(galleryInfo ? galleryInfo.places : []).filter(place => place !== d.path)
+          .map(place => h("button", { textContent: place, onclick: () => go(place) }))),
+      ...(d.parent ? [stationRow({ title: "‥", info: d.parent, onPlay: () => go(d.parent) })] : []),
+      ...d.folders.map(name => stationRow({ title: name, onPlay: () => go(`${d.path.replace(/\/$/, "")}/${name}`) })));
+  },
+  back() { show(gallerySettings); return true; },
+};
+
 // Explains the two programs that turn the stick's data into sound, and lets each tile pick one.
 const receiverView = {
   title: t.receiverSetting,
@@ -1289,8 +1443,9 @@ document.body.dataset.bar = pref("bar", "medium");
         t.remoteHint, h("br"), h("b", { textContent: receivers.addresses.join("  ·  ") }), h("br"), t.remoteWarning,
         ...(receivers.stream ? [h("br"), h("br"), t.liveStream, h("br"),
           h("b", { textContent: receivers.addresses[receivers.addresses.length - 1] + "/live.mp3" })] : []))] : []),
-      h("div", { className: "toolbar" },
-        h("button", { textContent: t.receiverSetting, onclick: () => show(receiverView) })),
+      h("div", { className: "toolbar wrap" },
+        h("button", { textContent: t.receiverSetting, onclick: () => show(receiverView) }),
+        h("button", { textContent: t.gallery, onclick: () => show(gallerySettings) })),
       h("p", { className: "hint", textContent: t.relevelHint }),
       h("div", { className: "toolbar" },
         h("button", { textContent: t.relevel, onclick: e => { e.target.disabled = true; api("/api/gain/reset", {}); } })),
@@ -1336,10 +1491,23 @@ function dim(on) {
   dimming = dimming.then(() => api("/api/device/dim", { on })).catch(() => { /* no adjustable backlight */ });
 }
 
-function showIdle() {
+// With a gallery set up, its pictures run behind the clock and the display stays bright.
+const idleSlides = slideShow();
+idle.prepend(idleSlides.el);
+async function showIdle() {
   idle.hidden = false;
+  idle.classList.remove("pictures");
   drawIdle();
-  dim(true);
+  await loadGallery();
+  if (idle.hidden) return;
+  if (galleryInfo && galleryInfo.idle && galleryInfo.count) {
+    idle.classList.add("pictures");
+    idleSlides.start();
+  } else dim(true);
+}
+function hideIdle() {
+  idle.hidden = true;
+  idleSlides.stop();
 }
 
 // The first touch on the idle screen only wakes the display. The screen stays up until that
@@ -1351,22 +1519,23 @@ addEventListener("pointerdown", () => {
   if (waking) dim(false);
 }, true);
 for (const event of ["pointerup", "pointercancel"]) {
-  addEventListener(event, () => { if (waking) setTimeout(() => { idle.hidden = true; waking = false; }, 350); }, true);
+  addEventListener(event, () => { if (waking) setTimeout(() => { hideIdle(); waking = false; }, 350); }, true);
 }
 addEventListener("click", e => {   // the tap that woke the display ends here
   if (!waking) return;
   e.stopPropagation();
-  idle.hidden = true;
+  hideIdle();
   waking = false;
 }, true);
 addEventListener("keydown", () => {
   lastTouch = Date.now();
   if (!idle.hidden) dim(false);
-  idle.hidden = true;
+  hideIdle();
 }, true);
 setInterval(() => {
   const minutes = Number(pref("idle", "2"));
-  const watching = current === adsb || current === locationPicker;   // a map is there to be looked at
+  // a map is there to be looked at, and so is the gallery
+  const watching = current === adsb || current === locationPicker || (current === galleryView && galleryView.slides);
   if (idle.hidden && minutes && !watching && Date.now() - lastTouch > minutes * 60e3) showIdle();
   else if (!idle.hidden) drawIdle();
 }, 1000);
@@ -1402,7 +1571,8 @@ async function openLink() {
   const [name, band] = location.hash.slice(1).split("/");
   if (name === "idle") showIdle();
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
-    wifi: wifiView, receiver: receiverView }[name] || home;
+    wifi: wifiView, receiver: receiverView,
+    gallery: galleryView, gallerysettings: gallerySettings }[name] || home;
   if (target === webradio && band === "search") Object.assign(webradio, { tab: "search", typing: true });
   show(target);
   if (target === tuner && band) {

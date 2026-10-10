@@ -79,9 +79,12 @@ A small Python service controls the receivers and serves a web interface that a 
 | Aircraft | live map and list of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |
 | Bluetooth | connect a Bluetooth speaker, or let a phone play through this device | `bluetoothctl`, PipeWire |
 | Weather | current weather and a four-day forecast | Open-Meteo |
+| Gallery | slide show from a folder, on its own through the tile or behind the clock on the idle screen; subfolders are included | Pillow |
 | SDR++ | the full SDR program for everything else | started as a normal program |
 | Settings | language, light or dark design, audio output, sleep timer, alarm clock, idle screen, size of the bottom bar, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
 | Device | screen brightness, Wi-Fi, Wi-Fi power saving on/off, update, restart and shut down, AirPlay and Spotify Connect receivers | NetworkManager, systemd, `shairport-sync`, `librespot` |
+
+The gallery shows any folder this computer can read. For a USB stick or a network folder (SMB, NFS), mount it yourself, for example with the file manager or in `/etc/fstab`; it can then be chosen in the settings under *Gallery*. Photos are scaled down to screen size once and cached.
 
 Every station can get a star, whatever its source. Favorites appear as a row on the start screen and start with one tap; remove single ones or all of them under the star at the end of that row, for example after moving to another place.
 

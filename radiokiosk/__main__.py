@@ -18,6 +18,7 @@ from .sources.receiver import CHOICES, ENGINE_LOAD_LIMIT, available_backends, en
 from .sources.tuner import BANDS, Tuner
 from .sources.webradio import Webradio
 from .schedule import Schedule
+from .gallery import Gallery, subfolders
 from .weather import Weather, place_name
 
 
@@ -69,6 +70,7 @@ def build(cfg):
     webradio, dab, fm, tuner, apps = Webradio(core), Dab(core), Fm(core), Tuner(core), Apps(core)
     adsb = Adsb(core)
     weather = Weather()
+    gallery = Gallery(cfg)
     alarm = Alarm(core)
     schedule = Schedule()
     receivers = network_audio.Receivers(cfg)
@@ -270,6 +272,30 @@ def build(cfg):
         save_setting(cfg, "location", [round(float(body["lat"]), 4), round(float(body["lon"]), 4)])
         await name_location(request)
         return ok()
+
+    # Looking into folders and scaling photos takes its time on a slow disk or share: off the event loop.
+    @routes.get("/api/gallery")
+    async def gallery_get(request):
+        return web.json_response(await asyncio.to_thread(gallery.info))
+
+    @routes.post("/api/gallery")
+    async def gallery_set(request):
+        body = await request.json()
+        save_setting(cfg, "gallery", {**gallery.settings, body["key"]: gallery.check(body["key"], body["value"])})
+        await asyncio.to_thread(gallery.refresh, True)
+        return ok()
+
+    @routes.get("/api/gallery/folders")
+    async def gallery_folders(request):
+        return web.json_response(await asyncio.to_thread(subfolders, request.query.get("path") or "~"))
+
+    @routes.get("/api/gallery/picture/{index}")
+    async def gallery_picture(request):
+        size = [int(request.query.get(side, 960)) for side in ("w", "h")]
+        file = await asyncio.to_thread(gallery.picture, int(request.match_info["index"]), *size)
+        if file is None:
+            raise web.HTTPNotFound()
+        return web.FileResponse(file)
 
     @routes.get("/api/weather")
     async def weather_get(request):
