@@ -19,9 +19,6 @@ SAVE_EVERY = 5      # seconds between notes of the playing position
 REWIND = 5          # seconds an episode steps back when it is picked up again
 
 
-# Subscribed from the start, so the tile never opens onto nothing.
-STARTER = {"title": "Lanz + Precht", "author": "ZDF, Markus Lanz & Richard David Precht",
-           "feed": "https://cdn.julephosting.de/podcasts/1355-lanz-precht/feed.rss", "image": ""}
 # Suggestions come from Apple's podcast charts, which need no key: the most heard in the
 # own country and in the US. This list only stands in while the charts cannot be reached
 # and have never been read before.
@@ -93,9 +90,7 @@ class Podcasts:
 
     def __init__(self, core):
         self.core = core
-        self.subscribed = load_json("podcasts.json", None)
-        if self.subscribed is None:
-            self.subscribed = [dict(STARTER)]
+        self.subscribed = load_json("podcasts.json", [])
         self.charts = load_json("podcast_charts.json", None)   # {"read": time, "local": [...], "world": [...]}
         self.positions = load_json("podcast_positions.json", {})   # episode id -> seconds heard
         self.episode = None

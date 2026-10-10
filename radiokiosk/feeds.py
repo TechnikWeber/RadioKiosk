@@ -28,8 +28,7 @@ SUGGESTIONS = [
     {"url": "https://www.deutschlandfunk.de/nachrichten-100.rss", "title": "Deutschlandfunk"},
     {"url": "https://feeds.bbci.co.uk/news/world/rss.xml", "title": "BBC News (World)"},
 ]
-# what the reader starts with, by country; anything else gets the English one
-STARTERS = {"DE": SUGGESTIONS[0], None: SUGGESTIONS[-1]}
+
 
 
 def plain(markup, limit=None):
@@ -122,9 +121,8 @@ async def fetch_feed(url):
 
 class Feeds:
     def __init__(self, cfg):
-        self.feeds = load_json("feeds.json", None)
-        if self.feeds is None:
-            self.feeds = [dict(STARTERS.get(cfg.get("country"), STARTERS[None]))]
+        # nothing is read until the user picks a feed; the suggestions are an offer, not a choice made for them
+        self.feeds = load_json("feeds.json", [])
         self.fetched = {}   # url -> (time, articles)
 
     async def _articles(self, feed):

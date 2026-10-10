@@ -60,7 +60,7 @@ const STRINGS = {
     directoryHint: "Where the search looks for podcasts. fyyd and Apple work without a key; the Podcast Index is free as well, but needs a key and a secret from podcastindex.org.",
     apiKey: "Key", apiSecret: "Secret", notSet: "not set", isSet: "set",
     news: "News", newsSub: "RSS reader", manageFeeds: "News feeds", addFeed: "Add feed", feedAddress: "Address of the feed (RSS or Atom)",
-    noArticles: "No articles yet.", remove: "Remove",
+    noArticles: "No articles yet.", noFeeds: "No feed chosen yet. Tap a suggestion, or add your own under News feeds.", remove: "Remove",
     sensors: "Sensors", sensorsSub: "433 MHz", sensorsWaiting: "Listening for wireless sensors … many only report every few minutes.",
     sensorWords: { humidity: "humidity", battery: "battery low", wind: "wind", rain: "rain", ago: "ago", channel: "channel" },
     ais: "Ships", aisSub: "Live map (AIS)", shipsSeen: "ships received",
@@ -147,7 +147,7 @@ const STRINGS = {
     directoryHint: "Wo die Suche nach Podcasts schaut. fyyd und Apple gehen ohne Schlüssel; der Podcast Index ist ebenfalls kostenlos, braucht aber Schlüssel und Geheimnis von podcastindex.org.",
     apiKey: "Schlüssel", apiSecret: "Geheimnis", notSet: "nicht eingetragen", isSet: "eingetragen",
     news: "Nachrichten", newsSub: "RSS-Reader", manageFeeds: "Nachrichten-Feeds", addFeed: "Feed hinzufügen", feedAddress: "Adresse des Feeds (RSS oder Atom)",
-    noArticles: "Noch keine Artikel.", remove: "Entfernen",
+    noArticles: "Noch keine Artikel.", noFeeds: "Noch kein Feed gewählt. Tippe einen Vorschlag an oder trage unter Nachrichten-Feeds einen eigenen ein.", remove: "Entfernen",
     sensors: "Funksensoren", sensorsSub: "433 MHz", sensorsWaiting: "Lausche auf Funksensoren … viele melden sich nur alle paar Minuten.",
     sensorWords: { humidity: "Feuchte", battery: "Batterie schwach", wind: "Wind", rain: "Regen", ago: "vor", channel: "Kanal" },
     ais: "Schiffe", aisSub: "Live-Karte (AIS)", shipsSeen: "Schiffe empfangen",
@@ -1440,7 +1440,7 @@ const news = {
   },
   async load() {
     clearTimeout(this.timer);
-    try { ({ articles: this.articles, feeds: this.feeds } = await api("/api/feeds")); }
+    try { ({ articles: this.articles, feeds: this.feeds, suggested: this.suggested } = await api("/api/feeds")); }
     catch (e) { this.articles = this.articles || []; }
     if (current !== this) return;
     this.draw();
@@ -1451,7 +1451,13 @@ const news = {
     const parts = [h("div", { className: "toolbar" },
       h("button", { textContent: t.manageFeeds, onclick: () => { feedList.origin = news; show(feedList); } }))];
     if (this.articles === null) parts.push(hint(t.loading));
-    else if (!this.articles.length) parts.push(hint(t.noArticles));
+    else if (!this.feeds.length) {
+      // nothing chosen yet: offer the suggestions right here, one tap adds one
+      parts.push(hint(t.noFeeds), ...(this.suggested || []).map(f => stationRow({
+        title: f.title, info: f.url,
+        onPlay: async () => { try { await api("/api/feeds", { action: "add", url: f.url }); } catch (e) { /* stays offered */ } this.load(); },
+      })));
+    } else if (!this.articles.length) parts.push(hint(t.noArticles));
     else for (const a of this.articles) {
       parts.push(stationRow({ title: a.title, info: [a.source, timeOf(a.date)].filter(Boolean).join(" · "),
         onPlay: () => article.open(a) }));
@@ -2009,13 +2015,12 @@ let idleNewsAt = 0;
 async function idleNews() {
   idleNewsAt = Date.now();
   try {
-    const [newest] = (await api("/api/feeds")).articles;
-    if (!newest) return false;
-    const [title, summary, source] = $("idle-news").children;
-    title.textContent = newest.title;
-    summary.textContent = newest.summary;
-    source.textContent = [newest.source, timeOf(newest.date)].filter(Boolean).join(" · ");
-    return true;
+    // as many headlines as fit above the clock: three on a small screen
+    const room = Math.max(1, Math.min(6, Math.floor((innerHeight - 200) / 92)));
+    const newest = (await api("/api/feeds")).articles.slice(0, room);
+    $("idle-news").replaceChildren(...newest.map(a => h("div", {},
+      h("b", { textContent: a.title }), h("small", { textContent: [a.source, timeOf(a.date)].filter(Boolean).join(" · ") }))));
+    return newest.length > 0;
   } catch (e) { return false; }
 }
 // Three kinds, a setting: the classic clock on black with the display dimmed, the gallery
