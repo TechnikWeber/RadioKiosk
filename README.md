@@ -14,7 +14,7 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 | ![Free receiver on the 2 m amateur band](docs/screenshots/receiver.png) | ![Live aircraft map with list](docs/screenshots/aircraft.png) |
 | ![Idle screen with time, weather and station](docs/screenshots/idle.png) | |
 
-> Version 0.12: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
+> Version 0.13: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
 
 ## Install
 
@@ -24,7 +24,7 @@ curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/instal
 
 The installer works on Fedora and on Debian-based systems (Debian, Ubuntu, Raspberry Pi OS). Run it as your normal user; it asks for your password to install packages. It then:
 
-1. installs the receivers and players RadioKiosk controls (`mpv`, `rtl-sdr`, `welle-cli`, SDR++, `dump1090` or `readsb`),
+1. installs the receivers and players RadioKiosk controls (`mpv`, `rtl-sdr`, `welle-cli`, SDR++, `dump1090` or `readsb`, `rtl_433`, `rtl_ais`),
 2. stops the kernel's TV driver from claiming the SDR stick,
 3. downloads RadioKiosk to `~/.local/share/radiokiosk`,
 4. starts it as a background service that also comes up after every login.
@@ -79,12 +79,21 @@ A small Python service controls the receivers and serves a web interface that a 
 | Aircraft | live map and list of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |
 | Bluetooth | connect a Bluetooth speaker, or let a phone play through this device | `bluetoothctl`, PipeWire |
 | Weather | current weather and a four-day forecast | Open-Meteo |
-| Gallery | slide show from a folder, on its own through the tile or behind the clock on the idle screen; subfolders are included | Pillow |
+| Podcasts | search, subscriptions, episode list, skipping back and forth; remembers how far an episode has been heard | fyyd, Apple Podcasts or Podcast Index, `mpv` |
+| News | RSS and Atom feeds as a list of the newest articles that refreshes itself | own feed reader |
+| Sensors | wireless thermometers, weather stations and other sensors nearby on 433 MHz | `rtl_433` |
+| Ships | live map and list of the ships nearby (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |
+| Timer | kitchen timer that also rings over the station that is playing, and a stopwatch | `mpv` |
+| Gallery | slide show from a folder, on its own through the tile or behind the clock on the idle screen; with or without subfolders, pictures whole, slightly zoomed or filling the screen | Pillow |
 | SDR++ | the full SDR program for everything else | started as a normal program |
 | Settings | language, light or dark design, audio output, sleep timer, alarm clock, idle screen, size of the bottom bar, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
 | Device | screen brightness, Wi-Fi, Wi-Fi power saving on/off, update, restart and shut down, AirPlay and Spotify Connect receivers | NetworkManager, systemd, `shairport-sync`, `librespot` |
 
-The gallery shows any folder this computer can read. For a USB stick or a network folder (SMB, NFS), mount it yourself, for example with the file manager or in `/etc/fstab`; it can then be chosen in the settings under *Gallery*. Photos are scaled down to screen size once and cached.
+The idle screen comes in three kinds, chosen in the settings: the clock on black with the display dimmed (the default), the gallery behind the clock, or the newest article of the news reader. The last two keep the display bright.
+
+The podcast search can use three directories (Settings › Podcast directory). fyyd is the default and, like Apple Podcasts, needs no key; for the Podcast Index, enter the key and secret you get for free at podcastindex.org.
+
+Until you choose a folder of your own, the gallery shows the demo pictures that come with RadioKiosk (public domain, see [demo-pictures/CREDITS.md](demo-pictures/CREDITS.md)). The gallery shows any folder this computer can read. For a USB stick or a network folder (SMB, NFS), mount it yourself, for example with the file manager or in `/etc/fstab`; it can then be chosen in the settings under *Gallery*. Photos are scaled down to screen size once and cached.
 
 Every station can get a star, whatever its source. Favorites appear as a row on the start screen and start with one tap; remove single ones or all of them under the star at the end of that row, for example after moving to another place.
 
