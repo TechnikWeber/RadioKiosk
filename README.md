@@ -6,6 +6,8 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 
 [![Tests](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml/badge.svg)](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml)
 
+![RadioKiosk on a Raspberry Pi with the 7 inch touch display, an RTL-SDR stick in front of it](docs/screenshots/pi.jpg)
+
 | | |
 |---|---|
 | ![Start screen with favorites and tiles](docs/screenshots/home.png) | ![FM with station name, radio text and waterfall](docs/screenshots/fm.png) |
@@ -71,7 +73,7 @@ A small Python service controls the receivers and serves a web interface that a 
 | Tile | What you get | Backend |
 |---|---|---|
 | Web radio | station search, popular stations, station logos | radio-browser.info, `mpv` |
-| DAB+ | station scan, station list, scrolling text, pictures the stations send | `welle-cli`, `mpv` |
+| DAB+ | station scan, station list, scrolling text, pictures the stations send, reception meter for aligning the antenna | `welle-cli`, `mpv` |
 | FM | stereo, station names and radio text (RDS), band scan, presets, spectrum and waterfall | built-in receiver or `rtl_fm`, `rtl_power`, `mpv` |
 | Receiver | free tuning in FM, AM and sideband with waterfall, squelch, channel scan and a band plan: shortwave, amateur radio, PMR446, Freenet, CB; on shortwave it lists who is on the air right now | built-in receiver, `mpv`, EiBi schedule |
 | Aircraft | live map and list of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |

@@ -6,6 +6,8 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 
 [![Tests](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml/badge.svg)](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml)
 
+![RadioKiosk auf einem Raspberry Pi mit 7-Zoll-Touch-Display, davor ein RTL-SDR-Stick](docs/screenshots/pi.jpg)
+
 | | |
 |---|---|
 | ![Startbildschirm mit Favoriten und Kacheln](docs/screenshots/home.png) | ![UKW mit Sendername, Radiotext und Wasserfall](docs/screenshots/fm.png) |
@@ -71,7 +73,7 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Kachel | Funktionen | Technik dahinter |
 |---|---|---|
 | Webradio | Sendersuche, beliebte Sender, Senderlogos | radio-browser.info, `mpv` |
-| DAB+ | Sendersuchlauf, Senderliste, Lauftext, Bilder, die die Sender mitschicken | `welle-cli`, `mpv` |
+| DAB+ | Sendersuchlauf, Senderliste, Lauftext, Bilder, die die Sender mitschicken, Empfangsanzeige zum Ausrichten der Antenne | `welle-cli`, `mpv` |
 | UKW | Stereo, Sendernamen und Radiotext (RDS), Sendersuchlauf, Speicherplätze, Spektrum und Wasserfall | eingebauter Empfänger oder `rtl_fm`, `rtl_power`, `mpv` |
 | Empfänger | freies Abstimmen in FM, AM und Seitenband mit Wasserfall, Rauschsperre, Kanal-Suchlauf und Bandplan: Kurzwelle, Amateurfunk, PMR446, Freenet, CB; auf Kurzwelle zeigt er, wer gerade sendet | eingebauter Empfänger, `mpv`, EiBi-Fahrplan |
 | Flugzeuge | Live-Karte und Liste der Flugzeuge in deiner Umgebung (ADS-B) | `dump1090` oder `readsb`, Leaflet, OpenStreetMap |
