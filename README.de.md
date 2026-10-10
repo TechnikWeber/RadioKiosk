@@ -10,9 +10,10 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 
 | | |
 |---|---|
-| ![Startbildschirm mit Favoriten und Kacheln](docs/screenshots/home.png) | ![UKW mit Sendername, Radiotext und Wasserfall](docs/screenshots/fm.png) |
-| ![Freier Empfänger auf dem 2-m-Amateurfunkband](docs/screenshots/receiver.png) | ![Live-Flugzeugkarte mit Liste](docs/screenshots/aircraft.png) |
-| ![Ruhebildschirm mit Uhrzeit, Wetter und Sender](docs/screenshots/idle.png) | |
+| ![Startbildschirm mit den Kacheln](docs/screenshots/home.png) | ![UKW mit Sendername und Wasserfall](docs/screenshots/fm.png) |
+| ![Freier Empfänger auf dem 2-m-Amateurfunkband](docs/screenshots/receiver.png) | ![Live-Flugzeugkarte](docs/screenshots/aircraft.png) |
+| ![Ruhebildschirm mit der Galerie hinter der Uhr](docs/screenshots/idle.png) | ![Funkaktivität: der DX-Cluster](docs/screenshots/spots.png) |
+| ![Funkwetter: Sonnenwerte und Bandbedingungen](docs/screenshots/propagation.png) | ![Bericht einer Funk-Analyse](docs/screenshots/survey.png) |
 
 > Version 0.16: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
 

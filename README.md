@@ -10,9 +10,10 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 
 | | |
 |---|---|
-| ![Start screen with favorites and tiles](docs/screenshots/home.png) | ![FM with station name, radio text and waterfall](docs/screenshots/fm.png) |
-| ![Free receiver on the 2 m amateur band](docs/screenshots/receiver.png) | ![Live aircraft map with list](docs/screenshots/aircraft.png) |
-| ![Idle screen with time, weather and station](docs/screenshots/idle.png) | |
+| ![Start screen with the tiles](docs/screenshots/home.png) | ![FM with station name and waterfall](docs/screenshots/fm.png) |
+| ![Free receiver on the 2 m amateur band](docs/screenshots/receiver.png) | ![Live aircraft map](docs/screenshots/aircraft.png) |
+| ![Idle screen with the gallery behind the clock](docs/screenshots/idle.png) | ![On the air: the DX cluster](docs/screenshots/spots.png) |
+| ![Propagation: solar figures and band conditions](docs/screenshots/propagation.png) | ![Report of a radio survey](docs/screenshots/survey.png) |
 
 > Version 0.16: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
 
