@@ -65,7 +65,7 @@ Nach dem nächsten Start öffnet der Pi RadioKiosk von selbst im Vollbild. Wisse
 | Display | beliebig; die Oberfläche ist für Touch ab 800×480 gebaut und wird auf großen Bildschirmen (ab 1500 Pixel Breite) eine Stufe größer | 800×480 am offiziellen 7-Zoll-Display; 480×320 bis 1920×1080 im Browser |
 | Ton | jede Ausgabe, die PipeWire oder PulseAudio anbietet: Klinke, USB, Bluetooth, HDMI | eingebauter Ton |
 
-Kurzwelle braucht einen Stick, der unter 24 MHz abstimmen kann: Der V4 macht das mit seinem eingebauten Umsetzer, der V3 über Direct Sampling. In beiden Fällen ist eine lange Drahtantenne nötig. Ohne Stick funktioniert weiterhin das Webradio.
+Kurzwelle braucht einen Stick, der unter 24 MHz abstimmen kann: Der V4 macht das mit seinem eingebauten Umsetzer, der V3 über Direct Sampling. In beiden Fällen ist eine lange Drahtantenne nötig. Langwelle (153–279 kHz) liegt unter dem, wofür der V4 spezifiziert ist (500 kHz), und kommt bestenfalls schwach an. Ohne Stick funktioniert weiterhin das Webradio.
 
 ## Was es kann
 
@@ -76,7 +76,7 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Webradio | Sendersuche, beliebte Sender, Senderlogos | radio-browser.info, `mpv` |
 | DAB+ | Sendersuchlauf, Senderliste, Lauftext, Bilder, die die Sender mitschicken, Empfangsanzeige zum Ausrichten der Antenne | `welle-cli`, `mpv` |
 | UKW | Stereo, Sendernamen und Radiotext (RDS), Sendersuchlauf, Speicherplätze, Spektrum und Wasserfall | eingebauter Empfänger oder `rtl_fm`, `rtl_power`, `mpv` |
-| Empfänger | freies Abstimmen in FM, AM und Seitenband mit Wasserfall, Rauschsperre, Kanal-Suchlauf und Bandplan: Kurzwelle, Amateurfunk, PMR446, Freenet, CB; auf Kurzwelle zeigt er, wer gerade sendet | eingebauter Empfänger, `mpv`, EiBi-Fahrplan |
+| Empfänger | freies Abstimmen in FM, AM und Seitenband mit Wasserfall, Rauschsperre, Kanal-Suchlauf und Bandplan: Lang-, Mittel- und Kurzwelle, Amateurfunk, PMR446, Freenet, CB; dort zeigt er, wer gerade sendet | eingebauter Empfänger, `mpv`, EiBi-Fahrplan |
 | Flugzeuge | Live-Karte und Liste der Flugzeuge in deiner Umgebung (ADS-B) | `dump1090` oder `readsb`, Leaflet, OpenStreetMap |
 | Bluetooth | Bluetooth-Lautsprecher verbinden oder ein Handy über dieses Gerät abspielen lassen | `bluetoothctl`, PipeWire |
 | Wetter | aktuelles Wetter und Vorhersage für vier Tage | Open-Meteo |

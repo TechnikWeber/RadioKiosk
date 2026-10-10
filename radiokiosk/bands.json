@@ -89,8 +89,40 @@
    {
     "hz": 531000,
     "name": {
-     "de": "Bandanfang (531–1602 kHz)",
-     "en": "Band start (531–1602 kHz)"
+     "de": "Bandanfang (531 kHz)",
+     "en": "Band start (531 kHz)"
+    }
+   },
+   {
+    "hz": 1602000,
+    "name": {
+     "de": "Bandende (1602 kHz)",
+     "en": "Band end (1602 kHz)"
+    }
+   }
+  ]
+ },
+ {
+  "id": "lw",
+  "name": {
+   "de": "Langwelle",
+   "en": "Long wave"
+  },
+  "mode": "am",
+  "step": 9000,
+  "presets": [
+   {
+    "hz": 153000,
+    "name": {
+     "de": "Bandanfang (153 kHz)",
+     "en": "Band start (153 kHz)"
+    }
+   },
+   {
+    "hz": 279000,
+    "name": {
+     "de": "Bandende (279 kHz)",
+     "en": "Band end (279 kHz)"
     }
    }
   ]

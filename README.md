@@ -65,7 +65,7 @@ After the next start the Pi opens RadioKiosk full screen by itself. Things worth
 | Display | any; the interface is built for touch from 800×480 upwards and goes one size up on large screens (1500 pixels wide or more) | 800×480 on the official 7 inch display; 480×320 to 1920×1080 in a browser |
 | Audio | every output PipeWire or PulseAudio offers: headphone jack, USB, Bluetooth, HDMI | built-in audio |
 
-Shortwave needs a stick that can tune below 24 MHz: the V4 does it with its built-in upconverter, the V3 through direct sampling. Either way it needs a long wire antenna. Without a stick, web radio still works.
+Shortwave needs a stick that can tune below 24 MHz: the V4 does it with its built-in upconverter, the V3 through direct sampling. Either way it needs a long wire antenna. Long wave (153–279 kHz) lies below what the V4 is specified for (500 kHz) and comes in weakly at best. Without a stick, web radio still works.
 
 ## What it does
 
@@ -76,7 +76,7 @@ A small Python service controls the receivers and serves a web interface that a 
 | Web radio | station search, popular stations, station logos | radio-browser.info, `mpv` |
 | DAB+ | station scan, station list, scrolling text, pictures the stations send, reception meter for aligning the antenna | `welle-cli`, `mpv` |
 | FM | stereo, station names and radio text (RDS), band scan, presets, spectrum and waterfall | built-in receiver or `rtl_fm`, `rtl_power`, `mpv` |
-| Receiver | free tuning in FM, AM and sideband with waterfall, squelch, channel scan and a band plan: shortwave, amateur radio, PMR446, Freenet, CB; on shortwave it lists who is on the air right now | built-in receiver, `mpv`, EiBi schedule |
+| Receiver | free tuning in FM, AM and sideband with waterfall, squelch, channel scan and a band plan: long, medium and shortwave, amateur radio, PMR446, Freenet, CB; on these three it lists who is on the air right now | built-in receiver, `mpv`, EiBi schedule |
 | Aircraft | live map and list of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |
 | Bluetooth | connect a Bluetooth speaker, or let a phone play through this device | `bluetoothctl`, PipeWire |
 | Weather | current weather and a four-day forecast | Open-Meteo |
