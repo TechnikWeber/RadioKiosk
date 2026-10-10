@@ -17,6 +17,7 @@ const STRINGS = {
     noFavorites: "No favorites yet. Tap the star next to a station.",
     noResults: "No stations found.", loading: "Loading…",
     scan: "Scan for stations", scanning: "Scanning block", found: "found",
+    reception: "Reception", noSignal: "No signal",
     noServices: "No stations stored yet. Start a scan.",
     noSdr: "No RTL-SDR stick found", notInstalled: "not installed", noMpv: "mpv is not installed",
     running: "Running", quit: "Quit", expert: "Expert receiver",
@@ -66,6 +67,7 @@ const STRINGS = {
     noFavorites: "Noch keine Favoriten. Tippe auf den Stern neben einem Sender.",
     noResults: "Keine Sender gefunden.", loading: "Lädt…",
     scan: "Sendersuchlauf", scanning: "Suche in Block", found: "gefunden",
+    reception: "Empfang", noSignal: "Kein Signal",
     noServices: "Noch keine Sender gespeichert. Starte einen Suchlauf.",
     noSdr: "Kein RTL-SDR-Stick gefunden", notInstalled: "nicht installiert", noMpv: "mpv ist nicht installiert",
     running: "Läuft", quit: "Beenden", expert: "Experten-Empfänger",
@@ -501,8 +503,13 @@ const dab = {
   },
   draw() {
     const scan = state.source === "dab" && state.detail.scan;
+    const signal = state.source === "dab" && state.detail.signal;
     const parts = [h("div", { className: "toolbar" },
-      h("button", { textContent: t.scan, disabled: !!scan, onclick: () => api("/api/dab/scan", {}) }))];
+      h("button", { textContent: t.scan, disabled: !!scan, onclick: () => api("/api/dab/scan", {}) }),
+      // reception of the playing station: bars, and the signal-to-noise ratio for aligning the antenna
+      signal ? h("div", { className: `signal l${signal.level}` },
+        h("span", { textContent: signal.level ? `${t.reception} ${signal.snr} dB` : t.noSignal }),
+        h("i"), h("i"), h("i"), h("i")) : null)];
     // the picture the playing station sends along (cover, logo, programme info)
     if (state.source === "dab" && state.detail.slide) {
       if (!this.slides.includes(state.detail.sid)) this.slides.push(state.detail.sid);

@@ -115,6 +115,12 @@ footer button { background: var(--bg); }
   background: var(--panel);
 }
 
+.signal { margin-left: auto; display: flex; align-items: flex-end; gap: 3px; color: var(--muted); font-size: 14px; }
+.signal span { margin-right: 6px; align-self: center; }
+.signal i { width: 6px; border-radius: 2px; background: var(--muted); opacity: .35; }
+.signal i:nth-of-type(1) { height: 9px; } .signal i:nth-of-type(2) { height: 15px; }
+.signal i:nth-of-type(3) { height: 21px; } .signal i:nth-of-type(4) { height: 27px; }
+.signal.l1 i:nth-of-type(-n+1), .signal.l2 i:nth-of-type(-n+2), .signal.l3 i:nth-of-type(-n+3), .signal.l4 i { background: var(--accent); opacity: 1; }
 .hint { color: var(--muted); text-align: center; padding: 24px 12px; }
 
 /* FM */

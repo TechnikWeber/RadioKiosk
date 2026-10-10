@@ -18,6 +18,14 @@ SLIDES = CACHE_DIR / "dab_slides"   # last picture each station sent, doubles as
 CHANNELS = [f"{n}{c}" for n in range(5, 13) for c in "ABCD"] + [f"13{c}" for c in "ABCDEF"]
 
 
+def reception(snr, new_errors):
+    """Reception as one to four bars: from the signal-to-noise ratio, fewer while audio frames arrive broken."""
+    if new_errors > 20:   # audio drops out at this rate
+        return 1
+    level = 1 + sum(snr >= limit for limit in (5, 8, 12))
+    return min(level, 2) if new_errors else level
+
+
 class Dab:
     name = "dab"
 
@@ -143,26 +151,34 @@ class Dab:
         raise RuntimeError("no reception on block " + self.channel)
 
     async def _poll_text(self, sid):
-        """Show the station's scrolling text (DLS), or a warning while reception is poor."""
+        """Show the station's scrolling text (DLS) and how good reception is."""
         last_errors = last_slide = 0
         while True:
             await asyncio.sleep(2)
-            mux = await self._mux() or {}
-            for s in mux.get("services", []):
-                if s.get("sid") == sid:
-                    slide = s.get("mot", {}).get("lastchange", 0)
-                    if slide != last_slide and await self._save_slide(sid):
-                        last_slide = slide
-                        self.core.update(detail={"sid": sid, "slide": slide})
-                    errors = s.get("errorcounters", {}).get("frameerrors", 0)
-                    text = (s.get("dls", {}).get("label") or "").strip()
-                    if errors - last_errors > 20:
-                        # audio drops out at this rate; say why instead of showing stale text
-                        snr = mux.get("demodulator", {}).get("snr", 0)
-                        text = f"weak reception (SNR {snr:.0f} dB)"
-                    last_errors = errors
-                    if text:
-                        self.core.update(text=text)
+            mux = await self._mux()
+            if mux is None:
+                continue
+            snr = mux.get("demodulator", {}).get("snr", 0)
+            service = next((s for s in mux.get("services", []) if s.get("sid") == sid), None)
+            if service is None:   # the ensemble is gone: no bars
+                self.core.update(detail={**self.core.state["detail"], "signal": {"snr": round(snr), "level": 0}})
+                continue
+            slide = service.get("mot", {}).get("lastchange", 0)
+            if slide != last_slide and await self._save_slide(sid):
+                last_slide = slide
+            errors = service.get("errorcounters", {}).get("frameerrors", 0)
+            level = reception(snr, errors - last_errors)
+            text = (service.get("dls", {}).get("label") or "").strip()
+            if level == 1 and errors - last_errors > 20:
+                # say why the audio drops out instead of showing stale text
+                text = f"weak reception (SNR {snr:.0f} dB)"
+            last_errors = errors
+            detail = {"sid": sid, "signal": {"snr": round(snr), "level": level}}
+            if last_slide:
+                detail["slide"] = last_slide
+            self.core.update(detail=detail)
+            if text:
+                self.core.update(text=text)
 
     async def _save_slide(self, sid):
         """Stations send pictures (cover, logo, programme info) along with the audio."""
