@@ -30,6 +30,7 @@ RANGES = {
 }
 THRESHOLD = 8        # dB above the noise floor for a slice to count as occupied
 STEADY = 0.9         # share of the sweeps from which a signal counts as always there
+SWING = 6            # dB a slice must rise and fall by to count as coming and going
 LISTED = 40          # signals per list in the report
 # Who uses what, roughly, in Europe (ITU region 1): (from, to in MHz, name, kind).
 # Kinds: "broadcast" is expected to be always on, "ham" and "talk" are where people
@@ -134,6 +135,9 @@ def analyse(freqs, sweeps, slice_hz):
     occupied = above > THRESHOLD
     share = occupied.mean(axis=0)              # how often each slice was occupied
     peak = above.max(axis=0)
+    # Noise that lies just at the threshold crosses it now and then without anything
+    # happening. Something that really comes and goes also changes its level a lot.
+    swing = np.percentile(sweeps, 90, axis=0) - np.percentile(sweeps, 10, axis=0)
     signals = []
     active = np.flatnonzero(share > 0)
     if len(active):
@@ -143,6 +147,8 @@ def analyse(freqs, sweeps, slice_hz):
             mhz = float(freqs[strongest]) / 1e6
             service = service_at(mhz)
             steady = share[run].max() >= STEADY and len(sweeps) >= 3
+            if not steady and len(sweeps) >= 3 and swing[run].max() < SWING:
+                continue   # hovering around the threshold, not a transmission
             kind = service[3] if service else "unknown"
             width_khz = round(len(run) * float(slice_hz) / 1e3, 1)
             own = steady and width_khz <= 100 and own_oscillator(mhz, width_khz)
@@ -171,6 +177,8 @@ def analyse(freqs, sweeps, slice_hz):
         if not inside.any() or mhz * 1e6 < freqs[0] or mhz * 1e6 > freqs[-1]:
             continue
         heard = float(share[inside].max())
+        if heard < STEADY and len(sweeps) >= 3 and swing[inside].max() < SWING:
+            heard = 0.0
         centres.append({"mhz": mhz, "name": name, "share": round(heard, 2), "db": round(float(peak[inside].max()), 1),
                         # never off in several sweeps is a carrier, not a conversation
                         "steady": bool(heard >= STEADY and len(sweeps) >= 3)})

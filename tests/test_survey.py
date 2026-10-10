@@ -44,6 +44,13 @@ class SurveyTest(unittest.TestCase):
         self.assertAlmostEqual(floor[1160], -60, delta=1)
         self.assertAlmostEqual(floor[6000], -50, delta=1)
 
+    def test_noise_at_the_threshold_is_not_a_transmission(self):
+        freqs, rows = self.sweeps()
+        for i, row in enumerate(rows):
+            row[200] = -51 if i % 2 else -53     # 145.000: 9 or 7 dB over the floor, crossing the threshold
+        report = analyse(freqs, rows, 5e3)
+        self.assertEqual([s["mhz"] for s in report["now_and_then"]], [145.5])
+
     def test_the_stick_hears_its_own_crystal(self):
         self.assertTrue(own_oscillator(28.806, 20))
         self.assertTrue(own_oscillator(144.0, 5))
