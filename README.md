@@ -92,10 +92,11 @@ A small Python service controls the receivers and serves a web interface that a 
 | APRS | positions radio amateurs send on 144.800 MHz, on a map | `rtl_fm`, `direwolf`, Leaflet |
 | QSO log | logbook for contacts and for listeners (SWL), with bands and modes to tap; export as ADIF and CSV to `Documents/RadioKiosk` | – |
 | Radio survey | sweeps a range for a chosen time and reports what transmits now and then, what is always there and what looks like interference; the report can be saved | `rtl_power`, NumPy |
+| Alarm | wakes with a fixed station or the one heard last, with a tone if that fails; the alarm time is also shown on the idle screen | `mpv` |
 | Timer | kitchen timer that also rings over the station that is playing, and a stopwatch | `mpv` |
 | Gallery | slide show from a folder, on its own through the tile or behind the clock on the idle screen; with or without subfolders, pictures whole, slightly zoomed or filling the screen | Pillow |
 | SDR++ | the full SDR program for everything else | started as a normal program |
-| Settings | language, light or dark design, audio output, sleep timer, alarm clock, idle screen, size of the bottom bar, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
+| Settings | language, light or dark design, audio output, sleep timer, idle screen, size of the bottom bar, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
 | Device | screen brightness, Wi-Fi, Wi-Fi power saving on/off, update, restart and shut down, AirPlay and Spotify Connect receivers | NetworkManager, systemd, `shairport-sync`, `librespot` |
 
 The idle screen comes in four kinds, chosen in the settings: the clock on black with the display dimmed (the default), the gallery behind the clock, the newest articles of the news reader, or the newest spots of the DX cluster. The last three keep the display bright.

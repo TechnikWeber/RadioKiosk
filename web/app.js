@@ -346,6 +346,7 @@ const ICONS = {
   sensors: '<path d="M10 14V5a2 2 0 014 0v9a4 4 0 11-4 0z"/><path d="M12 17v-6"/>',
   ais: '<path d="M3 17l2 4h14l2-4M5 17v-6h14v6M9 11V6h6v5M12 6V3"/>',
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6"/>',
+  alarm: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2.500 2M5 4L2.500 6.500M19 4l2.500 2.500M7 19l-2 2M17 19l2 2"/>',
   spots: '<path d="M12 20V10M12 10l-5 10M12 10l5 10M8.5 6.5a5 5 0 017 0M6 4a8.5 8.5 0 0112 0"/><circle cx="12" cy="9" r="1"/>',
   propagation: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
   qso: '<path d="M6 3h11a2 2 0 012 2v16H8a2 2 0 01-2-2zM6 3a2 2 0 00-2 2v14M10 8h6M10 12h6M10 16h3"/>',
@@ -635,6 +636,7 @@ const home = {
       tile("ais", t.ais, c.ais ? sdrProblem : `rtl_ais ${t.notInstalled}`, () => show(ships), t.aisSub),
       tile("weather", t.weather, null, () => show(weather)),
       tile("gallery", t.gallery, null, () => show(galleryView), t.gallerySub),
+      tile("alarm", t.alarm, null, () => show(alarm), state.alarm || t.off),
       tile("timer", t.timer, null, () => show(timerView), t.timerSub),
       tile("propagation", t.propagation, null, () => show(propagationView), t.propagationSub),
       tile("spots", t.spots, null, () => show(spotsView), t.spotsSub),
@@ -1227,7 +1229,6 @@ const alarm = {
         }),
       ] : [hint(t.wakesWithNothing)]));
   },
-  back() { show(settings); return true; },
 };
 
 /* ---------- Bluetooth ---------- */
@@ -2362,7 +2363,7 @@ const tilesView = {
     const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner], ["adsb", t.adsb],
       ...c.apps.map(a => [a.id, a.name]), ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
       ["podcast", t.podcasts], ["music", t.music], ["audiobooks", t.audiobooks], ["news", t.news], ["sensors", t.sensors], ["ais", t.ais], ["weather", t.weather],
-      ["gallery", t.gallery], ["timer", t.timer], ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["aprs", t.aprs], ["qso", t.qso], ["survey", t.survey]];
+      ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["aprs", t.aprs], ["qso", t.qso], ["survey", t.survey]];
     const top = view.scrollTop;
     view.replaceChildren(h("p", { className: "explain", textContent: t.tilesHint }),
       h("div", { className: "toolbar wrap" }, ...all.map(([id, name]) => h("button", {
@@ -2590,8 +2591,7 @@ const settings = {
             await api("/api/sleep", { minutes: left ? SLEEP[(current + 1) % SLEEP.length] : SLEEP[1] });
             setTimeout(() => this.render(), 150);
           },
-        }),
-        h("button", { textContent: `${t.alarm}: ${state.alarm || t.off}`, onclick: () => show(alarm) })),
+        })),
       h("p", { className: "label", textContent: t.output }),
       ...sinks.map(s => stationRow({
         title: s.label, info: t.kinds[s.kind], active: s.active,
