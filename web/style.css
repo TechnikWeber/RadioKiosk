@@ -262,8 +262,8 @@ body:has(.keys) footer, body:has(.keys) #warn { display: none; }
 #idle-news { display: none; }
 /* the entries share the room above the clock evenly; how far that reaches is measured from the clock */
 #idle.news #idle-news { display: flex; flex-direction: column; justify-content: space-between; position: absolute;
-  left: 28px; right: 28px; top: 20px; bottom: 40vh; overflow: hidden; text-align: left; color: #fff; }
-#idle-news div { flex: none; padding-bottom: min(1.5vh, 8px); }
+  left: 28px; right: 28px; top: 14px; bottom: 40vh; overflow: hidden; text-align: left; color: #fff; }
+#idle-news div { flex: none; padding-bottom: min(1vh, 5px); }
 #idle-news p { margin: 2px 0; font-size: min(3.6vh, 19px); line-height: 1.3; color: #c9d1da; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 #idle-news b { font-size: min(4.8vh, 26px); line-height: 1.2; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 #idle-news small { color: var(--muted); font-size: 14px; }

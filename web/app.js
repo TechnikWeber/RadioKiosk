@@ -2712,7 +2712,7 @@ async function idleNews() {
     // entries without a text of their own (a video, a bare link) say nothing on a screen nobody taps
     const newest = (await api("/api/feeds")).articles.filter(a => a.summary).slice(0, 6), box = $("idle-news");
     box.replaceChildren();
-    box.style.bottom = `${$("idle-box").offsetHeight + 36}px`;   // everything above the clock
+    box.style.bottom = `${$("idle-box").offsetHeight + 26}px`;   // everything above the clock
     for (const a of newest) {
       const entry = h("div", {}, h("b", { textContent: a.title }), a.summary ? h("p", { textContent: a.summary }) : null,
         h("small", { textContent: [a.source, timeOf(a.date)].filter(Boolean).join(" · ") }));
@@ -2730,7 +2730,7 @@ async function idleSpots() {
   try {
     const { spots } = await api("/api/spots?kind=dx"), box = $("idle-news");
     box.replaceChildren();
-    box.style.bottom = `${$("idle-box").offsetHeight + 36}px`;
+    box.style.bottom = `${$("idle-box").offsetHeight + 26}px`;
     for (const s of spots.slice(0, 12)) {
       const entry = h("div", { className: "spot" }, h("b", { textContent: `${s.dx} · ${s.khz.toFixed(1)} kHz${s.mode ? " · " + s.mode : ""}` }),
         h("small", { textContent: [s.where, s.comment, spotTime(s.time)].filter(Boolean).join(" · ") }));
