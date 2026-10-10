@@ -38,6 +38,11 @@ def plain(markup, limit=None):
     return text if limit is None or len(text) <= limit else text[:limit].rsplit(" ", 1)[0] + " …"
 
 
+def real_text(summary, title):
+    """The summary, or nothing where a feed only repeats the headline or gives a bare link."""
+    return "" if summary == title or re.fullmatch(r"(https?://|www\.)\S+", summary) else summary
+
+
 def moment(text):
     """Unix time of a feed's date, RFC 822 (RSS) or ISO 8601 (Atom); 0 if it cannot be read."""
     text = (text or "").strip()
@@ -133,8 +138,7 @@ class Feeds:
             parsed = await fetch_feed(feed["url"])
         except RuntimeError:
             return cached[1] if cached else []   # keep showing what was read last
-        # some feeds repeat the headline as the text
-        articles = [{"id": i["id"], "title": i["title"], "summary": "" if i["summary"] == i["title"] else i["summary"],
+        articles = [{"id": i["id"], "title": i["title"], "summary": real_text(i["summary"], i["title"]),
                      "date": i["date"],
                      "link": i["link"], "source": feed["title"]} for i in parsed["items"] if i["title"]]
         self.fetched[feed["url"]] = (time.time(), articles)

@@ -2012,7 +2012,8 @@ async function idleNews() {
   try {
     // Headline, the start of the text and the source of the newest articles: as many as fit
     // above the clock. Whether one more fits is measured, so nothing is ever cut in half.
-    const newest = (await api("/api/feeds")).articles.slice(0, 6), box = $("idle-news");
+    // entries without a text of their own (a video, a bare link) say nothing on a screen nobody taps
+    const newest = (await api("/api/feeds")).articles.filter(a => a.summary).slice(0, 6), box = $("idle-news");
     box.replaceChildren();
     for (const a of newest) {
       const entry = h("div", {}, h("b", { textContent: a.title }), a.summary ? h("p", { textContent: a.summary }) : null,

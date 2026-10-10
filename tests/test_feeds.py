@@ -1,6 +1,6 @@
 import unittest
 
-from radiokiosk.feeds import parse_feed, plain, seconds
+from radiokiosk.feeds import parse_feed, plain, real_text, seconds
 from radiokiosk.sources.sensors import reading
 
 RSS = b"""<?xml version="1.0"?><rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
@@ -36,6 +36,11 @@ class FeedTest(unittest.TestCase):
         for data in (b"<html><body>no</body></html>", b"not xml at all"):
             with self.assertRaises(RuntimeError):
                 parse_feed(data)
+
+    def test_a_repeated_headline_or_a_bare_link_is_no_text(self):
+        self.assertEqual([real_text("Headline", "Headline"), real_text("https://example.org/video", "Headline"),
+                          real_text("See https://example.org for more", "Headline")],
+                         ["", "", "See https://example.org for more"])
 
     def test_text_and_lengths(self):
         self.assertEqual(plain("a&nbsp;b <br> c"), "a b c")
