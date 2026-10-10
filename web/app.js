@@ -25,6 +25,7 @@ const STRINGS = {
     tuner: "Receiver", tunerSub: "Shortwave, 2 m, 70 cm …", squelch: "Squelch", off: "off",
     signal: "Signal", gainLabel: "Gain", stereo: "Stereo", muted: "squelched", zoom: "Zoom",
     waterfall: "Waterfall", on: "on", tooSmall: "needs more memory",
+    wifiSaving: "Wi-Fi power saving",
     device: "Device", brightness: "Brightness", wifi: "Wi-Fi", wifiPassword: "Password for", connect: "Connect",
     connecting: "Connecting…", connected: "connected", update: "Update RadioKiosk", updating: "Updating…",
     upToDate: "Already up to date", updated: "Updated – restarting", restart: "Restart", shutDown: "Shut down",
@@ -75,6 +76,7 @@ const STRINGS = {
     tuner: "Empfänger", tunerSub: "Kurzwelle, 2 m, 70 cm …", squelch: "Rauschsperre", off: "aus",
     signal: "Signal", gainLabel: "Verstärkung", stereo: "Stereo", muted: "Rauschsperre zu", zoom: "Zoom",
     waterfall: "Wasserfall", on: "an", tooSmall: "braucht mehr Arbeitsspeicher",
+    wifiSaving: "WLAN-Stromsparen",
     device: "Gerät", brightness: "Helligkeit", wifi: "WLAN", wifiPassword: "Passwort für", connect: "Verbinden",
     connecting: "Verbinde…", connected: "verbunden", update: "RadioKiosk aktualisieren", updating: "Aktualisiere…",
     upToDate: "Bereits aktuell", updated: "Aktualisiert – starte neu", restart: "Neu starten", shutDown: "Ausschalten",
@@ -131,6 +133,8 @@ const MESSAGES_DE = [
   [/^the receiver stopped unexpectedly$/, "Der Empfänger wurde unerwartet beendet"],
   [/^weak reception \(SNR (.+) dB\)$/, "Schwacher Empfang (Signalabstand $1 dB)"],
   [/^reception on block (.+) is too weak$/, "Der Empfang auf Block $1 ist zu schwach"],
+  [/^this computer does not let RadioKiosk change that setting$/, "Dieser Rechner lässt RadioKiosk diese Einstellung nicht ändern"],
+  [/^no Wi-Fi connection$/, "Keine WLAN-Verbindung"],
   [/^no reception on block (.+)$/, "Kein Empfang auf Block $1"],
   [/^welle-cli could not open the SDR$/, "welle-cli konnte den SDR-Stick nicht öffnen"],
   [/^welle-cli did not start$/, "welle-cli ist nicht gestartet"],
@@ -1068,6 +1072,16 @@ const deviceView = {
         h("div", { className: "steps" }, bright(-25), bright(-5), bright(5), bright(25))]),
       h("div", { className: "toolbar wrap" },
         d.wifi ? h("button", { textContent: t.wifi, onclick: () => show(wifiView) }) : null,
+        // off keeps streams and the remote control from stalling on adapters that sleep too deeply
+        d.wifi_powersave == null ? null : h("button", {
+          className: d.wifi_powersave ? "on" : "", textContent: `${t.wifiSaving}: ${d.wifi_powersave ? t.on : t.off}`,
+          onclick: async e => {
+            e.target.disabled = true;
+            try { await api("/api/device/wifi_powersave", { on: !d.wifi_powersave }); this.note = ""; }
+            catch (error) { this.note = say(error.message); }
+            this.render();
+          },
+        }),
         ...d.receivers.map(r => h("button", {
           className: r.on ? "on" : "", textContent: `${r.name}: ${r.on ? t.on : t.off}`,
           onclick: async () => { await api("/api/device/receiver", { id: r.id, on: !r.on }); this.render(); },

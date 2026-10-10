@@ -99,6 +99,39 @@ async def wifi_connect(name, password=""):
         raise RuntimeError("could not connect to this network – wrong password?")
 
 
+async def _wifi_connection():
+    """Name of the Wi-Fi connection in use."""
+    code, out = await run("nmcli", "-t", "-f", "TYPE,NAME", "connection", "show", "--active", timeout=10)
+    for line in out.splitlines() if code == 0 else []:
+        kind, name = line.split(":", 1)
+        if kind == "802-11-wireless":
+            return name.replace("\\:", ":")
+    return None
+
+
+async def wifi_powersave():
+    """Is the Wi-Fi adapter saving power? None without a Wi-Fi connection.
+
+    Power saving lets some adapters miss traffic for minutes, the one in a
+    Raspberry Pi 3 among them: streams stall and the computer drops off the network.
+    """
+    if not has_wifi() or (name := await _wifi_connection()) is None:
+        return None
+    code, out = await run("nmcli", "-g", "802-11-wireless.powersave", "connection", "show", name, timeout=10)
+    return None if code else out.strip() not in ("disable", "2")
+
+
+async def set_wifi_powersave(on):
+    name = await _wifi_connection()
+    if name is None:
+        raise RuntimeError("no Wi-Fi connection")
+    code, _ = await run("nmcli", "connection", "modify", name, "802-11-wireless.powersave", "3" if on else "2")
+    if code:
+        raise RuntimeError("this computer does not let RadioKiosk change that setting")
+    # the adapter takes the setting when it connects; the interface is back within seconds
+    await run("nmcli", "connection", "up", name, timeout=45)
+
+
 # --- update ---------------------------------------------------------------
 
 def can_update():

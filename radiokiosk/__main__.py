@@ -131,7 +131,8 @@ def build(cfg):
             # the chosen brightness, not what the idle screen has dimmed it to
             "brightness": cfg["brightness"] if device.brightness() is not None and cfg["brightness"] else device.brightness(),
             "power": await device.can_power_off(),
-            "wifi": device.has_wifi(), "update": device.can_update(), "version": __version__,
+            "wifi": device.has_wifi(), "wifi_powersave": await device.wifi_powersave(),
+            "update": device.can_update(), "version": __version__,
             "receivers": receivers.list(),
         })
 
@@ -149,6 +150,9 @@ def build(cfg):
             if not cfg["brightness"]:
                 save_setting(cfg, "brightness", device.brightness())
             device.set_brightness(round(cfg["brightness"] * 0.3) if body["on"] else cfg["brightness"])
+            return ok()
+        if action == "wifi_powersave":
+            await device.set_wifi_powersave(bool(body["on"]))
             return ok()
         if action == "power":
             await core.stop()
