@@ -14,7 +14,7 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 | ![Free receiver on the 2 m amateur band](docs/screenshots/receiver.png) | ![Live aircraft map with list](docs/screenshots/aircraft.png) |
 | ![Idle screen with time, weather and station](docs/screenshots/idle.png) | |
 
-> Version 0.13: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
+> Version 0.14: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
 
 ## Install
 
@@ -83,6 +83,9 @@ A small Python service controls the receivers and serves a web interface that a 
 | News | RSS and Atom feeds as a list of the newest articles that refreshes itself | own feed reader |
 | Sensors | wireless thermometers, weather stations and other sensors nearby on 433 MHz | `rtl_433` |
 | Ships | live map and list of the ships nearby (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |
+| Propagation | solar flux, sunspots, K and A index, shortwave band conditions and the MUF of the nearest ionosonde | hamqsl.com (N0NBH), prop.kc2g.com (KC2G, GIRO) |
+| QSO log | logbook for contacts and for listeners (SWL), with bands and modes to tap; export as ADIF and CSV to `Documents/RadioKiosk` | – |
+| Radio survey | sweeps a range for a chosen time and reports what transmits now and then, what is always there and what looks like interference; the report can be saved | `rtl_power`, NumPy |
 | Timer | kitchen timer that also rings over the station that is playing, and a stopwatch | `mpv` |
 | Gallery | slide show from a folder, on its own through the tile or behind the clock on the idle screen; with or without subfolders, pictures whole, slightly zoomed or filling the screen | Pillow |
 | SDR++ | the full SDR program for everything else | started as a normal program |
@@ -90,6 +93,10 @@ A small Python service controls the receivers and serves a web interface that a 
 | Device | screen brightness, Wi-Fi, Wi-Fi power saving on/off, update, restart and shut down, AirPlay and Spotify Connect receivers | NetworkManager, systemd, `shairport-sync`, `librespot` |
 
 The idle screen comes in three kinds, chosen in the settings: the clock on black with the display dimmed (the default), the gallery behind the clock, or the newest article of the news reader. The last two keep the display bright.
+
+Moon phase and propagation can be switched on in the settings; they then appear on the idle screen and in the weather tile. Both are off by default.
+
+The radio survey measures coarsely: over the whole range from 24 to 1766 MHz one sweep takes about 25 seconds on a Raspberry Pi 3, and the stick is not equally sensitive everywhere. Whether somebody is on the air on a band shows most reliably when you choose only that band (2 m: about one sweep per second). Carriers the stick produces itself show up as signals that are always there.
 
 The podcast search can use three directories (Settings › Podcast directory). fyyd is the default and, like Apple Podcasts, needs no key; for the Podcast Index, enter the key and secret you get for free at podcastindex.org.
 

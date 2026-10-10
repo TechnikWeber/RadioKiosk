@@ -14,7 +14,7 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 | ![Freier Empfänger auf dem 2-m-Amateurfunkband](docs/screenshots/receiver.png) | ![Live-Flugzeugkarte mit Liste](docs/screenshots/aircraft.png) |
 | ![Ruhebildschirm mit Uhrzeit, Wetter und Sender](docs/screenshots/idle.png) | |
 
-> Version 0.13: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
+> Version 0.14: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
 
 ## Installation
 
@@ -83,6 +83,9 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Nachrichten | RSS- und Atom-Feeds als Liste der neuesten Artikel, aktualisiert sich selbst | eigener Feed-Leser |
 | Funksensoren | Funk-Thermometer, Wetterstationen und andere Sensoren der Umgebung auf 433 MHz | `rtl_433` |
 | Schiffe | Live-Karte und Liste der Schiffe in der Umgebung (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |
+| Funkwetter | Sonnenfluss, Sonnenflecken, K- und A-Index, Bandbedingungen für Kurzwelle und die MUF der nächsten Ionosonde | hamqsl.com (N0NBH), prop.kc2g.com (KC2G, GIRO) |
+| QSO-Log | Logbuch für Funkverbindungen und für reine Hörer (SWL), mit Bändern und Betriebsarten zum Antippen; Export als ADIF und CSV nach `Dokumente/RadioKiosk` | – |
+| Funk-Analyse | durchläuft einen Bereich über eine gewählte Zeit und berichtet, was zeitweise sendet, was dauernd da ist und was nach Störung aussieht; Bericht zum Speichern | `rtl_power`, NumPy |
 | Timer | Kurzzeitwecker, der auch über dem laufenden Sender klingelt, und Stoppuhr | `mpv` |
 | Galerie | Diashow aus einem Ordner, pur über die Kachel oder im Ruhebildschirm hinter der Uhr; mit oder ohne Unterordner, Bilder ganz, leicht gezoomt oder bildschirmfüllend | Pillow |
 | SDR++ | das vollwertige SDR-Programm für alles Weitere | startet als normales Programm |
@@ -90,6 +93,10 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Gerät | Bildschirmhelligkeit, WLAN, WLAN-Stromsparen ein/aus, Aktualisieren, Neustart und Ausschalten, AirPlay- und Spotify-Connect-Empfänger | NetworkManager, systemd, `shairport-sync`, `librespot` |
 
 Der Ruhebildschirm hat drei Arten, wählbar in den Einstellungen: die Uhr auf schwarzem Grund mit abgedunkeltem Display (Standard), die Galerie hinter der Uhr oder der neueste Artikel aus den Nachrichten. Bei den letzten beiden bleibt das Display hell.
+
+Mondphase und Funkwetter lassen sich in den Einstellungen zuschalten; sie erscheinen dann im Ruhebildschirm und in der Wetter-Kachel. Beides ist standardmäßig aus.
+
+Die Funk-Analyse misst grob: Über den ganzen Bereich von 24 bis 1766 MHz dauert ein Durchlauf auf einem Raspberry Pi 3 etwa 25 Sekunden, und der Stick ist nicht überall gleich empfindlich. Ob auf einem Band gerade jemand funkt, zeigt sie am zuverlässigsten, wenn du nur dieses Band wählst (2 m: etwa ein Durchlauf pro Sekunde). Träger, die der Stick selbst erzeugt, tauchen als Dauersignale auf.
 
 Für die Podcast-Suche stehen drei Verzeichnisse zur Wahl (Einstellungen › Podcast-Verzeichnis). fyyd ist voreingestellt und braucht wie Apple Podcasts keinen Schlüssel; für den Podcast Index trägst du dort Schlüssel und Geheimnis ein, die es kostenlos auf podcastindex.org gibt.
 
