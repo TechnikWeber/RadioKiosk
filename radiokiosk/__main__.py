@@ -435,6 +435,13 @@ def build(cfg):
         await core.close()
 
     app.on_startup.append(on_startup)
+    async def on_shutdown(app):
+        # An open interface holds its connection for good; without closing it here a
+        # restart waited a minute for the kiosk screen to let go.
+        for socket in list(core.clients):
+            await socket.close(code=1001)
+
+    app.on_shutdown.append(on_shutdown)
     app.on_cleanup.append(on_cleanup)
     return app
 
