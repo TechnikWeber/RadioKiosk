@@ -251,10 +251,12 @@ body:has(.keys) footer, body:has(.keys) #warn { display: none; }
 /* over a picture the clock moves into the corner and gets a shadow to stay readable */
 /* Where the idle screen shows something besides the clock, the clock keeps its size and moves to the
    bottom: the time on the left, date, weather and station beside it on the right. */
-#idle.pictures #idle-box, #idle.news #idle-box { position: absolute; left: 24px; right: 24px; bottom: 12px; max-width: none;
-  display: grid; grid-template-columns: auto 1fr; column-gap: 24px; align-content: end; text-align: right; }
-#idle.pictures #idle-time, #idle.news #idle-time { grid-row: 1 / span 4; align-self: end; text-align: left; line-height: .86; }
+/* the margins leave room for the little shift against burn-in */
+#idle.pictures #idle-box, #idle.news #idle-box { position: absolute; left: 44px; right: 44px; bottom: 20px; max-width: none;
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: 1fr repeat(4, auto); column-gap: 24px; text-align: right; }
+#idle.pictures #idle-time, #idle.news #idle-time { grid-row: 1 / -1; align-self: end; text-align: left; line-height: .86; }
 #idle.pictures #idle-box > :not(#idle-time), #idle.news #idle-box > :not(#idle-time) { grid-column: 2; margin-top: 2px; min-height: 0; }
+#idle-date { grid-row: 2; } #idle-extra { grid-row: 3; } #idle-title { grid-row: 4; } #idle-text { grid-row: 5; }
 #idle.pictures #idle-box { color: #fff; text-shadow: 0 1px 8px #000, 0 0 2px #000; }
 #idle.pictures #idle-extra, #idle.pictures #idle-text { color: #fff; }
 #idle-news { display: none; }
