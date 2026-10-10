@@ -42,7 +42,10 @@ DEFAULTS = {
     # slide show, see gallery.py; None until something is set
     "gallery": None,
     # what the idle screen shows: "clock" (black and dimmed), "gallery" or "feed" (the newest article)
-    "idle_content": "clock",
+    # one or several; with several the idle screen changes between them every idle_rotate minutes
+    "idle_contents": None,
+    "idle_content": "clock",   # the single choice of earlier versions, taken over where idle_contents is not set
+    "idle_rotate": 5,
     # tiles taken off the start screen, by their id
     "hidden_tiles": [],
     # podcast directory: "fyyd", "apple" or "podcastindex"; only the last needs key and secret

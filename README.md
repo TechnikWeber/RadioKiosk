@@ -99,9 +99,22 @@ A small Python service controls the receivers and serves a web interface that a 
 | Settings | language, light or dark design, audio output, sleep timer, idle screen, size of the bottom bar, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
 | Device | screen brightness, Wi-Fi, Wi-Fi power saving on/off, update, restart and shut down, AirPlay and Spotify Connect receivers | NetworkManager, systemd, `shairport-sync`, `librespot` |
 
-The idle screen comes in five kinds, chosen in the settings: the clock on black with the display dimmed (the default), the gallery behind the clock, the newest articles of the news reader, the newest spots of the DX cluster, or a Bible verse for the day. All but the clock keep the display bright.
+The idle screen comes in five kinds, one or several in turn: the clock on black with the display dimmed (the default), the gallery behind the clock, the newest articles of the news reader, the newest spots of the DX cluster, or a Bible verse for the day. All but the clock keep the display bright.
 
-The Bible verse comes from the curated list of the [Bible Verse Widget](https://github.com/TechnikWeber/bible-verse-widget) (1000 verses, Luther 1912, World English Bible or Reina-Valera 1909, all in the public domain) and is picked by the same rule, so widget and RadioKiosk show the same verse on the same day. Alternatively it is the Herrnhuter Losungen. Those are not part of RadioKiosk: they are free of charge for non-commercial use, but not free content. Download the year file (XML) yourself from <https://www.losungen.de/digital/>, where you accept the terms, and import it under Settings › Bible verse: from another device through its browser (switch remote control on) or from a folder of the computer, such as a USB stick. Where the widget has already imported the Losungen on the same computer, RadioKiosk reads its file. This has to be repeated every year; without the file the curated list is shown.
+The Bible verse comes from the curated list of the [Bible Verse Widget](https://github.com/TechnikWeber/bible-verse-widget) (1000 verses, Luther 1912, World English Bible or Reina-Valera 1909, all in the public domain) and is picked by the same rule, so widget and RadioKiosk show the same verse on the same day. Which source is used is set under Settings › Content › Bible verse.
+
+With several kinds switched on (Settings › Idle screen › Shows), the idle screen changes between them after a time you set, for example between the news and the Bible verse every five minutes.
+
+### Importing the Herrnhuter Losungen
+
+The Losungen are not part of RadioKiosk: they are free of charge for non-commercial use, but not free content. You download the year file yourself and import it. This has to be repeated every year; without the file the curated list is shown.
+
+1. Download the year file in XML format (a ZIP file) from <https://www.losungen.de/digital/>. You accept the terms of use there.
+2. Import it, whichever way suits:
+   - **With the phone or laptop the file is on (the easiest):** on the RadioKiosk, switch on remote control under Settings › Device and network. Then open the address shown there (such as `http://radio.local:8080`) in the phone's browser, go to Settings › Content › Bible verse and tap *Import a file from this device*. The phone has to be in the same network.
+   - **From a USB stick or a folder:** copy the file onto a stick, plug it in and choose the folder under Settings › Content › Bible verse, *Import from a folder of this computer*. RadioKiosk takes every ZIP or XML file with "Losung" in its name.
+   - **With the Bible Verse Widget:** where the widget has already imported the Losungen on the same computer, RadioKiosk reads its file; there is nothing else to do.
+3. Set the source to *Herrnhuter Losungen* under Settings › Content › Bible verse, and switch the Bible verse on under Idle screen › Shows.
 
 Without an internet connection everything that needs none keeps working (FM, DAB+, receiver, gallery, timer, QSO log, radio survey); the other tiles say that their source cannot be reached.
 

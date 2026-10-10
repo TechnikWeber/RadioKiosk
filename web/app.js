@@ -69,6 +69,8 @@ const STRINGS = {
     timer: "Timer", timerSub: "and stopwatch", stopwatch: "Stopwatch", start: "Start", stopIt: "Stop", reset: "Reset", cancel: "Cancel",
     timeUp: "Time is up",
     idleContent: "Shows", idleContents: { clock: "clock", gallery: "gallery", feed: "news", spots: "DX cluster", verse: "Bible verse" },
+    idleContentsHint: "Switch on what the idle screen is to show. With more than one it changes between them. The clock alone is black and dims the display; everything else keeps it bright.",
+    idleRotate: "Changes every",
     galleryFit: "Pictures", galleryFits: { whole: "whole picture", smart: "zoom slightly", fill: "fill the screen" },
     subfoldersToo: "Subfolders", demoPictures: "Demo pictures (no folder of your own chosen yet)",
     sectionPlayback: "Playback", sectionDisplay: "Display", sectionContent: "Content", sectionReception: "Reception",
@@ -114,6 +116,8 @@ const STRINGS = {
     verseTranslation: "Translation", verseTranslations: { auto: "as the interface", de: "Deutsch (Luther 1912)", en: "English (WEB)", es: "Español (RVR 1909)" },
     verseReference: "Show the reference",
     losungenHow: "The Losungen are not part of RadioKiosk. Download this year's file (XML) from losungen.de/digital, where you accept the terms, and import it here: from another device through its browser, or from a folder of this computer such as a USB stick. Until then the curated list is shown.",
+    losungenPhone: "Easiest with the phone or laptop the file was downloaded on: open this address in its browser, go to Settings › Bible verse there and tap \"Import a file from this device\".",
+    losungenPhoneOn: "Remote control is on, so the address works now.", losungenPhoneOff: "For that, switch on remote control first: Settings › Device and network.",
     losungenThere: "Imported:", losungenMissing: "No file imported yet for", losungenUpload: "Import a file from this device",
     losungenFolder: "Import from a folder of this computer", losungenImported: "Imported the Losungen for",
     theme: "Design", themes: { dark: "dark", light: "light" },
@@ -197,6 +201,8 @@ const STRINGS = {
     timer: "Timer", timerSub: "und Stoppuhr", stopwatch: "Stoppuhr", start: "Start", stopIt: "Stopp", reset: "Zurücksetzen", cancel: "Abbrechen",
     timeUp: "Die Zeit ist um",
     idleContent: "Zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", feed: "Nachrichten", spots: "DX-Cluster", verse: "Bibelvers" },
+    idleContentsHint: "Schalte ein, was der Ruhebildschirm zeigen soll. Bei mehr als einem wechselt er zwischen ihnen. Die Uhr allein ist schwarz und dunkelt das Display ab; alles andere lässt es hell.",
+    idleRotate: "Wechsel alle",
     galleryFit: "Bilder", galleryFits: { whole: "ganzes Bild", smart: "leicht zoomen", fill: "Bildschirm füllen" },
     subfoldersToo: "Unterordner", demoPictures: "Demobilder (noch kein eigener Ordner gewählt)",
     sectionPlayback: "Wiedergabe", sectionDisplay: "Anzeige", sectionContent: "Inhalte", sectionReception: "Empfang",
@@ -242,6 +248,8 @@ const STRINGS = {
     verseTranslation: "Übersetzung", verseTranslations: { auto: "wie die Oberfläche", de: "Deutsch (Luther 1912)", en: "English (WEB)", es: "Español (RVR 1909)" },
     verseReference: "Stelle anzeigen",
     losungenHow: "Die Losungen gehören nicht zu RadioKiosk. Lade die Jahresdatei (XML) unter losungen.de/digital herunter, wo du die Nutzungsbedingungen akzeptierst, und spiele sie hier ein: von einem anderen Gerät über dessen Browser oder aus einem Ordner dieses Rechners, etwa von einem USB-Stick. Bis dahin erscheint die kuratierte Liste.",
+    losungenPhone: "Am einfachsten mit dem Handy oder Laptop, auf dem die Datei heruntergeladen wurde: dort im Browser diese Adresse öffnen, zu Einstellungen › Bibelvers gehen und „Datei von diesem Gerät einspielen“ antippen.",
+    losungenPhoneOn: "Die Fernbedienung ist an, die Adresse funktioniert also jetzt.", losungenPhoneOff: "Dafür zuerst die Fernbedienung einschalten: Einstellungen › Gerät und Netz.",
     losungenThere: "Eingespielt:", losungenMissing: "Noch keine Datei eingespielt für", losungenUpload: "Datei von diesem Gerät einspielen",
     losungenFolder: "Aus einem Ordner dieses Rechners einspielen", losungenImported: "Losungen eingespielt für",
     theme: "Design", themes: { dark: "dunkel", light: "hell" },
@@ -2369,6 +2377,31 @@ const surveyView = {
   },
 };
 
+/* ---------- what the idle screen shows ---------- */
+
+// One kind or several. With several the idle screen changes between them after a set time.
+const idleContentsView = {
+  title: t.idle,
+  render() { this.draw(); },
+  draw() {
+    const chosen = state.idle_contents || ["clock"], ROTATE = [1, 2, 5, 10, 15, 30, 60];
+    view.replaceChildren(h("p", { className: "explain", textContent: t.idleContentsHint }),
+      h("div", { className: "toolbar wrap" }, ...Object.keys(t.idleContents).map(kind => h("button", {
+        className: chosen.includes(kind) ? "on" : "", textContent: `${t.idleContents[kind]}: ${chosen.includes(kind) ? t.on : t.off}`,
+        // the last one cannot be switched off: the idle screen has to show something
+        disabled: chosen.includes(kind) && chosen.length === 1,
+        onclick: () => api("/api/settings", { key: "idle_contents",
+          value: chosen.includes(kind) ? chosen.filter(k => k !== kind) : [...chosen, kind] }),
+      }))),
+      h("div", { className: "toolbar wrap" }, h("button", {
+        textContent: `${t.idleRotate}: ${state.idle_rotate} ${t.minutes}`, disabled: chosen.length < 2,
+        onclick: () => api("/api/settings", { key: "idle_rotate", value: ROTATE[(ROTATE.indexOf(state.idle_rotate) + 1) % ROTATE.length] }),
+      })));
+  },
+  onState() { this.draw(); },
+  back() { show(settings); return true; },
+};
+
 /* ---------- which tiles the start screen shows ---------- */
 
 // Every tile but the settings, which are the way back here.
@@ -2403,7 +2436,7 @@ const verseSettings = {
   title: t.verse,
   note: "",
   async render() {
-    const v = await api("/api/verse"), year = new Date().getFullYear();
+    const [v, net] = await Promise.all([api("/api/verse"), api("/api/settings")]), year = new Date().getFullYear();
     const set = async (key, value) => { await api("/api/verse", { key, value }); this.render(); };
     const chips = (label, key, names) => [h("p", { className: "label", textContent: label }),
       h("div", { className: "toolbar wrap" }, ...Object.keys(names).map(value => h("button", {
@@ -2433,6 +2466,9 @@ const verseSettings = {
           onclick: () => set("reference", !v.reference) })),
       h("h2", { className: "section", textContent: t.verseSources.losungen }),
       h("p", { className: "explain", textContent: t.losungenHow }),
+      // the way nobody finds by themselves: through the phone that downloaded the file
+      h("p", { className: "explain" }, t.losungenPhone, h("br"), h("b", { textContent: net.addresses.join("  ·  ") }), h("br"),
+        net.remote ? t.losungenPhoneOn : t.losungenPhoneOff),
       h("p", { className: "label", textContent: v.years.includes(year) ? `${t.losungenThere} ${v.years.join(", ")}`
         : `${t.losungenMissing} ${year}` + (v.years.length ? ` (${t.losungenThere} ${v.years.join(", ")})` : "") }),
       h("div", { className: "toolbar wrap" }, file,
@@ -2692,12 +2728,8 @@ const settings = {
           },
         }),
         h("button", {
-          textContent: `${t.idleContent}: ${t.idleContents[state.idle_content || "clock"]}`,
-          onclick: async () => {
-            const kinds = Object.keys(t.idleContents);
-            await api("/api/settings", { key: "idle_content", value: kinds[(kinds.indexOf(state.idle_content || "clock") + 1) % kinds.length] });
-            this.render();
-          },
+          textContent: `${t.idleContent}: ${(state.idle_contents || ["clock"]).map(k => t.idleContents[k]).join(", ")}`,
+          onclick: () => show(idleContentsView),
         }),
         cycle(t.showMoon, "show_moon", "off", { off: t.off, on: t.on }),
         cycle(t.showSpace, "show_space", "off", { off: t.off, on: t.on })),
@@ -2845,27 +2877,42 @@ async function idleVerse() {
 }
 // Five kinds, a setting: the classic clock on black with the display dimmed, the gallery
 // behind the clock, or the newest article. The last two keep the display bright.
-async function showIdle() {
-  idle.hidden = false;
+let idleKind = null, idleSince = 0, idleTurn = 0;
+// Bring one kind onto the idle screen. One that has nothing to show (no feed chosen, no
+// connection) leaves the plain clock in its place.
+async function showIdleKind(kind) {
+  idleKind = kind;
+  idleSince = Date.now();
   idle.classList.remove("pictures", "news");
+  idleSlides.stop();
   drawIdle();
-  const content = state.idle_content;
-  if (content === "gallery") {
+  if (kind === "gallery") {
     await loadGallery();
-    if (idle.hidden) return;
+    if (idle.hidden || idleKind !== kind) return;
     if (galleryInfo && galleryInfo.count) {
       idle.classList.add("pictures");
       idleSlides.start();
+      dim(false);
       return;
     }
-  } else if (content === "feed" || content === "spots" || content === "verse") {
+  } else if (kind === "feed" || kind === "spots" || kind === "verse") {
     idle.classList.add("news");   // shown first: fitting the entries needs their real sizes
     $("idle-news").replaceChildren();
-    const found = await ({ spots: idleSpots, verse: idleVerse }[content] || idleNews)();
-    if (idle.hidden || found) return;
+    const found = await ({ spots: idleSpots, verse: idleVerse }[kind] || idleNews)();
+    if (idle.hidden || idleKind !== kind) return;
+    if (found) {
+      dim(false);
+      return;
+    }
     idle.classList.remove("news");
   }
   dim(true);
+}
+function showIdle() {
+  idle.hidden = false;
+  const kinds = state.idle_contents || ["clock"];
+  idleTurn %= kinds.length;
+  return showIdleKind(kinds[idleTurn]);
 }
 function hideIdle() {
   idle.hidden = true;
@@ -2904,7 +2951,11 @@ setInterval(() => {
   else if (!idle.hidden) {
     drawIdle();
     // stays the newest article, the newest spots
-    if (idle.classList.contains("news") && Date.now() - idleNewsAt > 60e3) ({ spots: idleSpots, verse: idleVerse }[state.idle_content] || idleNews)();
+    const kinds = state.idle_contents || ["clock"];
+    if (kinds.length > 1 && Date.now() - idleSince > state.idle_rotate * 60e3) {   // on to the next kind
+      idleTurn = (idleTurn + 1) % kinds.length;
+      showIdleKind(kinds[idleTurn]);
+    } else if (idle.classList.contains("news") && Date.now() - idleNewsAt > 60e3) ({ spots: idleSpots, verse: idleVerse }[idleKind] || idleNews)();
   }
 }, 1000);
 

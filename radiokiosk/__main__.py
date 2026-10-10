@@ -274,7 +274,7 @@ def build(cfg):
                                   "fm_backend_used": fm.backend_id(), "tuner_backend_used": tuner.backend_id(),
                                   "fm_stereo": cfg["fm_stereo"],
                                   "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
-                                  "idle_content": cfg["idle_content"], "podcast_provider": cfg["podcast_provider"],
+                                  "podcast_provider": cfg["podcast_provider"],
                                   "podcast_key": cfg["podcast_key"], "podcast_secret": cfg["podcast_secret"],
                                   "callsign": cfg["callsign"], "swl": cfg["swl"], "alerts": cfg["alerts"],
                                   "music_folder": str(music.root()),
@@ -285,6 +285,14 @@ def build(cfg):
     @routes.post("/api/settings")
     async def settings_set(request):
         body = await request.json()
+        if body["key"] == "idle_contents":
+            kinds = ("clock", "gallery", "feed", "spots", "verse")
+            if not isinstance(body["value"], list) or not body["value"] or any(k not in kinds for k in body["value"]):
+                raise ValueError("unknown setting")
+            # kept in the order of the list above, whatever order they were tapped in
+            save_setting(cfg, "idle_contents", [k for k in kinds if k in body["value"]])
+            await core._broadcast()   # every open interface learns what its idle screen shows now
+            return ok()
         if body["key"] == "hidden_tiles":
             # the settings tile is the way back, so it cannot be hidden
             if not isinstance(body["value"], list) or not all(isinstance(t, str) and t != "settings" for t in body["value"]):
@@ -308,13 +316,13 @@ def build(cfg):
             save_setting(cfg, body["key"], body["value"].strip())
             return ok()
         allowed = {"fm_backend": CHOICES, "tuner_backend": CHOICES, "remote": (True, False),
-                   "idle_content": ("clock", "gallery", "feed", "spots", "verse"), "podcast_provider": PROVIDERS, "swl": (True, False)}
+                   "idle_rotate": (1, 2, 5, 10, 15, 30, 60), "podcast_provider": PROVIDERS, "swl": (True, False)}
         if body["value"] not in allowed.get(body["key"], ()):
             raise ValueError("unknown setting")
         if body["key"].endswith("_backend"):
             await core.stop()
         save_setting(cfg, body["key"], body["value"])
-        if body["key"] == "idle_content":
+        if body["key"] == "idle_rotate":
             await core._broadcast()   # every open interface learns what its idle screen shows now
         return ok()
 

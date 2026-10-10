@@ -99,9 +99,22 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Einstellungen | Sprache, helles oder dunkles Design, Tonausgabe, Sleep-Timer, Ruhebildschirm, Größe der unteren Leiste, Bildschirmtastatur, Standort, Fernbedienung, Empfangsart | PipeWire oder PulseAudio |
 | Gerät | Bildschirmhelligkeit, WLAN, WLAN-Stromsparen ein/aus, Aktualisieren, Neustart und Ausschalten, AirPlay- und Spotify-Connect-Empfänger | NetworkManager, systemd, `shairport-sync`, `librespot` |
 
-Der Ruhebildschirm hat fünf Arten, wählbar in den Einstellungen: die Uhr auf schwarzem Grund mit abgedunkeltem Display (Standard), die Galerie hinter der Uhr, die neuesten Artikel aus den Nachrichten, die neuesten Meldungen aus dem DX-Cluster oder ein Bibelvers für den Tag. Außer bei der Uhr bleibt das Display hell.
+Der Ruhebildschirm hat fünf Arten, einzeln oder mehrere im Wechsel: die Uhr auf schwarzem Grund mit abgedunkeltem Display (Standard), die Galerie hinter der Uhr, die neuesten Artikel aus den Nachrichten, die neuesten Meldungen aus dem DX-Cluster oder ein Bibelvers für den Tag. Außer bei der Uhr bleibt das Display hell.
 
-Der Bibelvers kommt aus der kuratierten Liste des [Bible Verse Widget](https://github.com/TechnikWeber/bible-verse-widget) (1000 Verse, Luther 1912, World English Bible oder Reina-Valera 1909, alle gemeinfrei) und wird nach demselben Verfahren gewählt, sodass Widget und RadioKiosk am selben Tag denselben Vers zeigen. Wahlweise sind es die Herrnhuter Losungen. Die gehören nicht zu RadioKiosk: Sie sind für nicht-kommerzielle Nutzung kostenfrei, aber kein freier Inhalt. Lade die Jahresdatei (XML) selbst unter <https://www.losungen.de/digital/> herunter, wo du die Nutzungsbedingungen akzeptierst, und spiele sie unter Einstellungen › Bibelvers ein: von einem anderen Gerät über dessen Browser (Fernbedienung einschalten) oder aus einem Ordner des Rechners, etwa von einem USB-Stick. Hat das Widget die Losungen auf demselben Rechner schon eingespielt, liest RadioKiosk dessen Datei mit. Das ist jedes Jahr zu wiederholen; fehlt die Datei, erscheint die kuratierte Liste.
+Der Bibelvers kommt aus der kuratierten Liste des [Bible Verse Widget](https://github.com/TechnikWeber/bible-verse-widget) (1000 Verse, Luther 1912, World English Bible oder Reina-Valera 1909, alle gemeinfrei) und wird nach demselben Verfahren gewählt, sodass Widget und RadioKiosk am selben Tag denselben Vers zeigen. Welche Quelle gilt, stellst du unter Einstellungen › Inhalte › Bibelvers ein.
+
+Sind mehrere Arten eingeschaltet (Einstellungen › Ruhebildschirm › Zeigt), wechselt der Ruhebildschirm nach einer einstellbaren Zeit zwischen ihnen, etwa alle fünf Minuten zwischen Nachrichten und Bibelvers.
+
+### Herrnhuter Losungen einspielen
+
+Die Losungen gehören nicht zu RadioKiosk: Sie sind für nicht-kommerzielle Nutzung kostenfrei, aber kein freier Inhalt. Du lädst die Jahresdatei selbst herunter und spielst sie ein. Das ist jedes Jahr zu wiederholen; ohne Datei erscheint die kuratierte Liste.
+
+1. Lade unter <https://www.losungen.de/digital/> die Jahresdatei im Format XML herunter (eine ZIP-Datei). Dort akzeptierst du die Nutzungsbedingungen.
+2. Spiele sie ein, auf dem Weg, der gerade passt:
+   - **Mit dem Handy oder Laptop, auf dem die Datei liegt (am einfachsten):** Schalte am RadioKiosk unter Einstellungen › Gerät und Netz die Fernbedienung ein. Öffne dann am Handy im Browser die Adresse, die dort steht (etwa `http://radio.local:8080`), gehe zu Einstellungen › Inhalte › Bibelvers und tippe auf *Datei von diesem Gerät einspielen*. Das Handy muss im selben Netz sein.
+   - **Vom USB-Stick oder aus einem Ordner:** Kopiere die Datei auf einen Stick, stecke ihn an und wähle unter Einstellungen › Inhalte › Bibelvers *Aus einem Ordner dieses Rechners einspielen* den Ordner aus. RadioKiosk nimmt jede ZIP- oder XML-Datei mit „Losung“ im Namen.
+   - **Mit dem Bible Verse Widget:** Hat das Widget die Losungen auf demselben Rechner schon eingespielt, liest RadioKiosk dessen Datei mit; es ist nichts weiter zu tun.
+3. Stelle unter Einstellungen › Inhalte › Bibelvers die Quelle auf *Herrnhuter Losungen* und unter Ruhebildschirm › Zeigt den Bibelvers ein.
 
 Ohne Internet läuft alles weiter, was keines braucht (UKW, DAB+, Empfänger, Galerie, Timer, QSO-Log, Funk-Analyse); die übrigen Kacheln sagen, dass ihre Quelle nicht erreichbar ist.
 
