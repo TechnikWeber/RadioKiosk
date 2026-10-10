@@ -94,6 +94,7 @@ def packet(line):
     if not found:
         return None
     sender, destination, info = found.groups()
+    info = re.sub(r"<0x[0-9a-f]{2}>", "", info)   # how direwolf prints bytes that are not text
     where = position(destination, info)
     return {"call": sender, **where} if where else None
 
@@ -126,7 +127,8 @@ class Aprs:
                              error=None, detail={})
             RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
             settings = RUNTIME_DIR / "direwolf.conf"
-            settings.write_text("ADEVICE stdin null\nCHANNEL 0\nMYCALL N0CALL\nMODEM 1200\n")
+            # only listening: no sound card, and none of the network ports direwolf opens for other programs
+            settings.write_text("ADEVICE stdin null\nCHANNEL 0\nMYCALL N0CALL\nMODEM 1200\nAGWPORT 0\nKISSPORT 0\n")
             source, sink = os.pipe()
             self.radio = await spawn("rtl_fm", "-f", f"{self.mhz()}M", "-s", "24000", "-g", str(self.core.gains.known("2m", 40)),
                                      "-", stdout=sink, stderr=asyncio.subprocess.DEVNULL)

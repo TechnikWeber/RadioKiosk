@@ -15,7 +15,7 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 | ![Ruhebildschirm mit der Galerie hinter der Uhr](docs/screenshots/idle.png) | ![Funkaktivität: der DX-Cluster](docs/screenshots/spots.png) |
 | ![Funkwetter: Sonnenwerte und Bandbedingungen](docs/screenshots/propagation.png) | ![Bericht einer Funk-Analyse](docs/screenshots/survey.png) |
 
-> Version 0.16: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
+> Version 0.17: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
 
 ## Installation
 
@@ -81,11 +81,15 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Bluetooth | Bluetooth-Lautsprecher verbinden oder ein Handy über dieses Gerät abspielen lassen | `bluetoothctl`, PipeWire |
 | Wetter | aktuelles Wetter und Vorhersage für vier Tage | Open-Meteo |
 | Podcasts | Suche, Abos, Folgenliste, Vor- und Zurückspringen; merkt sich, wie weit eine Folge gehört ist | fyyd, Apple Podcasts oder Podcast Index, `mpv` |
+| Musik | die eigene Sammlung aus einem Ordner, USB-Stick oder eingebundenen Netzwerkordner: Ordner durchblättern, alles oder zufällig abspielen | `mpv` |
+| Hörbücher | gemeinfreie Hörbücher von LibriVox, mit Suche; ein Buch geht dort weiter, wo es aufgehört hat | Internet Archive, `mpv` |
 | Nachrichten | RSS- und Atom-Feeds als Liste der neuesten Artikel, aktualisiert sich selbst | eigener Feed-Leser |
 | Funksensoren | Funk-Thermometer, Wetterstationen und andere Sensoren der Umgebung auf 433 MHz | `rtl_433` |
 | Schiffe | Live-Karte und Liste der Schiffe in der Umgebung (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |
 | Funkwetter | Sonnenfluss, Sonnenflecken, K- und A-Index, Bandbedingungen für Kurzwelle und die MUF der nächsten Ionosonde | hamqsl.com (N0NBH), prop.kc2g.com (KC2G, GIRO) |
 | Funkaktivität | wer gerade auf Sendung ist: DX-Cluster und Parks on the Air, nach Band gefiltert, ein Tipp stimmt den Empfänger dorthin ab | HamQTH (ersatzweise DX Summit), pota.app |
+| Satelliten | Überflüge der ISS und hörenswerter Satelliten in den nächsten 24 Stunden, mit Höhe, Richtung und Frequenz; ein Tipp stimmt den Empfänger ab | CelesTrak, `python3-sgp4` |
+| APRS | Positionsmeldungen von Funkamateuren auf 144,800 MHz auf der Karte | `rtl_fm`, `direwolf`, Leaflet |
 | QSO-Log | Logbuch für Funkverbindungen und für reine Hörer (SWL), mit Bändern und Betriebsarten zum Antippen; Export als ADIF und CSV nach `Dokumente/RadioKiosk` | – |
 | Funk-Analyse | durchläuft einen Bereich über eine gewählte Zeit und berichtet, was zeitweise sendet, was dauernd da ist und was nach Störung aussieht; Bericht zum Speichern | `rtl_power`, NumPy |
 | Timer | Kurzzeitwecker, der auch über dem laufenden Sender klingelt, und Stoppuhr | `mpv` |
@@ -97,6 +101,8 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 Der Ruhebildschirm hat vier Arten, wählbar in den Einstellungen: die Uhr auf schwarzem Grund mit abgedunkeltem Display (Standard), die Galerie hinter der Uhr, die neuesten Artikel aus den Nachrichten oder die neuesten Meldungen aus dem DX-Cluster. Bei den letzten dreien bleibt das Display hell.
 
 Ohne Internet läuft alles weiter, was keines braucht (UKW, DAB+, Empfänger, Galerie, Timer, QSO-Log, Funk-Analyse); die übrigen Kacheln sagen, dass ihre Quelle nicht erreichbar ist.
+
+Amtliche Unwetterwarnungen des Deutschen Wetterdienstes für den eingestellten Standort erscheinen als Balken unter der Kopfzeile und ausführlich in der Wetter-Kachel (Daten über brightsky.dev, nur für Orte in Deutschland, abschaltbar in den Einstellungen).
 
 Mondphase und Funkwetter lassen sich in den Einstellungen zuschalten; sie erscheinen dann im Ruhebildschirm und in der Wetter-Kachel. Beides ist standardmäßig aus.
 

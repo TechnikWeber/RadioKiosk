@@ -15,7 +15,7 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 | ![Idle screen with the gallery behind the clock](docs/screenshots/idle.png) | ![On the air: the DX cluster](docs/screenshots/spots.png) |
 | ![Propagation: solar figures and band conditions](docs/screenshots/propagation.png) | ![Report of a radio survey](docs/screenshots/survey.png) |
 
-> Version 0.16: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
+> Version 0.17: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
 
 ## Install
 
@@ -81,11 +81,15 @@ A small Python service controls the receivers and serves a web interface that a 
 | Bluetooth | connect a Bluetooth speaker, or let a phone play through this device | `bluetoothctl`, PipeWire |
 | Weather | current weather and a four-day forecast | Open-Meteo |
 | Podcasts | search, subscriptions, episode list, skipping back and forth; remembers how far an episode has been heard | fyyd, Apple Podcasts or Podcast Index, `mpv` |
+| Music | your own collection from a folder, USB stick or mounted network folder: browse folders, play everything or shuffled | `mpv` |
+| Audiobooks | public domain audiobooks from LibriVox, with a search; a book continues where it stopped | Internet Archive, `mpv` |
 | News | RSS and Atom feeds as a list of the newest articles that refreshes itself | own feed reader |
 | Sensors | wireless thermometers, weather stations and other sensors nearby on 433 MHz | `rtl_433` |
 | Ships | live map and list of the ships nearby (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |
 | Propagation | solar flux, sunspots, K and A index, shortwave band conditions and the MUF of the nearest ionosonde | hamqsl.com (N0NBH), prop.kc2g.com (KC2G, GIRO) |
 | On the air | who is transmitting right now: DX cluster and Parks on the Air, filtered by band; a tap tunes the receiver there | HamQTH (DX Summit to fall back on), pota.app |
+| Satellites | passes of the ISS and of satellites worth hearing in the next 24 hours, with height, direction and frequency; a tap tunes the receiver | CelesTrak, `python3-sgp4` |
+| APRS | positions radio amateurs send on 144.800 MHz, on a map | `rtl_fm`, `direwolf`, Leaflet |
 | QSO log | logbook for contacts and for listeners (SWL), with bands and modes to tap; export as ADIF and CSV to `Documents/RadioKiosk` | – |
 | Radio survey | sweeps a range for a chosen time and reports what transmits now and then, what is always there and what looks like interference; the report can be saved | `rtl_power`, NumPy |
 | Timer | kitchen timer that also rings over the station that is playing, and a stopwatch | `mpv` |
@@ -97,6 +101,8 @@ A small Python service controls the receivers and serves a web interface that a 
 The idle screen comes in four kinds, chosen in the settings: the clock on black with the display dimmed (the default), the gallery behind the clock, the newest articles of the news reader, or the newest spots of the DX cluster. The last three keep the display bright.
 
 Without an internet connection everything that needs none keeps working (FM, DAB+, receiver, gallery, timer, QSO log, radio survey); the other tiles say that their source cannot be reached.
+
+Official weather warnings of the German weather service for the set location appear as a bar below the header and in full in the weather tile (data through brightsky.dev, for places in Germany only; can be switched off in the settings).
 
 Moon phase and propagation can be switched on in the settings; they then appear on the idle screen and in the weather tile. Both are off by default.
 
