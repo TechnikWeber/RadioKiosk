@@ -52,6 +52,8 @@ DEFAULTS = {
     # logbook: the own call sign, and whether the log is that of a listener (SWL)
     # where the music tile looks; None is the system's music folder
     "music_folder": None,
+    # the verse of the day on the idle screen: {"source", "translation", "reference"}, see verses.py
+    "verse": None,
     # official weather warnings for the location (Germany only)
     "alerts": True,
     "callsign": "",

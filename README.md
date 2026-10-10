@@ -15,7 +15,7 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 | ![Idle screen with the gallery behind the clock](docs/screenshots/idle.png) | ![On the air: the DX cluster](docs/screenshots/spots.png) |
 | ![Propagation: solar figures and band conditions](docs/screenshots/propagation.png) | ![Report of a radio survey](docs/screenshots/survey.png) |
 
-> Version 0.17: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
+> Version 0.18: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
 
 ## Install
 
@@ -99,7 +99,9 @@ A small Python service controls the receivers and serves a web interface that a 
 | Settings | language, light or dark design, audio output, sleep timer, idle screen, size of the bottom bar, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
 | Device | screen brightness, Wi-Fi, Wi-Fi power saving on/off, update, restart and shut down, AirPlay and Spotify Connect receivers | NetworkManager, systemd, `shairport-sync`, `librespot` |
 
-The idle screen comes in four kinds, chosen in the settings: the clock on black with the display dimmed (the default), the gallery behind the clock, the newest articles of the news reader, or the newest spots of the DX cluster. The last three keep the display bright.
+The idle screen comes in five kinds, chosen in the settings: the clock on black with the display dimmed (the default), the gallery behind the clock, the newest articles of the news reader, the newest spots of the DX cluster, or a Bible verse for the day. All but the clock keep the display bright.
+
+The Bible verse comes from the curated list of the [Bible Verse Widget](https://github.com/TechnikWeber/bible-verse-widget) (1000 verses, Luther 1912, World English Bible or Reina-Valera 1909, all in the public domain) and is picked by the same rule, so widget and RadioKiosk show the same verse on the same day. Alternatively it is the Herrnhuter Losungen. Those are not part of RadioKiosk: they are free of charge for non-commercial use, but not free content. Download the year file (XML) yourself from <https://www.losungen.de/digital/>, where you accept the terms, and import it under Settings › Bible verse: from another device through its browser (switch remote control on) or from a folder of the computer, such as a USB stick. Where the widget has already imported the Losungen on the same computer, RadioKiosk reads its file. This has to be repeated every year; without the file the curated list is shown.
 
 Without an internet connection everything that needs none keeps working (FM, DAB+, receiver, gallery, timer, QSO log, radio survey); the other tiles say that their source cannot be reached.
 

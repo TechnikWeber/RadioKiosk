@@ -29,6 +29,7 @@ from .spaceweather import SpaceWeather
 from .spots import Spots
 from . import audiobooks, satellites as satellite_passes
 from .alerts import Alerts
+from .verses import Verses
 from .sources.aprs import Aprs
 from .sources.music import Music
 from .sources import podcasts as podcast_directory
@@ -97,6 +98,7 @@ def build(cfg):
     feeds = Feeds(cfg)
     space, log, survey, spots = SpaceWeather(), QsoLog(cfg), Survey(core), Spots()
     music, aprs, shelf, sky, alerts = Music(core), Aprs(core), audiobooks.Shelf(), satellite_passes.Satellites(), Alerts(core)
+    verses = Verses(cfg)
     podcasts, sensors, ais = Podcasts(core), Sensors(core), Ais(core)
     alarm = Alarm(core)
     timer = Timer(core)
@@ -306,7 +308,7 @@ def build(cfg):
             save_setting(cfg, body["key"], body["value"].strip())
             return ok()
         allowed = {"fm_backend": CHOICES, "tuner_backend": CHOICES, "remote": (True, False),
-                   "idle_content": ("clock", "gallery", "feed", "spots"), "podcast_provider": PROVIDERS, "swl": (True, False)}
+                   "idle_content": ("clock", "gallery", "feed", "spots", "verse"), "podcast_provider": PROVIDERS, "swl": (True, False)}
         if body["value"] not in allowed.get(body["key"], ()):
             raise ValueError("unknown setting")
         if body["key"].endswith("_backend"):
@@ -546,6 +548,26 @@ def build(cfg):
     @routes.get("/api/propagation")
     async def propagation_get(request):
         return web.json_response(await space.get(cfg.get("location")))
+
+    @routes.get("/api/verse")
+    async def verse_get(request):
+        language = request.headers.get("Accept-Language", "en")[:2].lower()
+        return web.json_response(await asyncio.to_thread(verses.today, language))
+
+    @routes.post("/api/verse")
+    async def verse_set(request):
+        body = await request.json()
+        save_setting(cfg, "verse", {**verses.settings, body["key"]: verses.check(body["key"], body["value"])})
+        return ok()
+
+    @routes.post("/api/verse/import")
+    async def verse_import(request):
+        """A Losungen year file: uploaded from a browser, or lying in a folder of this computer."""
+        if request.content_type.startswith("multipart/"):
+            part = await (await request.multipart()).next()
+            payload = await part.read(decode=False) if part is not None else b""
+            return ok(years=await asyncio.to_thread(verses.keep, bytes(payload)))
+        return ok(years=await asyncio.to_thread(verses.keep_from, (await request.json())["folder"]))
 
     @routes.get("/api/music")
     async def music_get(request):

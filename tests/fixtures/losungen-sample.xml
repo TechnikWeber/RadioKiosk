@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A stand-in for the published Losungen year file, matching the structure the
+  importer expects. It exists so the parsing can be tested without shipping
+  copyrighted data: the two "verses" below are from the public-domain Luther
+  1912 text this project already bundles, not from the Losungen.
+-->
+<Losungen>
+  <Losungen>
+    <Datum>2026-01-01T00:00:00</Datum>
+    <Wtag>Donnerstag</Wtag>
+    <Sonntag>Neujahrstag</Sonntag>
+    <Losungstext>Fürchte dich nicht, denn ich habe dich erlöst.</Losungstext>
+    <Losungsvers>Jes 43,1</Losungsvers>
+    <Lehrtext>Alle eure Dinge lasset in der Liebe geschehen.</Lehrtext>
+    <Lehrtextvers>1.Kor 16,14</Lehrtextvers>
+  </Losungen>
+  <Losungen>
+    <Datum>2026-01-02T00:00:00</Datum>
+    <Wtag>Freitag</Wtag>
+    <Sonntag></Sonntag>
+    <Losungstext>Der HERR ist mein Hirte;    mir wird nichts mangeln.</Losungstext>
+    <Losungsvers>Ps 23,1</Losungsvers>
+    <Lehrtext>Ich bin der gute Hirte.</Lehrtext>
+    <Lehrtextvers>Joh 10,11</Lehrtextvers>
+  </Losungen>
+  <Losungen>
+    <Datum>2026-01-03T00:00:00</Datum>
+    <Wtag>Samstag</Wtag>
+    <Sonntag></Sonntag>
+    <Losungstext></Losungstext>
+    <Losungsvers>Ps 1,1</Losungsvers>
+    <Lehrtext>Unvollständiger Eintrag, muss übersprungen werden.</Lehrtext>
+    <Lehrtextvers>Mt 5,3</Lehrtextvers>
+  </Losungen>
+</Losungen>

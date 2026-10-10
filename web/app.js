@@ -68,7 +68,7 @@ const STRINGS = {
     ais: "Ships", aisSub: "Live map (AIS)", shipsSeen: "ships received",
     timer: "Timer", timerSub: "and stopwatch", stopwatch: "Stopwatch", start: "Start", stopIt: "Stop", reset: "Reset", cancel: "Cancel",
     timeUp: "Time is up",
-    idleContent: "Shows", idleContents: { clock: "clock", gallery: "gallery", feed: "news", spots: "DX cluster" },
+    idleContent: "Shows", idleContents: { clock: "clock", gallery: "gallery", feed: "news", spots: "DX cluster", verse: "Bible verse" },
     galleryFit: "Pictures", galleryFits: { whole: "whole picture", smart: "zoom slightly", fill: "fill the screen" },
     subfoldersToo: "Subfolders", demoPictures: "Demo pictures (no folder of your own chosen yet)",
     sectionPlayback: "Playback", sectionDisplay: "Display", sectionContent: "Content", sectionReception: "Reception",
@@ -109,6 +109,13 @@ const STRINGS = {
     noPasses: "No pass in the next 24 hours.", orbitsOld: "orbit data is {n} hours old",
     compass: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"],
     aprs: "APRS", aprsSub: "Positions by radio", aprsSeen: "stations received", weatherAlerts: "Weather warnings", until: "until",
+    verse: "Bible verse", verseIntro: "A verse for every day on the idle screen, the same one the Bible Verse Widget shows. Choose it under Idle screen › Shows.",
+    verseSource: "Source", verseSources: { list: "Curated list", losungen: "Herrnhuter Losungen" },
+    verseTranslation: "Translation", verseTranslations: { auto: "as the interface", de: "Deutsch (Luther 1912)", en: "English (WEB)", es: "Español (RVR 1909)" },
+    verseReference: "Show the reference",
+    losungenHow: "The Losungen are not part of RadioKiosk. Download this year's file (XML) from losungen.de/digital, where you accept the terms, and import it here: from another device through its browser, or from a folder of this computer such as a USB stick. Until then the curated list is shown.",
+    losungenThere: "Imported:", losungenMissing: "No file imported yet for", losungenUpload: "Import a file from this device",
+    losungenFolder: "Import from a folder of this computer", losungenImported: "Imported the Losungen for",
     theme: "Design", themes: { dark: "dark", light: "light" },
     bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
@@ -189,7 +196,7 @@ const STRINGS = {
     ais: "Schiffe", aisSub: "Live-Karte (AIS)", shipsSeen: "Schiffe empfangen",
     timer: "Timer", timerSub: "und Stoppuhr", stopwatch: "Stoppuhr", start: "Start", stopIt: "Stopp", reset: "Zurücksetzen", cancel: "Abbrechen",
     timeUp: "Die Zeit ist um",
-    idleContent: "Zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", feed: "Nachrichten", spots: "DX-Cluster" },
+    idleContent: "Zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", feed: "Nachrichten", spots: "DX-Cluster", verse: "Bibelvers" },
     galleryFit: "Bilder", galleryFits: { whole: "ganzes Bild", smart: "leicht zoomen", fill: "Bildschirm füllen" },
     subfoldersToo: "Unterordner", demoPictures: "Demobilder (noch kein eigener Ordner gewählt)",
     sectionPlayback: "Wiedergabe", sectionDisplay: "Anzeige", sectionContent: "Inhalte", sectionReception: "Empfang",
@@ -230,6 +237,13 @@ const STRINGS = {
     noPasses: "Kein Überflug in den nächsten 24 Stunden.", orbitsOld: "Bahndaten sind {n} Stunden alt",
     compass: ["N", "NO", "O", "SO", "S", "SW", "W", "NW"],
     aprs: "APRS", aprsSub: "Positionen per Funk", aprsSeen: "Stationen empfangen", weatherAlerts: "Unwetterwarnungen", until: "bis",
+    verse: "Bibelvers", verseIntro: "Ein Vers für jeden Tag im Ruhebildschirm, derselbe, den das Bible Verse Widget zeigt. Einschalten unter Ruhebildschirm › Zeigt.",
+    verseSource: "Quelle", verseSources: { list: "Kuratierte Liste", losungen: "Herrnhuter Losungen" },
+    verseTranslation: "Übersetzung", verseTranslations: { auto: "wie die Oberfläche", de: "Deutsch (Luther 1912)", en: "English (WEB)", es: "Español (RVR 1909)" },
+    verseReference: "Stelle anzeigen",
+    losungenHow: "Die Losungen gehören nicht zu RadioKiosk. Lade die Jahresdatei (XML) unter losungen.de/digital herunter, wo du die Nutzungsbedingungen akzeptierst, und spiele sie hier ein: von einem anderen Gerät über dessen Browser oder aus einem Ordner dieses Rechners, etwa von einem USB-Stick. Bis dahin erscheint die kuratierte Liste.",
+    losungenThere: "Eingespielt:", losungenMissing: "Noch keine Datei eingespielt für", losungenUpload: "Datei von diesem Gerät einspielen",
+    losungenFolder: "Aus einem Ordner dieses Rechners einspielen", losungenImported: "Losungen eingespielt für",
     theme: "Design", themes: { dark: "dunkel", light: "hell" },
     bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
@@ -284,6 +298,9 @@ const MESSAGES_DE = [
   [/^rtl_power could not open the SDR stick$/, "rtl_power konnte den SDR-Stick nicht öffnen"],
   [/^there is no report yet$/, "Es gibt noch keinen Bericht"],
   [/^the spots cannot be reached$/, "Die Spots sind nicht erreichbar"],
+  [/^this is not a Losungen year file$/, "Das ist keine Losungen-Jahresdatei"],
+  [/^there is no XML file in this archive$/, "In diesem Archiv liegt keine XML-Datei"],
+  [/^no Losungen file found in this folder$/, "In diesem Ordner liegt keine Losungen-Datei"],
   [/^there is no music in this folder$/, "In diesem Ordner liegt keine Musik"],
   [/^the audiobook library cannot be reached$/, "Die Hörbuch-Bibliothek ist nicht erreichbar"],
   [/^python3-sgp4 is not installed$/, "Das Paket python3-sgp4 ist nicht installiert"],
@@ -2377,6 +2394,64 @@ const tilesView = {
   back() { show(settings); return true; },
 };
 
+/* ---------- verse of the day ---------- */
+
+// The settings follow the Bible Verse Widget: the curated list or the Herrnhuter Losungen,
+// the translation, whether the reference is shown. The Losungen are not part of RadioKiosk;
+// their year file is downloaded from losungen.de and imported here.
+const verseSettings = {
+  title: t.verse,
+  note: "",
+  async render() {
+    const v = await api("/api/verse"), year = new Date().getFullYear();
+    const set = async (key, value) => { await api("/api/verse", { key, value }); this.render(); };
+    const chips = (label, key, names) => [h("p", { className: "label", textContent: label }),
+      h("div", { className: "toolbar wrap" }, ...Object.keys(names).map(value => h("button", {
+        className: v[key] === value ? "on" : "", textContent: names[value], onclick: () => set(key, value) })))];
+    const imported = async request => {
+      try { this.note = `${t.losungenImported} ${(await request).years.join(", ")}`; } catch (e) { this.note = say(e.message); }
+      this.render();
+    };
+    // a file chosen in the browser, which is the easy way from a phone or laptop
+    const file = h("input", { type: "file", accept: ".zip,.xml", hidden: true, onchange: () => {
+      if (!file.files.length) return;
+      const form = new FormData();
+      form.append("file", file.files[0]);
+      imported(fetch("/api/verse/import", { method: "POST", body: form }).then(async r => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error);
+        return data;
+      }));
+    } });
+    const top = view.scrollTop;
+    view.replaceChildren(
+      h("p", { className: "explain", textContent: t.verseIntro }),
+      ...chips(t.verseSource, "source", t.verseSources),
+      ...chips(t.verseTranslation, "translation", t.verseTranslations),
+      h("div", { className: "toolbar wrap" },
+        h("button", { className: v.reference ? "on" : "", textContent: `${t.verseReference}: ${v.reference ? t.on : t.off}`,
+          onclick: () => set("reference", !v.reference) })),
+      h("h2", { className: "section", textContent: t.verseSources.losungen }),
+      h("p", { className: "explain", textContent: t.losungenHow }),
+      h("p", { className: "label", textContent: v.years.includes(year) ? `${t.losungenThere} ${v.years.join(", ")}`
+        : `${t.losungenMissing} ${year}` + (v.years.length ? ` (${t.losungenThere} ${v.years.join(", ")})` : "") }),
+      h("div", { className: "toolbar wrap" }, file,
+        h("button", { textContent: t.losungenUpload, onclick: () => file.click() }),
+        h("button", { textContent: t.losungenFolder, onclick: async () => {
+          await loadGallery();
+          folderPicker.open(galleryInfo ? galleryInfo.places[0] : "~", { origin: this,
+            pick: folder => imported(api("/api/verse/import", { folder })) });
+        } })),
+      ...(this.note ? [h("p", { className: "label", textContent: this.note })] : []),
+      h("h2", { className: "section", textContent: t.today }),
+      ...v.texts.flatMap(x => [h("p", { className: "explain", textContent: x.text }),
+        ...(v.reference ? [h("p", { className: "label", textContent: x.ref })] : [])]),
+      h("p", { className: "label", textContent: v.credit }));
+    view.scrollTop = top;
+  },
+  back() { show(settings); return true; },
+};
+
 /* ---------- gallery ---------- */
 
 let galleryInfo = null;   // folder, timing and number of pictures, as the service reports them
@@ -2631,6 +2706,7 @@ const settings = {
       ...section(t.sectionContent,
         h("button", { textContent: t.gallery, onclick: () => show(gallerySettings) }),
         h("button", { textContent: t.podcastDirectory, onclick: () => show(podcastSettings) }),
+        h("button", { textContent: t.verse, onclick: () => show(verseSettings) }),
         h("button", { textContent: t.manageFeeds, onclick: () => { feedList.origin = settings; show(feedList); } }),
         h("button", { className: receivers.alerts ? "on" : "", textContent: `${t.weatherAlerts}: ${receivers.alerts ? t.on : t.off}`,
           onclick: async () => { await api("/api/settings", { key: "alerts", value: !receivers.alerts }); this.render(); } }),
@@ -2750,7 +2826,24 @@ async function idleSpots() {
     return spots.length > 0;
   } catch (e) { return $("idle-news").children.length > 0; }   // offline for a moment: keep what is shown
 }
-// Four kinds, a setting: the classic clock on black with the display dimmed, the gallery
+// The verse of the day, as large as the room above the clock allows.
+async function idleVerse() {
+  idleNewsAt = Date.now();
+  try {
+    const v = await api("/api/verse"), box = $("idle-news");
+    box.style.bottom = `${$("idle-box").offsetHeight + 26}px`;
+    box.classList.remove("tight");
+    box.replaceChildren(h("div", { className: "verse" }, ...v.texts.flatMap(x => [h("p", { textContent: x.text }),
+      ...(v.reference ? [h("small", { textContent: x.ref })] : [])])));
+    // a short verse stands large, a long one is set smaller until all of it fits
+    for (let size = 40; size >= 14; size -= 2) {
+      box.style.setProperty("--verse", `${size}px`);
+      if (box.scrollHeight <= box.clientHeight) break;
+    }
+    return true;
+  } catch (e) { return $("idle-news").children.length > 0; }
+}
+// Five kinds, a setting: the classic clock on black with the display dimmed, the gallery
 // behind the clock, or the newest article. The last two keep the display bright.
 async function showIdle() {
   idle.hidden = false;
@@ -2765,10 +2858,10 @@ async function showIdle() {
       idleSlides.start();
       return;
     }
-  } else if (content === "feed" || content === "spots") {
+  } else if (content === "feed" || content === "spots" || content === "verse") {
     idle.classList.add("news");   // shown first: fitting the entries needs their real sizes
     $("idle-news").replaceChildren();
-    const found = await (content === "spots" ? idleSpots() : idleNews());
+    const found = await ({ spots: idleSpots, verse: idleVerse }[content] || idleNews)();
     if (idle.hidden || found) return;
     idle.classList.remove("news");
   }
@@ -2811,7 +2904,7 @@ setInterval(() => {
   else if (!idle.hidden) {
     drawIdle();
     // stays the newest article, the newest spots
-    if (idle.classList.contains("news") && Date.now() - idleNewsAt > 60e3) (state.idle_content === "spots" ? idleSpots : idleNews)();
+    if (idle.classList.contains("news") && Date.now() - idleNewsAt > 60e3) ({ spots: idleSpots, verse: idleVerse }[state.idle_content] || idleNews)();
   }
 }, 1000);
 
@@ -2862,7 +2955,7 @@ async function openLink() {
     wifi: wifiView, receiver: receiverView,
     gallery: galleryView, gallerysettings: gallerySettings, podcasts, news, sensors, ais: ships, timer: timerView,
     podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList, propagation: propagationView, qso: qsoLog,
-    survey: surveyView, spots: spotsView, music: musicView, audiobooks: audiobooksView, satellites: satellitesView,
+    survey: surveyView, spots: spotsView, verse: verseSettings, music: musicView, audiobooks: audiobooksView, satellites: satellitesView,
     aprs: aprsView }[name] || home;
   if (target === webradio && band === "search") Object.assign(webradio, { tab: "search", typing: true });
   show(target);

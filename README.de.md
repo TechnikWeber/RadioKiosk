@@ -15,7 +15,7 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 | ![Ruhebildschirm mit der Galerie hinter der Uhr](docs/screenshots/idle.png) | ![Funkaktivität: der DX-Cluster](docs/screenshots/spots.png) |
 | ![Funkwetter: Sonnenwerte und Bandbedingungen](docs/screenshots/propagation.png) | ![Bericht einer Funk-Analyse](docs/screenshots/survey.png) |
 
-> Version 0.17: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
+> Version 0.18: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
 
 ## Installation
 
@@ -99,7 +99,9 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Einstellungen | Sprache, helles oder dunkles Design, Tonausgabe, Sleep-Timer, Ruhebildschirm, Größe der unteren Leiste, Bildschirmtastatur, Standort, Fernbedienung, Empfangsart | PipeWire oder PulseAudio |
 | Gerät | Bildschirmhelligkeit, WLAN, WLAN-Stromsparen ein/aus, Aktualisieren, Neustart und Ausschalten, AirPlay- und Spotify-Connect-Empfänger | NetworkManager, systemd, `shairport-sync`, `librespot` |
 
-Der Ruhebildschirm hat vier Arten, wählbar in den Einstellungen: die Uhr auf schwarzem Grund mit abgedunkeltem Display (Standard), die Galerie hinter der Uhr, die neuesten Artikel aus den Nachrichten oder die neuesten Meldungen aus dem DX-Cluster. Bei den letzten dreien bleibt das Display hell.
+Der Ruhebildschirm hat fünf Arten, wählbar in den Einstellungen: die Uhr auf schwarzem Grund mit abgedunkeltem Display (Standard), die Galerie hinter der Uhr, die neuesten Artikel aus den Nachrichten, die neuesten Meldungen aus dem DX-Cluster oder ein Bibelvers für den Tag. Außer bei der Uhr bleibt das Display hell.
+
+Der Bibelvers kommt aus der kuratierten Liste des [Bible Verse Widget](https://github.com/TechnikWeber/bible-verse-widget) (1000 Verse, Luther 1912, World English Bible oder Reina-Valera 1909, alle gemeinfrei) und wird nach demselben Verfahren gewählt, sodass Widget und RadioKiosk am selben Tag denselben Vers zeigen. Wahlweise sind es die Herrnhuter Losungen. Die gehören nicht zu RadioKiosk: Sie sind für nicht-kommerzielle Nutzung kostenfrei, aber kein freier Inhalt. Lade die Jahresdatei (XML) selbst unter <https://www.losungen.de/digital/> herunter, wo du die Nutzungsbedingungen akzeptierst, und spiele sie unter Einstellungen › Bibelvers ein: von einem anderen Gerät über dessen Browser (Fernbedienung einschalten) oder aus einem Ordner des Rechners, etwa von einem USB-Stick. Hat das Widget die Losungen auf demselben Rechner schon eingespielt, liest RadioKiosk dessen Datei mit. Das ist jedes Jahr zu wiederholen; fehlt die Datei, erscheint die kuratierte Liste.
 
 Ohne Internet läuft alles weiter, was keines braucht (UKW, DAB+, Empfänger, Galerie, Timer, QSO-Log, Funk-Analyse); die übrigen Kacheln sagen, dass ihre Quelle nicht erreichbar ist.
 
