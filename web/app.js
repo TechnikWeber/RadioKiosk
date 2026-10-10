@@ -47,6 +47,7 @@ const STRINGS = {
     wakesWithNothing: "Play a station once; the alarm can then wake with it.",
     wakeLast: "Station heard last", wakeFixed: "Always", wakeFix: "Always wake with",
     sound: "Sound", soundModes: { auto: "Auto", stereo: "Stereo", mono: "Mono" },
+    theme: "Design", themes: { dark: "dark", light: "light" },
     bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
     bluetooth: "Bluetooth", btSub: "Speakers and phone", btVisible: "Let a phone connect", btVisibleFor: "Visible for",
@@ -107,6 +108,7 @@ const STRINGS = {
     wakesWithNothing: "Spiele einmal einen Sender; danach kann der Wecker damit wecken.",
     wakeLast: "Zuletzt gehörter Sender", wakeFixed: "Immer", wakeFix: "Immer wecken mit",
     sound: "Ton", soundModes: { auto: "Auto", stereo: "Stereo", mono: "Mono" },
+    theme: "Design", themes: { dark: "dunkel", light: "hell" },
     bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
     bluetooth: "Bluetooth", btSub: "Lautsprecher und Handy", btVisible: "Handy verbinden lassen", btVisibleFor: "Sichtbar für",
@@ -1250,11 +1252,20 @@ const settings = {
           onclick: async () => { await api("/api/settings", { key: "remote", value: !receivers.remote }); this.render(); },
         }),
         h("button", {
+          textContent: `${t.theme}: ${t.themes[pref("theme", "dark")]}`,
+          onclick: () => {
+            setPref("theme", pref("theme", "dark") === "dark" ? "light" : "dark");
+            document.documentElement.dataset.theme = pref("theme", "dark");
+            this.render();
+          },
+        }),
+        h("button", {
           textContent: `${t.bar}: ${t.barSizes[pref("bar", "medium")]}`,
           onclick: () => {
             const sizes = Object.keys(t.barSizes);
             setPref("bar", sizes[(sizes.indexOf(pref("bar", "medium")) + 1) % sizes.length]);
-            document.body.dataset.bar = pref("bar", "medium");
+            document.documentElement.dataset.theme = pref("theme", "dark");
+document.body.dataset.bar = pref("bar", "medium");
             this.render();
           },
         }),
@@ -1401,6 +1412,7 @@ async function openLink() {
   }
 }
 
+document.documentElement.dataset.theme = pref("theme", "dark");
 document.body.dataset.bar = pref("bar", "medium");
 let loadedVersion = null;
 function connect() {

@@ -9,6 +9,25 @@
   --accent-ink: #1b1305;
   --danger: #ff6b5e;
   --touch: 56px;
+  --warn-bg: #5a2a00;
+  --warn-ink: #ffd9a8;
+  color-scheme: dark;
+}
+/* The light design, a setting. Waterfall and idle screen stay dark in both: one is an
+   instrument display, the other is meant for a dark room. */
+:root[data-theme="light"] {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --panel-hi: #dfe5ec;
+  --line: #c3ccd7;
+  --text: #141a22;
+  --muted: #566373;
+  --accent: #b85c00;
+  --accent-ink: #ffffff;
+  --danger: #c22d1b;
+  --warn-bg: #ffe0b8;
+  --warn-ink: #5e2c00;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -177,7 +196,7 @@ footer button.icon svg { width: calc(var(--bar-touch) * .5); height: calc(var(--
 /* aircraft map */
 main.flush { padding: 0; overflow: hidden; position: relative; }
 .map { height: 100%; background: var(--bg); }
-.map .leaflet-tile { filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9); }
+:root:not([data-theme="light"]) .map .leaflet-tile { filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9); }
 .map-info { position: absolute; left: 12px; bottom: 12px; z-index: 500; padding: 6px 12px; border-radius: 8px; background: var(--panel); font-size: 15px; }
 .plane svg { width: 28px; height: 28px; fill: var(--accent); stroke: var(--accent-ink); stroke-width: 1; }
 .plane span { position: absolute; left: 30px; top: 4px; padding: 0 6px; border-radius: 6px; background: var(--panel); color: var(--text); font-size: 13px; white-space: nowrap; }
@@ -221,7 +240,7 @@ main.flush { padding: 0; overflow: hidden; position: relative; }
 .map-action.on { border-color: var(--accent); color: var(--accent); }
 
 /* warnings and recording */
-#warn { padding: 6px 12px; background: #5a2a00; color: #ffd9a8; font-size: 15px; }
+#warn { padding: 6px 12px; background: var(--warn-bg); color: var(--warn-ink); font-size: 15px; }
 #warn[hidden] { display: none; }
 #rec.on { color: var(--danger); border-color: var(--danger); }
 #rec.on svg { fill: currentColor; }
