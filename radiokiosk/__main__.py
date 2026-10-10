@@ -14,7 +14,7 @@ from .sources.adsb import Adsb
 from .sources.apps import Apps
 from .sources.dab import SLIDES, Dab
 from .sources.fm import Fm
-from .sources.receiver import CHOICES, available_backends
+from .sources.receiver import CHOICES, ENGINE_LOAD_LIMIT, available_backends, engine_load
 from .sources.tuner import BANDS, Tuner
 from .sources.webradio import Webradio
 from .schedule import Schedule
@@ -241,7 +241,8 @@ def build(cfg):
                                   "fm_stereo": cfg["fm_stereo"],
                                   "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
                                   "version": __version__, "build": BUILD, "stream": network_audio.can_stream(),
-                                  "backends": available_backends()})
+                                  "backends": available_backends(),
+                                  "engine_load": engine_load(), "engine_load_limit": ENGINE_LOAD_LIMIT})
 
     @routes.post("/api/settings")
     async def settings_set(request):

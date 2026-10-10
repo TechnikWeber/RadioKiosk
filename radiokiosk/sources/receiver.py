@@ -179,6 +179,12 @@ def engine_fits():
     return _load <= ENGINE_LOAD_LIMIT
 
 
+def engine_load():
+    """Share of one processor core the own receiver takes here; None where it cannot run."""
+    engine_fits()
+    return None if _load == float("inf") else _load
+
+
 def available_backends():
     return {name: backend.available() for name, backend in BACKENDS.items()}
 

@@ -50,7 +50,9 @@ header {
   min-height: 64px;
   border-bottom: 1px solid var(--line);
 }
-header h1 { flex: 1; margin: 0; font-size: 22px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#titles { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+#version { font-size: 13px; }
+header h1 { margin: 0; font-size: 22px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #clock { color: var(--muted); font-variant-numeric: tabular-nums; }
 
 main { flex: 1; overflow-y: auto; padding: 12px; scrollbar-width: none; }
@@ -77,7 +79,6 @@ footer {
 footer button { background: var(--bg); min-height: var(--bar-touch); }
 footer button.icon { width: var(--bar-touch); }
 footer button.icon svg { width: calc(var(--bar-touch) * .5); height: calc(var(--bar-touch) * .5); }
-#version { position: absolute; left: 12px; bottom: 0; font-size: 9px; line-height: var(--bar-pad); color: var(--muted); opacity: .45; pointer-events: none; }
 
 /* home */
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
@@ -130,6 +131,19 @@ footer button.icon svg { width: calc(var(--bar-touch) * .5); height: calc(var(--
 .signal i:nth-of-type(1) { height: 9px; } .signal i:nth-of-type(2) { height: 15px; }
 .signal i:nth-of-type(3) { height: 21px; } .signal i:nth-of-type(4) { height: 27px; }
 .signal.l1 i:nth-of-type(-n+1), .signal.l2 i:nth-of-type(-n+2), .signal.l3 i:nth-of-type(-n+3), .signal.l4 i { background: var(--accent); opacity: 1; }
+.explain { margin: 0 0 12px; line-height: 1.4; }
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.compare > div { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 12px; }
+.compare > div.used { border-color: var(--accent); }
+.compare b { display: block; font-size: 18px; }
+.compare small { display: block; color: var(--muted); margin-bottom: 8px; }
+.compare ul { margin: 0; padding: 0; list-style: none; line-height: 1.5; }
+.compare li.plus::before { content: "✓ "; color: var(--accent); }
+.compare li.minus::before { content: "– "; color: var(--muted); }
+.compare li.minus { color: var(--muted); }
+.load { position: relative; height: 14px; margin: 0 0 6px; border-radius: 7px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+.load i { display: block; height: 100%; background: var(--accent); }
+.load u { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--text); }
 .hint { color: var(--muted); text-align: center; padding: 24px 12px; }
 
 /* FM */

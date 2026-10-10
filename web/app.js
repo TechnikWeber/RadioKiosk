@@ -53,8 +53,16 @@ const STRINGS = {
     btPhoneHint: "Then pick this device in the phone's Bluetooth settings and play music.",
     btScan: "Search for speakers", btScanning: "Searching…", btConnected: "connected", btPaired: "paired", btNew: "new",
     seconds: "s",
-    receiverHint: "How FM and the free receiver listen. Switch and compare on the same station.",
-    backendNames: { auto: "automatic", engine: "own receiver (waterfall, stereo)", rtl_fm: "rtl_fm (classic, mono)" },
+    version: "Version", receiverSetting: "How FM and the receiver listen",
+    receiverIntro: "The SDR stick only delivers raw radio data. A program on this computer turns it into sound. RadioKiosk has two of them:",
+    engineName: "Own receiver", engineSub: "built into RadioKiosk",
+    enginePoints: ["+stereo", "+station name and radio text (RDS)", "+waterfall", "+retunes without a gap", "-needs more processing power"],
+    rtlName: "rtl_fm", rtlSub: "classic program from the rtl-sdr package",
+    rtlPoints: ["-mono", "-no station name, no radio text", "-no waterfall", "-short gap on every retune", "+light on the processor"],
+    loadNow: "On this computer the own receiver needs {n} % of one processor core.",
+    loadRule: "Automatic picks it up to {n} % (the mark) and rtl_fm above that.",
+    loadNone: "The own receiver cannot run here (NumPy or the stick's library is missing), so rtl_fm is used.",
+    runsWith: "runs with", choiceAuto: "Automatic",
     wmo: { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Overcast", 45: "Fog", 51: "Drizzle", 61: "Rain",
            66: "Freezing rain", 71: "Snow", 80: "Showers", 85: "Snow showers", 95: "Thunderstorm" },
     fmScanning: "Scanning the band…", fmFound: "Found", fmSaved: "Saved",
@@ -105,8 +113,16 @@ const STRINGS = {
     btPhoneHint: "Wähle danach dieses Gerät in den Bluetooth-Einstellungen des Handys und spiele Musik ab.",
     btScan: "Lautsprecher suchen", btScanning: "Suche…", btConnected: "verbunden", btPaired: "gekoppelt", btNew: "neu",
     seconds: "s",
-    receiverHint: "Womit UKW und der freie Empfänger hören. Umschalten und am selben Sender vergleichen.",
-    backendNames: { auto: "automatisch", engine: "eigener Empfänger (Wasserfall, Stereo)", rtl_fm: "rtl_fm (klassisch, Mono)" },
+    version: "Version", receiverSetting: "Womit UKW und Empfänger hören",
+    receiverIntro: "Der SDR-Stick liefert nur rohe Funkdaten. Ein Programm auf diesem Rechner macht daraus Ton. RadioKiosk hat zwei davon:",
+    engineName: "Eigener Empfänger", engineSub: "in RadioKiosk eingebaut",
+    enginePoints: ["+Stereo", "+Sendername und Radiotext (RDS)", "+Wasserfall", "+stimmt ohne Pause um", "-braucht mehr Rechenleistung"],
+    rtlName: "rtl_fm", rtlSub: "klassisches Programm aus dem rtl-sdr-Paket",
+    rtlPoints: ["-Mono", "-kein Sendername, kein Radiotext", "-kein Wasserfall", "-kurze Pause bei jedem Umstimmen", "+schont den Prozessor"],
+    loadNow: "Auf diesem Rechner braucht der eigene Empfänger {n} % eines Prozessorkerns.",
+    loadRule: "Automatisch nimmt ihn bis {n} % (die Marke), darüber rtl_fm.",
+    loadNone: "Der eigene Empfänger kann hier nicht laufen (NumPy oder die Bibliothek des Sticks fehlt), deshalb läuft rtl_fm.",
+    runsWith: "läuft mit", choiceAuto: "Automatisch",
     wmo: { 0: "Klar", 1: "Überwiegend klar", 2: "Teils bewölkt", 3: "Bedeckt", 45: "Nebel", 51: "Nieselregen", 61: "Regen",
            66: "Gefrierender Regen", 71: "Schnee", 80: "Schauer", 85: "Schneeschauer", 95: "Gewitter" },
     fmScanning: "Suche Sender im Band…", fmFound: "Gefunden", fmSaved: "Gespeichert",
@@ -201,6 +217,7 @@ function show(v) {
   if (current && current.leave) current.leave();
   current = v;
   $("heading").textContent = v.title;
+  $("version").hidden = v !== home;
   $("back").hidden = v === home;
   view.scrollTop = 0;
   v.render();
@@ -1161,22 +1178,47 @@ const wifiView = {
 
 /* ---------- settings ---------- */
 
+// Explains the two programs that turn the stick's data into sound, and lets each tile pick one.
+const receiverView = {
+  title: t.receiverSetting,
+  async render() {
+    const info = await api("/api/settings");
+    const used = [info.fm_backend_used, info.tuner_backend_used];
+    const card = (id, name, sub, points) => h("div", { className: used.includes(id) ? "used" : "" },
+      h("b", { textContent: name }), h("small", { textContent: sub }),
+      h("ul", {}, ...points.map(p => h("li", { className: p[0] === "+" ? "plus" : "minus", textContent: p.slice(1) }))));
+    const names = { auto: t.choiceAuto, engine: t.engineName, rtl_fm: t.rtlName };
+    const choice = (key, label) => [
+      h("p", { className: "label", textContent: `${label} – ${t.runsWith}: ${names[info[key + "_used"]]}` }),
+      h("div", { className: "toolbar" }, ...Object.keys(names).map(value => h("button", {
+        className: info[key] === value ? "on" : "", textContent: names[value],
+        disabled: value !== "auto" && !info.backends[value],
+        onclick: async () => { await api("/api/settings", { key, value }); this.render(); },
+      })))];
+    const percent = x => Math.round(x * 100);
+    const top = view.scrollTop;
+    view.replaceChildren(
+      h("p", { className: "explain", textContent: t.receiverIntro }),
+      h("div", { className: "compare" },
+        card("engine", t.engineName, t.engineSub, t.enginePoints), card("rtl_fm", t.rtlName, t.rtlSub, t.rtlPoints)),
+      ...(info.engine_load == null ? [h("p", { className: "explain", textContent: t.loadNone })] : [
+        // how hard the own receiver works this processor, with the limit of "automatic" as a mark
+        h("div", { className: "load" },
+          h("i", { style: `width: ${Math.min(100, percent(info.engine_load))}%` }),
+          h("u", { style: `left: ${percent(info.engine_load_limit)}%` })),
+        h("p", { className: "explain", textContent:
+          `${t.loadNow.replace("{n}", percent(info.engine_load))} ${t.loadRule.replace("{n}", percent(info.engine_load_limit))}` })]),
+      ...choice("fm_backend", t.fm), ...choice("tuner_backend", t.tuner));
+    view.scrollTop = top;
+  },
+  back() { show(settings); return true; },
+};
+
 const settings = {
   title: t.settings,
   async render() {
     const [sinks, { location: position, name: place }, receivers] = await Promise.all(
       [api("/api/audio"), api("/api/location"), api("/api/settings")]);
-    const backendButton = (key, label) => h("button", {
-      // "automatic" also says what it picked on this computer
-      textContent: `${label}: ${t.backendNames[receivers[key]]}`
-        + (receivers[key] === "auto" ? ` → ${t.backendNames[receivers[key + "_used"]].split(" (")[0]}` : ""),
-      disabled: !(receivers.backends.engine && receivers.backends.rtl_fm),
-      onclick: async () => {
-        const choices = Object.keys(t.backendNames);
-        await api("/api/settings", { key, value: choices[(choices.indexOf(receivers[key]) + 1) % choices.length] });
-        this.render();
-      },
-    });
     const SLEEP = [0, 15, 30, 60, 90];
     const left = state.sleep_until ? Math.max(1, Math.round((state.sleep_until - Date.now() / 1000) / 60)) : 0;
     view.replaceChildren(
@@ -1236,8 +1278,8 @@ const settings = {
         t.remoteHint, h("br"), h("b", { textContent: receivers.addresses.join("  ·  ") }), h("br"), t.remoteWarning,
         ...(receivers.stream ? [h("br"), h("br"), t.liveStream, h("br"),
           h("b", { textContent: receivers.addresses[receivers.addresses.length - 1] + "/live.mp3" })] : []))] : []),
-      h("p", { className: "hint", textContent: t.receiverHint }),
-      h("div", { className: "toolbar wrap" }, backendButton("fm_backend", t.fm), backendButton("tuner_backend", t.tuner)),
+      h("div", { className: "toolbar" },
+        h("button", { textContent: t.receiverSetting, onclick: () => show(receiverView) })),
       h("p", { className: "hint", textContent: t.relevelHint }),
       h("div", { className: "toolbar" },
         h("button", { textContent: t.relevel, onclick: e => { e.target.disabled = true; api("/api/gain/reset", {}); } })),
@@ -1349,7 +1391,7 @@ async function openLink() {
   const [name, band] = location.hash.slice(1).split("/");
   if (name === "idle") showIdle();
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
-    wifi: wifiView }[name] || home;
+    wifi: wifiView, receiver: receiverView }[name] || home;
   if (target === webradio && band === "search") Object.assign(webradio, { tab: "search", typing: true });
   show(target);
   if (target === tuner && band) {
@@ -1378,7 +1420,8 @@ function connect() {
     const { version, build } = await api("/api/settings");
     if (loadedVersion && build !== loadedVersion) location.reload();
     loadedVersion = build;
-    $("version").textContent = version;
+    $("version").textContent = `${t.version} ${version}`;
+    $("version").hidden = current !== home;
   };
   ws.onclose = () => setTimeout(connect, 1500);
 }

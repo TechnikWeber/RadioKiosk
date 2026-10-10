@@ -131,6 +131,14 @@ if [ "$KIOSK" -eq 1 ]; then
   say "Opening the interface after every login"
   mkdir -p "$HOME/.config/autostart"
   cp "$HOME/.local/share/applications/radiokiosk.desktop" "$HOME/.config/autostart/radiokiosk.desktop"
+  # Raspberry Pi OS hands touches to programs as mouse clicks. A finger dragged over a
+  # list then selects instead of scrolling, so let the desktop (labwc) pass real touches.
+  LABWC="$HOME/.config/labwc/rc.xml"
+  if [ -f "$LABWC" ] && grep -q 'mouseEmulation="yes"' "$LABWC"; then
+    cp "$LABWC" "$LABWC.before-radiokiosk"
+    sed -i 's/mouseEmulation="yes"/mouseEmulation="no"/' "$LABWC"
+    pkill -HUP -x labwc || true   # reads its settings again
+  fi
 fi
 
 # Screens built into a case are often mounted upside down or on their side. The
