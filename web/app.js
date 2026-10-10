@@ -59,7 +59,7 @@ const STRINGS = {
     podcastDirectory: "Podcast directory", directories: { fyyd: "fyyd", apple: "Apple Podcasts", podcastindex: "Podcast Index" },
     directoryHint: "Where the search looks for podcasts. fyyd and Apple work without a key; the Podcast Index is free as well, but needs a key and a secret from podcastindex.org.",
     apiKey: "Key", apiSecret: "Secret", notSet: "not set", isSet: "set",
-    news: "News", newsSub: "RSS reader", manageFeeds: "Feeds", addFeed: "Add feed", feedAddress: "Address of the feed (RSS or Atom)",
+    news: "News", newsSub: "RSS reader", manageFeeds: "News feeds", addFeed: "Add feed", feedAddress: "Address of the feed (RSS or Atom)",
     noArticles: "No articles yet.", remove: "Remove",
     sensors: "Sensors", sensorsSub: "433 MHz", sensorsWaiting: "Listening for wireless sensors … many only report every few minutes.",
     sensorWords: { humidity: "humidity", battery: "battery low", wind: "wind", rain: "rain", ago: "ago", channel: "channel" },
