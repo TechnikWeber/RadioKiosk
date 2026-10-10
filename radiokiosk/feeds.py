@@ -128,7 +128,9 @@ class Feeds:
             parsed = await fetch_feed(feed["url"])
         except RuntimeError:
             return cached[1] if cached else []   # keep showing what was read last
-        articles = [{"id": i["id"], "title": i["title"], "summary": i["summary"], "date": i["date"],
+        # some feeds repeat the headline as the text
+        articles = [{"id": i["id"], "title": i["title"], "summary": "" if i["summary"] == i["title"] else i["summary"],
+                     "date": i["date"],
                      "link": i["link"], "source": feed["title"]} for i in parsed["items"] if i["title"]]
         self.fetched[feed["url"]] = (time.time(), articles)
         return articles
