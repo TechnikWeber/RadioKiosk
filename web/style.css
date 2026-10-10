@@ -236,8 +236,9 @@ body:has(.keys) footer, body:has(.keys) #warn { display: none; }
 #idle.pictures #idle-text { color: #fff; }
 #idle-news { display: none; }
 #idle.news #idle-news { display: block; position: absolute; left: 28px; right: 28px; top: 24px; text-align: left; color: #fff; }
-#idle.news #idle-news { bottom: 36vh; overflow: hidden; }   /* never runs into the clock below */
-#idle-news div { margin-bottom: min(3vh, 16px); }
+#idle.news #idle-news { bottom: max(150px, 30vh); overflow: hidden; }   /* never runs into the clock below */
+#idle-news div { padding-bottom: min(3vh, 16px); }
+#idle-news p { margin: 2px 0; font-size: min(3.6vh, 19px); line-height: 1.3; color: #c9d1da; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 #idle-news b { font-size: min(4.8vh, 26px); line-height: 1.2; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 #idle-news small { color: var(--muted); font-size: 14px; }
 #idle.news #idle-box { position: absolute; left: 28px; bottom: 18px; text-align: left; }
