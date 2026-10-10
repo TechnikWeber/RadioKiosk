@@ -76,6 +76,11 @@ class Core:
             ],
         }
 
+    def need_sdr(self):
+        """Say plainly that the stick is missing, before a receiver fails over it in its own words."""
+        if not sdr_present():
+            raise RuntimeError("no SDR stick connected")
+
     def snapshot(self):
         backends = {name: self.sources[name].backend_id() for name in ("fm", "tuner") if name in self.sources}
         return {**self.state, "caps": self.caps(), "backends": backends, "idle_content": self.cfg["idle_content"],

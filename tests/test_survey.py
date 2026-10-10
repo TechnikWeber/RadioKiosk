@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from radiokiosk.qsolog import adif, as_csv, band_of, clean
-from radiokiosk.sources.survey import analyse, as_text, noise_floor, own_oscillator, parse_sweep, service_at
+from radiokiosk.sources.survey import analyse, as_text, noise_floor, own_oscillator, parse_sweep, ranges_for, service_at
 from radiokiosk.spaceweather import nearest_sonde, parse_solar
 
 
@@ -50,6 +50,26 @@ class SurveyTest(unittest.TestCase):
             row[200] = -51 if i % 2 else -53     # 145.000: 9 or 7 dB over the floor, crossing the threshold
         report = analyse(freqs, rows, 5e3)
         self.assertEqual([s["mhz"] for s in report["now_and_then"]], [145.5])
+
+    def test_what_only_one_tuning_shows_is_left_out(self):
+        freqs, rows = self.sweeps(8)
+        for i, row in enumerate(rows):
+            row[299:302] = -35 if i in (0, 1, 4, 5) else row[298]   # the station now talks during both tunings
+            if i % 2 == 0:
+                row[50] = -30                    # 144.250: a spike of the stick, there with the first tuning only
+        report = analyse(freqs, rows, 5e3, [i % 2 for i in range(8)])
+        found = [s["mhz"] for key in ("now_and_then", "suspects", "steady") for s in report[key]]
+        self.assertNotIn(144.25, found)
+        self.assertEqual(report["ghosts"], 1)
+        self.assertIn(144.5, found)              # the carrier that both tunings see stays
+
+    def test_ranges_follow_the_stick(self):
+        self.assertEqual(ranges_for(True)["all"][:2], (0.5e6, 1766e6))       # Blog V4: down into shortwave
+        self.assertEqual(ranges_for(False)["all"][:2], (24e6, 1766e6))
+        old = ranges_for(False, ("FC0013", 22, 1100))                        # an old DVB-T stick
+        self.assertEqual(old["all"][:2], (22e6, 1100e6))
+        self.assertEqual(old["uhf"][:2], (300e6, 1000e6))
+        self.assertNotIn("2m", ranges_for(False, ("FC2580", 146, 924)))      # this tuner starts above the band
 
     def test_the_stick_hears_its_own_crystal(self):
         self.assertTrue(own_oscillator(28.806, 20))

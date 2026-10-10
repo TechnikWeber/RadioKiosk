@@ -4,6 +4,8 @@
 
 // Kept in the browser, not in the service: a phone used as remote control wants
 // other choices than the kiosk screen.
+// on a very low screen the bar starts small, it would take a third of the height otherwise
+const BAR_DEFAULT = innerHeight < 420 ? "small" : "medium";
 const pref = (key, fallback) => {
   try { return localStorage.getItem(key) ?? fallback; } catch (e) { return fallback; }
 };
@@ -89,9 +91,10 @@ const STRINGS = {
     survey: "Radio survey", surveySub: "What is on the air?", surveyIntro: "Sweeps a range again and again for the chosen time and reports what was on the air: what comes and goes (somebody transmitting), what is always there, and narrow carriers that look like interference. Takes the SDR stick; what was playing through it stops.",
     surveyRange: "Range", surveyTime: "Duration", oneSweep: "one sweep", startSurvey: "Start the survey", surveyRunning: "Survey running",
     sweepsDone: "sweeps", saveReport: "Save the report", newSurvey: "New survey", lastReport: "Last report",
-    surveyRanges: { all: "Everything (24–1766 MHz)", hf: "Shortwave (0.5–30 MHz)", vhf: "VHF (30–300 MHz)", uhf: "UHF (300–1000 MHz)", air: "Air band", "2m": "2 m", "70cm": "70 cm", pmr: "PMR446" },
+    surveyRanges: { all: "Everything", hf: "Shortwave (0.5–30 MHz)", vhf: "VHF (30–300 MHz)", uhf: "UHF (300–1000 MHz)", air: "Air band", "2m": "2 m", "70cm": "70 cm", pmr: "PMR446" },
     centresTitle: "Where activity is expected", nowAndThen: "On the air now and then (somebody transmitting)",
     suspectsTitle: "Narrow and always there where people talk (possible interference)", steadyTitle: "Always there (broadcast, data links)",
+    ghostsLeftOut: "{n} signals were left out because the receiver produced them itself.",
     alwaysCarrier: "always occupied (a carrier?)", fewSweeps: "With so few sweeps, what comes and goes can hardly be told from what is always there: take more time or a smaller range.",
     bandsTitle: "Bands", quiet: "quiet", activeIn: "active in", ofSweeps: "% of the sweeps", overNoise: "dB over noise",
     occupiedShare: "% occupied", signalsWord: "signals", alwaysWord: "always there", noneFound: "Nothing found.", tapToListen: "Tap a line to listen there.",
@@ -199,9 +202,10 @@ const STRINGS = {
     survey: "Funk-Analyse", surveySub: "Was ist auf Sendung?", surveyIntro: "Durchläuft einen Bereich immer wieder über die gewählte Zeit und berichtet, was auf Sendung war: was kommt und geht (da funkt jemand), was dauernd da ist, und schmale Träger, die nach Störung aussehen. Belegt den SDR-Stick; was darüber lief, wird beendet.",
     surveyRange: "Bereich", surveyTime: "Dauer", oneSweep: "ein Durchlauf", startSurvey: "Analyse starten", surveyRunning: "Analyse läuft",
     sweepsDone: "Durchläufe", saveReport: "Bericht speichern", newSurvey: "Neue Analyse", lastReport: "Letzter Bericht",
-    surveyRanges: { all: "Alles (24–1766 MHz)", hf: "Kurzwelle (0,5–30 MHz)", vhf: "VHF (30–300 MHz)", uhf: "UHF (300–1000 MHz)", air: "Flugfunk", "2m": "2 m", "70cm": "70 cm", pmr: "PMR446" },
+    surveyRanges: { all: "Alles", hf: "Kurzwelle (0,5–30 MHz)", vhf: "VHF (30–300 MHz)", uhf: "UHF (300–1000 MHz)", air: "Flugfunk", "2m": "2 m", "70cm": "70 cm", pmr: "PMR446" },
     centresTitle: "Wo Aktivität zu erwarten ist", nowAndThen: "Zeitweise auf Sendung (da funkt jemand)",
     suspectsTitle: "Schmal und dauernd da, wo sonst gesprochen wird (mögliche Störung)", steadyTitle: "Dauernd da (Rundfunk, Datenstrecken)",
+    ghostsLeftOut: "{n} Signale wurden weggelassen, weil der Empfänger sie selbst erzeugt hat.",
     alwaysCarrier: "dauernd belegt (ein Träger?)", fewSweeps: "Bei so wenigen Durchläufen lässt sich kaum unterscheiden, was kommt und geht und was dauernd da ist: mehr Zeit oder einen kleineren Bereich wählen.",
     bandsTitle: "Bänder", quiet: "ruhig", activeIn: "aktiv in", ofSweeps: "% der Durchläufe", overNoise: "dB über Rauschen",
     occupiedShare: "% belegt", signalsWord: "Signale", alwaysWord: "dauernd da", noneFound: "Nichts gefunden.", tapToListen: "Tippe eine Zeile an, um dort zu hören.",
@@ -259,6 +263,8 @@ const MESSAGES_DE = [
   [/^the frequency must be a number in MHz$/, "Die Frequenz muss eine Zahl in MHz sein"],
   [/^rtl_power could not open the SDR stick$/, "rtl_power konnte den SDR-Stick nicht öffnen"],
   [/^there is no report yet$/, "Es gibt noch keinen Bericht"],
+  [/^no SDR stick connected$/, "Kein SDR-Stick angeschlossen"],
+  [/^this stick cannot tune to that range$/, "Dieser Stick kann diesen Bereich nicht empfangen"],
   [/^no reception on block (.+)$/, "Kein Empfang auf Block $1"],
   [/^welle-cli could not open the SDR$/, "welle-cli konnte den SDR-Stick nicht öffnen"],
   [/^welle-cli did not start$/, "welle-cli ist nicht gestartet"],
@@ -1952,7 +1958,9 @@ const surveyView = {
     const TIMES = [0, 60, 300, 900, 1800, 3600];
     view.replaceChildren(
       h("p", { className: "explain", textContent: t.surveyIntro }),
-      ...chips(t.surveyRange, Object.keys(this.ranges), "range", id => t.surveyRanges[id] || id),
+      // "everything" is as wide as the connected stick tunes
+      ...chips(t.surveyRange, Object.keys(this.ranges), "range", id => id === "all"
+        ? `${t.surveyRanges.all} (${this.ranges.all[0]}–${Math.round(this.ranges.all[1])} MHz)` : t.surveyRanges[id] || id),
       ...chips(t.surveyTime, TIMES, "seconds", s => s ? `${s / 60} ${t.minutes}` : t.oneSweep),
       h("div", { className: "toolbar" }, h("button", { className: "primary", textContent: t.startSurvey, disabled: !state.caps.sdr,
         onclick: async e => {
@@ -1977,6 +1985,7 @@ const surveyView = {
       h("h2", { className: "section", textContent: `${t.lastReport}: ${t.surveyRanges[r.range] || r.range}, ${timeOf(r.started)}` }),
       h("p", { className: "explain", textContent: t.surveySummary.replace("{signals}", r.signals).replace("{sweeps}", r.sweeps)
         .replace("{seconds}", Math.round(r.seconds)).replace("{slice}", r.slice_khz) + ". "
+        + (r.ghosts ? t.ghostsLeftOut.replace("{n}", r.ghosts) + " " : "")
         + (r.sweeps < 5 ? t.fewSweeps + " " : "") + t.tapToListen }),
       h("div", { className: "toolbar wrap" },
         h("button", { textContent: t.saveReport, onclick: async () => {
@@ -2255,7 +2264,7 @@ const settings = {
           onclick: () => { setPref("lang", lang === "en" ? "de" : "en"); location.hash = "settings"; location.reload(); },
         }),
         cycle(t.theme, "theme", "dark", t.themes, () => { document.documentElement.dataset.theme = pref("theme", "dark"); }),
-        cycle(t.bar, "bar", "medium", t.barSizes, () => { document.body.dataset.bar = pref("bar", "medium"); }),
+        cycle(t.bar, "bar", BAR_DEFAULT, t.barSizes, () => { document.body.dataset.bar = pref("bar", BAR_DEFAULT); }),
         cycle(t.keyboard, "keyboard", "auto", t.keyboardModes),
         h("button", { textContent: t.tiles, onclick: () => show(tilesView) })),
 
@@ -2489,7 +2498,7 @@ async function openLink() {
 }
 
 document.documentElement.dataset.theme = pref("theme", "dark");
-document.body.dataset.bar = pref("bar", "medium");
+document.body.dataset.bar = pref("bar", BAR_DEFAULT);
 let loadedVersion = null;
 function connect() {
   const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);

@@ -548,7 +548,7 @@ def build(cfg):
 
     @routes.get("/api/survey")
     async def survey_get(request):
-        return web.json_response({"ranges": {k: [v[0] / 1e6, v[1] / 1e6, v[2] / 1e3] for k, v in RANGES.items()},
+        return web.json_response({"ranges": {k: [v[0] / 1e6, v[1] / 1e6, v[2] / 1e3] for k, v in survey.ranges().items()},
                                   "report": survey.report})
 
     @routes.post("/api/survey/{action}")

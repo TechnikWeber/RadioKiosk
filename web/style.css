@@ -181,6 +181,19 @@ footer button.icon svg { width: calc(var(--bar-touch) * .5); height: calc(var(--
 .pad { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
 .pad .wide { grid-column: span 2; }
 
+/* Large screens (a monitor, a laptop at full resolution): everything a size up, so it reads from a distance. */
+@media (min-width: 1500px) and (min-height: 800px) {
+  :root { --touch: 68px; }
+  body { font-size: 22px; }
+  header { min-height: 78px; }
+  header h1 { font-size: 27px; }
+  .tiles { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .tile { min-height: 170px; font-size: 23px; }
+  .tile svg { width: 56px; height: 56px; }
+  .tile small, .row small, .label { font-size: 17px; }
+  main { padding: 16px; }
+  body { --bar-touch: 80px; --bar-pad: 12px; --bar-title: 24px; --bar-text: 19px; }
+}
 @media (max-height: 500px) {
   .tile { min-height: 96px; gap: 4px; padding: 6px; }
   .favrow + .tiles .tile { min-height: 78px; font-size: 17px; }

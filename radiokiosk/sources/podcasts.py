@@ -95,6 +95,7 @@ class Podcasts:
         self.positions = load_json("podcast_positions.json", {})   # episode id -> seconds heard
         self.episode = None
         self.watch = None
+        self.reading = None
 
     def subscribe(self, podcast, on):
         self.subscribed = [p for p in self.subscribed if p["feed"] != podcast["feed"]]
@@ -105,15 +106,11 @@ class Podcasts:
 
     async def suggestions(self):
         """The top of the charts of the own country and of the US, without what is subscribed already."""
-        if not self.charts or time.time() - self.charts["read"] > CHARTS_FOR:
-            country = self.core.cfg["country"]
-            try:
-                # for listeners in the US the British chart is the look abroad
-                self.charts = {"read": time.time(), "local": await chart(country),
-                               "world": await chart("gb" if country.upper() == "US" else "us")}
-                save_json("podcast_charts.json", self.charts)
-            except (RuntimeError, KeyError, TypeError):
-                pass   # keep what was read last
+        # The charts are read in the background: on a slow line they take many seconds,
+        # and the tile must not wait that long to open.
+        stale = not self.charts or time.time() - self.charts["read"] > CHARTS_FOR
+        if stale and (self.reading is None or self.reading.done()):
+            self.reading = asyncio.create_task(self._read_charts())
         lists = self.charts or STAND_IN
         taken = {p["feed"] for p in self.subscribed}
         picked = []
@@ -122,6 +119,16 @@ class Podcasts:
             picked += fresh[:SUGGESTED]
             taken.update(p["feed"] for p in fresh[:SUGGESTED])
         return picked
+
+    async def _read_charts(self):
+        country = self.core.cfg["country"]
+        try:
+            # for listeners in the US the British chart is the look abroad
+            self.charts = {"read": time.time(), "local": await chart(country),
+                           "world": await chart("gb" if country.upper() == "US" else "us")}
+            save_json("podcast_charts.json", self.charts)
+        except (RuntimeError, KeyError, TypeError):
+            pass   # keep what was read last
 
     async def episodes(self, feed):
         parsed = await fetch_feed(feed)

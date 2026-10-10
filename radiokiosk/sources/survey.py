@@ -14,8 +14,9 @@ import time
 
 import numpy as np
 
+from .. import rtlsdr
 from ..qsolog import documents_dir
-from ..util import kill, spawn
+from ..util import kill, sdr_devices, spawn
 
 # what can be swept: id -> (lowest, highest frequency in Hz, width of a slice in Hz)
 RANGES = {
@@ -28,6 +29,11 @@ RANGES = {
     "70cm": (430e6, 440e6, 5e3),
     "pmr": (445.9e6, 446.3e6, 1e3),
 }
+HF_BELOW = 24e6      # below this only a Blog V4 tunes by itself; other sticks sample directly
+# Every second sweep is tuned differently: cropping the edges of each step moves the
+# centres the stick tunes to. What the stick produces itself (a spike in the middle of a
+# step, mirror images of strong signals) moves along; a real transmission stays where it is.
+TUNINGS = ([], ["-c", "0.25"])
 THRESHOLD = 8        # dB above the noise floor for a slice to count as occupied
 STEADY = 0.9         # share of the sweeps from which a signal counts as always there
 SWING = 6            # dB a slice must rise and fall by to count as coming and going
@@ -67,6 +73,30 @@ CENTRES = [
 ]
 # the two repeater entries cover a block, everything else one channel
 BLOCKS = {145.6: 145.7875, 438.65: 439.425}
+
+
+def limits(v4, tuner=None):
+    """From where to where the connected stick can be swept, in Hz."""
+    _, low, high = tuner or rtlsdr.TUNERS[5]   # unknown: assume the usual R820T
+    return (0.5e6 if v4 else low * 1e6), min(high * 1e6, 2200e6)
+
+
+def ranges_for(v4, tuner=None):
+    """RANGES as this stick can do them: "all" as wide as it tunes, the rest cut to what it reaches.
+
+    Shortwave is left in for every stick: without a V4 it is swept with direct sampling,
+    which works on sticks built for it (Blog V3) and shows little on others.
+    """
+    lowest, highest = limits(v4, tuner)
+    fitted = {}
+    for name, (low, high, step) in RANGES.items():
+        if name == "all":
+            low, high = lowest, highest
+        elif name != "hf":
+            low, high = max(low, lowest), min(high, highest)
+        if high - low >= 10 * step:
+            fitted[name] = (low, high, step)
+    return fitted
 
 
 def service_at(mhz):
@@ -127,14 +157,33 @@ def own_oscillator(mhz, width_khz):
     return multiple >= 1 and abs(mhz - multiple * 28.8) <= max(0.03, width_khz / 2000)
 
 
-def analyse(freqs, sweeps, slice_hz):
-    """The report for a stack of sweeps (one row per sweep)."""
+def _widen(mask, by=2):
+    """A mask with every hit spread to its neighbours: the two tunings do not share exact slices."""
+    padded = np.pad(mask, by)
+    return np.lib.stride_tricks.sliding_window_view(padded, 2 * by + 1).any(axis=1)
+
+
+def analyse(freqs, sweeps, slice_hz, tunings=None):
+    """The report for a stack of sweeps (one row per sweep).
+
+    tunings says for each sweep which of TUNINGS it was made with.
+    """
     sweeps = np.asarray(sweeps)
     floor = noise_floor(np.median(sweeps, axis=0), slice_hz)
     above = sweeps - floor
     occupied = above > THRESHOLD
     share = occupied.mean(axis=0)              # how often each slice was occupied
     peak = above.max(axis=0)
+    ghosts = 0
+    if tunings is not None:
+        tunings = np.asarray(tunings)
+        first, second = occupied[tunings == 0], occupied[tunings == 1]
+        if len(first) >= 2 and len(second) >= 2:
+            # seen with one tuning but never with the other: made by the stick, not received
+            real = _widen(first.any(axis=0)) & _widen(second.any(axis=0))
+            ghosts = int(np.count_nonzero(np.diff(np.flatnonzero((share > 0) & ~real), prepend=-9) > 1))
+            share = np.where(real, share, 0.0)
+            peak = np.where(real, peak, 0.0)
     # Noise that lies just at the threshold crosses it now and then without anything
     # happening. Something that really comes and goes also changes its level a lot.
     swing = np.percentile(sweeps, 90, axis=0) - np.percentile(sweeps, 10, axis=0)
@@ -186,7 +235,7 @@ def analyse(freqs, sweeps, slice_hz):
     return {
         "from": round(float(freqs[0]) / 1e6, 4), "to": round(float(freqs[-1]) / 1e6, 4),
         "slice_khz": round(float(slice_hz) / 1e3, 2),
-        "sweeps": len(sweeps), "slices": len(freqs), "signals": len(signals),
+        "sweeps": len(sweeps), "slices": len(freqs), "signals": len(signals), "ghosts": ghosts,
         "floor_db": round(float(floor.mean()), 1),
         "now_and_then": by_strength([s for s in signals if not s["steady"]]),
         "steady": by_strength([s for s in signals if s["steady"] and not s["suspect"]]),
@@ -200,7 +249,8 @@ def as_text(report):
     stamp = time.strftime("%Y-%m-%d %H:%M", time.localtime(report["started"]))
     lines = [f"RadioKiosk radio survey, {stamp}",
              f"{report['from']}-{report['to']} MHz in slices of {report['slice_khz']} kHz, "
-             f"{report['sweeps']} sweeps in {round(report['seconds'])} s, {report['signals']} signals", ""]
+             f"{report['sweeps']} sweeps in {round(report['seconds'])} s, {report['signals']} signals"
+             + (f", {report['ghosts']} left out as made by the receiver itself" if report.get("ghosts") else ""), ""]
 
     def table(title, signals):
         lines.extend([title, "  MHz         width kHz  dB over noise  share of sweeps  service"])
@@ -232,17 +282,31 @@ class Survey:
         self.task = None
         self.report = None
         self.progress = None
+        self.span = None
 
     @staticmethod
     def available():
         return shutil.which("rtl_power") is not None
+
+    @staticmethod
+    def ranges():
+        """What the interface offers: by the kind of stick, without opening it."""
+        devices = sdr_devices()
+        return ranges_for(bool(devices) and devices[0]["v4"])
 
     async def start(self, range_id, seconds):
         if range_id not in RANGES:
             raise ValueError("unknown range")
         if not self.available():
             raise RuntimeError("rtl_power is not installed")
+        self.core.need_sdr()
+        devices = sdr_devices()
         await self.core.stop()
+        # now that nothing uses the stick it can be asked what tuner it has
+        fitted = ranges_for(devices[0]["v4"], await asyncio.to_thread(rtlsdr.tuner))
+        if range_id not in fitted:
+            raise RuntimeError("this stick cannot tune to that range")
+        self.span = (*fitted[range_id], devices[0]["v4"])
         async with self.core.lock:
             await self.core.take(self)
             self.progress = {"range": range_id, "seconds": seconds, "sweeps": 0, "started": time.time()}
@@ -251,27 +315,42 @@ class Survey:
             self.task = asyncio.create_task(self._run(range_id, seconds))
 
     async def _run(self, range_id, seconds):
-        low, high, slice_hz = RANGES[range_id]
+        low, high, slice_hz, v4 = self.span
         gain = self.core.gains.known("fm", 29.7)
-        started, freqs, sweeps = time.time(), None, []
-        # always one complete sweep; after that, as many as fit into the time
-        while not sweeps or time.time() - started < seconds:
-            self.proc = await spawn("rtl_power", "-f", f"{low:.0f}:{high:.0f}:{slice_hz:.0f}", "-i", "1", "-1",
-                                    "-g", str(gain), "-", stdout=asyncio.subprocess.PIPE,
+        started, freqs, sweeps, tunings = time.time(), None, [], []
+
+        async def sweep(part_low, part_high, extra):
+            self.proc = await spawn("rtl_power", "-f", f"{part_low:.0f}:{part_high:.0f}:{slice_hz:.0f}", "-i", "1", "-1",
+                                    "-g", str(gain), *extra, "-", stdout=asyncio.subprocess.PIPE,
                                     stderr=asyncio.subprocess.DEVNULL)
             out, _ = await self.proc.communicate()
-            sweep_freqs, levels = parse_sweep(out.decode(errors="replace"))
+            return parse_sweep(out.decode(errors="replace"))
+
+        # always one complete sweep; after that, as many as fit into the time
+        while not sweeps or time.time() - started < seconds:
+            tuning = len(tunings) % len(TUNINGS)
+            if v4 or low >= HF_BELOW:
+                sweep_freqs, levels = await sweep(low, high, TUNINGS[tuning])
+            else:
+                # the part below the tuner's range goes past the tuner, by direct sampling
+                parts = [await sweep(low, min(high, HF_BELOW), ["-D", *TUNINGS[tuning]])]
+                if high > HF_BELOW:
+                    parts.append(await sweep(HF_BELOW, high, TUNINGS[tuning]))
+                sweep_freqs, levels = (np.concatenate(column) for column in zip(*parts))
             if not len(levels):
                 self.core.fail("rtl_power could not open the SDR stick")
                 return
             if freqs is None:
                 freqs = sweep_freqs
-            if len(levels) == len(freqs):   # a sweep cut short does not line up with the others
-                sweeps.append(levels)
+            if tuning or len(levels) != len(freqs):
+                # the other tuning measures slightly different slices: bring it onto the first one's
+                levels = np.interp(freqs, sweep_freqs, levels)
+            sweeps.append(levels)
+            tunings.append(tuning)
             self.progress["sweeps"] = len(sweeps)
             self.core.update(detail={"survey": dict(self.progress)})
         self.report = {"range": range_id, "started": started, "seconds": time.time() - started,
-                       **await asyncio.to_thread(analyse, freqs, sweeps, freqs[1] - freqs[0])}
+                       **await asyncio.to_thread(analyse, freqs, sweeps, freqs[1] - freqs[0], tunings)}
         self.proc = None
         if self.core.active is self:
             self.core.active = None

@@ -110,6 +110,7 @@ class Dab:
                 self.core.update(source=None, status="idle", detail={})
 
     async def scan(self):
+        self.core.need_sdr()
         await self.core.stop()
         async with self.core.lock:
             await self.core.take(self)
@@ -119,6 +120,7 @@ class Dab:
         service = next((s for s in self.services if s["sid"] == sid), None)
         if service is None:
             raise RuntimeError("unknown service")
+        self.core.need_sdr()
         async with self.core.lock:
             await self.core.take(self)
             self._cancel_tasks()

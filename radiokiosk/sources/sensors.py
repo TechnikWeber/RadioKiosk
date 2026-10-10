@@ -50,6 +50,7 @@ class Sensors:
     async def start(self):
         if not self.available():
             raise RuntimeError("rtl_433 is not installed")
+        self.core.need_sdr()
         await self.core.stop()
         async with self.core.lock:
             await self.core.take(self)

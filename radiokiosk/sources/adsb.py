@@ -36,6 +36,7 @@ class Adsb:
         binary = decoder()
         if binary is None:
             raise RuntimeError("no ADS-B decoder installed")
+        self.core.need_sdr()
         await self.core.stop()
         async with self.core.lock:
             await self.core.take(self)

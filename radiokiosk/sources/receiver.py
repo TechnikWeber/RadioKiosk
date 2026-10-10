@@ -206,6 +206,7 @@ class Receiver:
         return wanted if usable.get(wanted) else next((n for n, ok in usable.items() if ok), wanted)
 
     async def _receive(self, hz, mode, gain_key, title, detail, squelch=0, zoom=1, stereo="auto", wide=False):
+        self.core.need_sdr()
         """Caller holds core.lock."""
         await self.core.take(self)
         backend = self.backends[self.backend_id()]
