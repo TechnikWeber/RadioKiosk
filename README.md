@@ -14,7 +14,7 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 | ![Free receiver on the 2 m amateur band](docs/screenshots/receiver.png) | ![Live aircraft map with list](docs/screenshots/aircraft.png) |
 | ![Idle screen with time, weather and station](docs/screenshots/idle.png) | |
 
-> Version 0.15: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
+> Version 0.16: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
 
 ## Install
 
@@ -84,6 +84,7 @@ A small Python service controls the receivers and serves a web interface that a 
 | Sensors | wireless thermometers, weather stations and other sensors nearby on 433 MHz | `rtl_433` |
 | Ships | live map and list of the ships nearby (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |
 | Propagation | solar flux, sunspots, K and A index, shortwave band conditions and the MUF of the nearest ionosonde | hamqsl.com (N0NBH), prop.kc2g.com (KC2G, GIRO) |
+| On the air | who is transmitting right now: DX cluster and Parks on the Air, filtered by band; a tap tunes the receiver there | HamQTH (DX Summit to fall back on), pota.app |
 | QSO log | logbook for contacts and for listeners (SWL), with bands and modes to tap; export as ADIF and CSV to `Documents/RadioKiosk` | – |
 | Radio survey | sweeps a range for a chosen time and reports what transmits now and then, what is always there and what looks like interference; the report can be saved | `rtl_power`, NumPy |
 | Timer | kitchen timer that also rings over the station that is playing, and a stopwatch | `mpv` |
@@ -92,7 +93,9 @@ A small Python service controls the receivers and serves a web interface that a 
 | Settings | language, light or dark design, audio output, sleep timer, alarm clock, idle screen, size of the bottom bar, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
 | Device | screen brightness, Wi-Fi, Wi-Fi power saving on/off, update, restart and shut down, AirPlay and Spotify Connect receivers | NetworkManager, systemd, `shairport-sync`, `librespot` |
 
-The idle screen comes in three kinds, chosen in the settings: the clock on black with the display dimmed (the default), the gallery behind the clock, or the newest article of the news reader. The last two keep the display bright.
+The idle screen comes in four kinds, chosen in the settings: the clock on black with the display dimmed (the default), the gallery behind the clock, the newest articles of the news reader, or the newest spots of the DX cluster. The last three keep the display bright.
+
+Without an internet connection everything that needs none keeps working (FM, DAB+, receiver, gallery, timer, QSO log, radio survey); the other tiles say that their source cannot be reached.
 
 Moon phase and propagation can be switched on in the settings; they then appear on the idle screen and in the weather tile. Both are off by default.
 

@@ -18,17 +18,30 @@ from .config import load_json, save_json
 HEADERS = {"User-Agent": "RadioKiosk/0.1"}
 REFRESH_AFTER = 300     # seconds a fetched feed is trusted
 ARTICLES = 60           # newest articles kept over all feeds
-# Feeds the reader offers with one tap: large German news sites and one for the world.
-# They are the public feeds these sites publish for readers like this one; shown are
-# headline and teaser as the feed carries them.
+# Feeds the reader offers with one tap, in three groups. They are the public feeds
+# these sites publish for readers like this one; shown are headline and teaser as the
+# feed carries them. This list is the one thing here that cannot keep itself current,
+# so every entry is tried before it is offered: one that is gone simply does not appear.
 SUGGESTIONS = [
-    {"url": "https://www.tagesschau.de/index~rss2.xml", "title": "tagesschau.de"},
-    {"url": "https://www.spiegel.de/schlagzeilen/index.rss", "title": "DER SPIEGEL"},
-    {"url": "https://www.zdf.de/rss/zdf/nachrichten", "title": "ZDFheute"},
-    {"url": "https://www.deutschlandfunk.de/nachrichten-100.rss", "title": "Deutschlandfunk"},
-    {"url": "https://feeds.bbci.co.uk/news/world/rss.xml", "title": "BBC News (World)"},
+    {"url": "https://www.tagesschau.de/index~rss2.xml", "title": "tagesschau.de", "group": "news"},
+    {"url": "https://www.spiegel.de/schlagzeilen/index.rss", "title": "DER SPIEGEL", "group": "news"},
+    {"url": "https://www.zdf.de/rss/zdf/nachrichten", "title": "ZDFheute", "group": "news"},
+    {"url": "https://www.deutschlandfunk.de/nachrichten-100.rss", "title": "Deutschlandfunk", "group": "news"},
+    {"url": "https://feeds.bbci.co.uk/news/world/rss.xml", "title": "BBC News (World)", "group": "news"},
+    {"url": "https://www.heise.de/rss/heise-atom.xml", "title": "heise online", "group": "tech"},
+    {"url": "https://rss.golem.de/rss.php?feed=RSS2.0", "title": "Golem.de", "group": "tech"},
+    {"url": "https://www.esa.int/rssfeed/Germany", "title": "ESA (Deutschland)", "group": "tech"},
+    {"url": "https://www.esa.int/rssfeed/TopNews", "title": "ESA Top News", "group": "tech"},
+    {"url": "https://www.nasa.gov/news-release/feed/", "title": "NASA", "group": "tech"},
+    {"url": "https://hackaday.com/blog/feed/", "title": "Hackaday", "group": "tech"},
+    {"url": "https://www.raspberrypi.com/news/feed/", "title": "Raspberry Pi News", "group": "tech"},
+    {"url": "https://www.darc.de/rss.xml", "title": "DARC (Amateurfunk)", "group": "radio"},
+    {"url": "https://www.arrl.org/arrl.rss", "title": "ARRL News", "group": "radio"},
+    {"url": "https://rsgb.org/main/feed/", "title": "RSGB", "group": "radio"},
+    {"url": "https://www.rtl-sdr.com/feed/", "title": "rtl-sdr.com", "group": "radio"},
 ]
-
+CHECK_AFTER = 24 * 3600   # seconds until a suggestion is tried again
+FIRST_WAIT = 4            # seconds the first list waits for the checks before it shows what is known
 
 
 def plain(markup, limit=None):
@@ -129,6 +142,8 @@ class Feeds:
         # nothing is read until the user picks a feed; the suggestions are an offer, not a choice made for them
         self.feeds = load_json("feeds.json", [])
         self.fetched = {}   # url -> (time, articles)
+        self.working = load_json("feed_suggestions.json", {"checked": 0, "urls": []})
+        self.checking = None
 
     async def _articles(self, feed):
         cached = self.fetched.get(feed["url"])
@@ -150,8 +165,30 @@ class Feeds:
         merged = sorted((a for articles in lists for a in articles), key=lambda a: -a["date"])
         return merged[:ARTICLES]
 
-    def suggestions(self):
-        return [s for s in SUGGESTIONS if all(feed["url"] != s["url"] for feed in self.feeds)]
+    async def _check(self):
+        """Try every suggestion and note which ones deliver a feed."""
+        async def works(url):
+            try:
+                return bool((await fetch_feed(url))["items"])
+            except RuntimeError:
+                return False
+
+        results = await asyncio.gather(*(works(s["url"]) for s in SUGGESTIONS))
+        self.working = {"checked": time.time(), "urls": [s["url"] for s, ok in zip(SUGGESTIONS, results) if ok]}
+        if self.working["urls"]:   # with no connection at all, keep what was known
+            save_json("feed_suggestions.json", self.working)
+
+    async def suggestions(self):
+        """The suggestions that work and are not chosen yet. One that cannot be reached is left out without a word."""
+        if time.time() - self.working["checked"] > CHECK_AFTER and (self.checking is None or self.checking.done()):
+            self.checking = asyncio.create_task(self._check())
+        if not self.working["urls"] and self.checking and not self.checking.done():
+            try:   # the very first time: give the checks a moment rather than show an empty list
+                await asyncio.wait_for(asyncio.shield(self.checking), FIRST_WAIT)
+            except asyncio.TimeoutError:
+                pass
+        taken = {feed["url"] for feed in self.feeds}
+        return [s for s in SUGGESTIONS if s["url"] in self.working["urls"] and s["url"] not in taken]
 
     async def add(self, url):
         url = url.strip()

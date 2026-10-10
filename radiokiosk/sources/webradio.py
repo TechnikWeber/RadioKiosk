@@ -37,7 +37,7 @@ class Webradio:
                     "info": ", ".join(filter(None, [s.get("countrycode"), s.get("codec"),
                                                     f'{s["bitrate"]} kbit/s' if s.get("bitrate") else ""])),
                 } for s in rows]
-        raise RuntimeError(f"station directory unreachable: {last_error}")
+        raise RuntimeError("station directory unreachable")
 
     async def play(self, station):
         async with self.core.lock:

@@ -68,7 +68,7 @@ const STRINGS = {
     ais: "Ships", aisSub: "Live map (AIS)", shipsSeen: "ships received",
     timer: "Timer", timerSub: "and stopwatch", stopwatch: "Stopwatch", start: "Start", stopIt: "Stop", reset: "Reset", cancel: "Cancel",
     timeUp: "Time is up",
-    idleContent: "Shows", idleContents: { clock: "clock", gallery: "gallery", feed: "news" },
+    idleContent: "Shows", idleContents: { clock: "clock", gallery: "gallery", feed: "news", spots: "DX cluster" },
     galleryFit: "Pictures", galleryFits: { whole: "whole picture", smart: "zoom slightly", fill: "fill the screen" },
     subfoldersToo: "Subfolders", demoPictures: "Demo pictures (no folder of your own chosen yet)",
     sectionPlayback: "Playback", sectionDisplay: "Display", sectionContent: "Content", sectionReception: "Reception",
@@ -99,6 +99,8 @@ const STRINGS = {
     bandsTitle: "Bands", quiet: "quiet", activeIn: "active in", ofSweeps: "% of the sweeps", overNoise: "dB over noise",
     occupiedShare: "% occupied", signalsWord: "signals", alwaysWord: "always there", noneFound: "Nothing found.", tapToListen: "Tap a line to listen there.",
     surveySummary: "{signals} signals in {sweeps} sweeps over {seconds} s, slices of {slice} kHz",
+    spots: "On the air", spotsSub: "DX cluster, POTA", dxCluster: "DX cluster", allBands: "All bands", staleSince: "not refreshed for",
+    feedGroups: { news: "News", tech: "Technology and space", radio: "Radio" }, serviceGone: "RadioKiosk does not answer. Is the service running?",
     theme: "Design", themes: { dark: "dark", light: "light" },
     bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
@@ -179,7 +181,7 @@ const STRINGS = {
     ais: "Schiffe", aisSub: "Live-Karte (AIS)", shipsSeen: "Schiffe empfangen",
     timer: "Timer", timerSub: "und Stoppuhr", stopwatch: "Stoppuhr", start: "Start", stopIt: "Stopp", reset: "Zurücksetzen", cancel: "Abbrechen",
     timeUp: "Die Zeit ist um",
-    idleContent: "Zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", feed: "Nachrichten" },
+    idleContent: "Zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", feed: "Nachrichten", spots: "DX-Cluster" },
     galleryFit: "Bilder", galleryFits: { whole: "ganzes Bild", smart: "leicht zoomen", fill: "Bildschirm füllen" },
     subfoldersToo: "Unterordner", demoPictures: "Demobilder (noch kein eigener Ordner gewählt)",
     sectionPlayback: "Wiedergabe", sectionDisplay: "Anzeige", sectionContent: "Inhalte", sectionReception: "Empfang",
@@ -210,6 +212,8 @@ const STRINGS = {
     bandsTitle: "Bänder", quiet: "ruhig", activeIn: "aktiv in", ofSweeps: "% der Durchläufe", overNoise: "dB über Rauschen",
     occupiedShare: "% belegt", signalsWord: "Signale", alwaysWord: "dauernd da", noneFound: "Nichts gefunden.", tapToListen: "Tippe eine Zeile an, um dort zu hören.",
     surveySummary: "{signals} Signale in {sweeps} Durchläufen über {seconds} s, Schrittweite {slice} kHz",
+    spots: "Funkaktivität", spotsSub: "DX-Cluster, POTA", dxCluster: "DX-Cluster", allBands: "Alle Bänder", staleSince: "nicht aktualisiert seit",
+    feedGroups: { news: "Nachrichten", tech: "Technik und Raumfahrt", radio: "Funk" }, serviceGone: "RadioKiosk antwortet nicht. Läuft der Dienst?",
     theme: "Design", themes: { dark: "dunkel", light: "hell" },
     bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
@@ -263,6 +267,11 @@ const MESSAGES_DE = [
   [/^the frequency must be a number in MHz$/, "Die Frequenz muss eine Zahl in MHz sein"],
   [/^rtl_power could not open the SDR stick$/, "rtl_power konnte den SDR-Stick nicht öffnen"],
   [/^there is no report yet$/, "Es gibt noch keinen Bericht"],
+  [/^the spots cannot be reached$/, "Die Spots sind nicht erreichbar"],
+  [/^a service on the internet cannot be reached$/, "Ein Dienst im Internet ist nicht erreichbar"],
+  [/^internal error: (.+)$/, "Interner Fehler: $1"],
+  [/^weather service unreachable.*$/, "Der Wetterdienst ist nicht erreichbar"],
+  [/^station directory unreachable.*$/, "Das Senderverzeichnis ist nicht erreichbar"],
   [/^no SDR stick connected$/, "Kein SDR-Stick angeschlossen"],
   [/^this stick cannot tune to that range$/, "Dieser Stick kann diesen Bereich nicht empfangen"],
   [/^no reception on block (.+)$/, "Kein Empfang auf Block $1"],
@@ -311,6 +320,7 @@ const ICONS = {
   sensors: '<path d="M10 14V5a2 2 0 014 0v9a4 4 0 11-4 0z"/><path d="M12 17v-6"/>',
   ais: '<path d="M3 17l2 4h14l2-4M5 17v-6h14v6M9 11V6h6v5M12 6V3"/>',
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6"/>',
+  spots: '<path d="M12 20V10M12 10l-5 10M12 10l5 10M8.5 6.5a5 5 0 017 0M6 4a8.5 8.5 0 0112 0"/><circle cx="12" cy="9" r="1"/>',
   propagation: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
   qso: '<path d="M6 3h11a2 2 0 012 2v16H8a2 2 0 01-2-2zM6 3a2 2 0 00-2 2v14M10 8h6M10 12h6M10 16h3"/>',
   survey: '<path d="M3 20h18M5 20v-4M9 20V8M13 20v-7M17 20V4M21 20v-9"/>',
@@ -335,11 +345,15 @@ function h(tag, props = {}, ...children) {
 
 async function api(path, body) {
   // the service looks up place names in the language of the interface
-  const response = await fetch(path, body === undefined ? { headers: { "Accept-Language": lang } } : {
-    method: "POST", headers: { "Content-Type": "application/json", "Accept-Language": lang }, body: JSON.stringify(body),
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || response.statusText);
+  let response;
+  try {
+    response = await fetch(path, body === undefined ? { headers: { "Accept-Language": lang } } : {
+      method: "POST", headers: { "Content-Type": "application/json", "Accept-Language": lang }, body: JSON.stringify(body),
+    });
+  } catch (e) { throw new Error(t.serviceGone); }   // the browser's own words for this help nobody
+  let data;
+  try { data = await response.json(); } catch (e) { data = {}; }
+  if (!response.ok) throw new Error(data.error || response.statusText || `HTTP ${response.status}`);
   return data;
 }
 
@@ -350,10 +364,26 @@ function show(v) {
   $("version").hidden = v !== home;
   $("back").hidden = v === home;
   view.scrollTop = 0;
-  v.render();
+  // A view that cannot get its data says so instead of staying empty. Views that
+  // handle their own errors never get here.
+  Promise.resolve().then(() => v.render()).catch(e => {
+    if (current === v) view.replaceChildren(h("p", { className: "hint", textContent: say(e.message) }));
+  });
 }
 
 const hint = text => h("p", { className: "hint", textContent: text });
+
+// A request that failed where no view was waiting for it, such as a tap on a button:
+// say so for a few seconds instead of doing nothing.
+let toast = null;
+addEventListener("unhandledrejection", e => {
+  e.preventDefault();
+  if (toast) toast.remove();
+  toast = h("div", { className: "toast", textContent: say((e.reason && e.reason.message) || String(e.reason)) });
+  document.body.append(toast);
+  const mine = toast;
+  setTimeout(() => mine.remove(), 6000);
+});
 
 function stationRow({ title, info, active, onPlay, starred, onStar, logo }) {
   const picture = logo ? h("img", { className: "logo", src: logo, loading: "lazy", alt: "" }) : null;
@@ -579,6 +609,7 @@ const home = {
       tile("gallery", t.gallery, null, () => show(galleryView), t.gallerySub),
       tile("timer", t.timer, null, () => show(timerView), t.timerSub),
       tile("propagation", t.propagation, null, () => show(propagationView), t.propagationSub),
+      tile("spots", t.spots, null, () => show(spotsView), t.spotsSub),
       tile("qso", t.qso, null, () => show(qsoLog), t.qsoSub),
       tile("survey", t.survey, c.survey ? sdrProblem : `rtl_power ${t.notInstalled}`, () => show(surveyView), t.surveySub),
       tile("settings", t.settings, null, () => show(settings)),
@@ -1561,14 +1592,17 @@ const feedList = {
         h("button", {}, h("span", { className: "texts" }, h("b", { textContent: f.title }), h("small", { textContent: f.url }))),
         h("button", { className: "icon", textContent: "×", ariaLabel: t.remove,
           onclick: async () => { await api("/api/feeds", { action: "remove", url: f.url }); this.render(); } }))),
-      ...(suggested.length ? [h("p", { className: "label", textContent: t.suggestions }), note] : []),
-      ...suggested.map(f => h("div", { className: "row" },
-        h("button", {}, h("span", { className: "texts" }, h("b", { textContent: f.title }), h("small", { textContent: f.url }))),
-        h("button", { className: "icon", textContent: "+", ariaLabel: t.addFeed, onclick: async e => {
-          e.target.disabled = true;
-          try { await api("/api/feeds", { action: "add", url: f.url }); this.render(); }
-          catch (error) { note.textContent = say(error.message); e.target.disabled = false; }
-        } }))));
+      ...(suggested.length ? [h("h2", { className: "section", textContent: t.suggestions }), note] : []),
+      ...Object.keys(t.feedGroups).flatMap(group => {
+        const offered = suggested.filter(f => f.group === group);
+        return offered.length ? [h("p", { className: "label", textContent: t.feedGroups[group] }), ...offered.map(f => h("div", { className: "row" },
+          h("button", {}, h("span", { className: "texts" }, h("b", { textContent: f.title }), h("small", { textContent: f.url }))),
+          h("button", { className: "icon", textContent: "+", ariaLabel: t.addFeed, onclick: async e => {
+            e.target.disabled = true;
+            try { await api("/api/feeds", { action: "add", url: f.url }); this.render(); }
+            catch (error) { note.textContent = say(error.message); e.target.disabled = false; }
+          } })))] : [];
+      }));
   },
   back() { show(this.origin || news); return true; },
 };
@@ -1809,6 +1843,65 @@ const propagationView = {
   leave() { clearTimeout(this.timer); },
 };
 
+/* ---------- spots: who is on the air ---------- */
+
+const spotTime = unix => unix ? new Date(unix * 1000).toISOString().slice(11, 16) + " UTC" : "";
+// Refreshes itself every minute while it is open. A tap on a spot tunes the receiver there.
+const spotsView = {
+  title: t.spots,
+  kind: "dx",
+  band: "",
+  data: null,
+  error: null,
+  timer: null,
+  async render() {
+    this.draw();
+    await this.load();
+  },
+  async load() {
+    clearTimeout(this.timer);
+    try { this.data = await api("/api/spots?kind=" + this.kind); this.error = null; }
+    catch (e) { this.error = e.message; }
+    if (current !== this) return;
+    this.draw();
+    this.timer = setTimeout(() => this.load(), 60e3);
+  },
+  leave() { clearTimeout(this.timer); },
+  draw() {
+    const tab = (id, label) => h("button", { className: this.kind === id ? "on" : "", textContent: label,
+      onclick: () => { Object.assign(this, { kind: id, data: null, band: "" }); this.render(); } });
+    const parts = [h("div", { className: "tabs" }, tab("dx", t.dxCluster), tab("pota", "POTA"))];
+    const spots = this.data ? this.data.spots : [];
+    const bands = [...new Set(spots.map(s => s.band).filter(Boolean))].sort((a, b) => parseFloat(b) * (b.endsWith("cm") ? 0.01 : 1)
+      - parseFloat(a) * (a.endsWith("cm") ? 0.01 : 1));
+    if (bands.length > 1) {
+      parts.push(h("div", { className: "toolbar wrap" }, ...["", ...bands].map(band => h("button", {
+        className: this.band === band ? "on" : "", textContent: band || t.allBands, onclick: () => { this.band = band; this.draw(); } }))));
+    }
+    if (this.error && !this.data) parts.push(hint(say(this.error)));
+    else if (!this.data) parts.push(hint(t.loading));
+    else {
+      const shown = spots.filter(s => !this.band || s.band === this.band);
+      parts.push(h("p", { className: "label", textContent: [this.data.source,
+        this.data.age ? `${t.staleSince} ${Math.round(this.data.age / 60)} ${t.minutes}` : null,
+        state.caps.sdr ? t.tapToListen : null].filter(Boolean).join(" · ") }));
+      if (!shown.length) parts.push(hint(t.noneFound));
+      for (const s of shown) {
+        parts.push(stationRow({
+          title: `${s.dx} · ${s.khz >= 30000 ? (s.khz / 1000).toFixed(3) + " MHz" : s.khz.toFixed(1) + " kHz"}${s.mode ? " · " + s.mode : ""}`,
+          info: [s.where, s.comment, s.spotter ? `de ${s.spotter}` : null, spotTime(s.time)].filter(Boolean).join(" · "),
+          onPlay: () => { if (state.caps.sdr) api("/api/tuner/tune", { hz: Math.round(s.khz * 1000),
+            mode: s.mode === "FM" ? "nfm" : s.mode === "AM" ? "am" : s.khz < 10000 && !["FT8", "FT4", "CW", "RTTY", "PSK", "JS8"].includes(s.mode) ? "lsb" : "usb",
+            label: `${s.dx} ${s.khz} kHz` }); },
+        }));
+      }
+    }
+    const top = view.scrollTop;
+    view.replaceChildren(...parts);
+    view.scrollTop = top;
+  },
+};
+
 /* ---------- logbook ---------- */
 
 const utcStamp = unix => new Date(unix * 1000).toISOString().slice(0, 16).replace("T", " ");
@@ -2026,7 +2119,7 @@ const tilesView = {
     const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner], ["adsb", t.adsb],
       ...c.apps.map(a => [a.id, a.name]), ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
       ["podcast", t.podcasts], ["news", t.news], ["sensors", t.sensors], ["ais", t.ais], ["weather", t.weather],
-      ["gallery", t.gallery], ["timer", t.timer], ["propagation", t.propagation], ["qso", t.qso], ["survey", t.survey]];
+      ["gallery", t.gallery], ["timer", t.timer], ["propagation", t.propagation], ["spots", t.spots], ["qso", t.qso], ["survey", t.survey]];
     const top = view.scrollTop;
     view.replaceChildren(h("p", { className: "explain", textContent: t.tilesHint }),
       h("div", { className: "toolbar wrap" }, ...all.map(([id, name]) => h("button", {
@@ -2382,7 +2475,24 @@ async function idleNews() {
     return newest.length > 0;
   } catch (e) { return false; }
 }
-// Three kinds, a setting: the classic clock on black with the display dimmed, the gallery
+async function idleSpots() {
+  idleNewsAt = Date.now();
+  try {
+    const { spots } = await api("/api/spots?kind=dx"), box = $("idle-news");
+    box.replaceChildren();
+    for (const s of spots.slice(0, 12)) {
+      const entry = h("div", { className: "spot" }, h("b", { textContent: `${s.dx} · ${s.khz.toFixed(1)} kHz${s.mode ? " · " + s.mode : ""}` }),
+        h("small", { textContent: [s.where, s.comment, spotTime(s.time)].filter(Boolean).join(" · ") }));
+      box.append(entry);
+      if (box.children.length > 1 && box.scrollHeight > box.clientHeight) {
+        entry.remove();
+        break;
+      }
+    }
+    return spots.length > 0;
+  } catch (e) { return $("idle-news").children.length > 0; }   // offline for a moment: keep what is shown
+}
+// Four kinds, a setting: the classic clock on black with the display dimmed, the gallery
 // behind the clock, or the newest article. The last two keep the display bright.
 async function showIdle() {
   idle.hidden = false;
@@ -2397,9 +2507,10 @@ async function showIdle() {
       idleSlides.start();
       return;
     }
-  } else if (content === "feed") {
-    idle.classList.add("news");   // shown first: fitting the articles needs their real sizes
-    const found = await idleNews();
+  } else if (content === "feed" || content === "spots") {
+    idle.classList.add("news");   // shown first: fitting the entries needs their real sizes
+    $("idle-news").replaceChildren();
+    const found = await (content === "spots" ? idleSpots() : idleNews());
     if (idle.hidden || found) return;
     idle.classList.remove("news");
   }
@@ -2436,12 +2547,13 @@ addEventListener("keydown", () => {
 setInterval(() => {
   const minutes = Number(pref("idle", "2"));
   // a map is there to be looked at, and so is the gallery
-  const watching = [adsb, ships, locationPicker, news, article, sensors, qsoLog, qsoForm, surveyView].includes(current)
+  const watching = [adsb, ships, locationPicker, news, article, sensors, qsoLog, qsoForm, surveyView, spotsView].includes(current)
     || (current === galleryView && galleryView.slides);
   if (idle.hidden && minutes && !watching && Date.now() - lastTouch > minutes * 60e3) showIdle();
   else if (!idle.hidden) {
     drawIdle();
-    if (idle.classList.contains("news") && Date.now() - idleNewsAt > 60e3) idleNews();   // stays the newest article
+    // stays the newest article, the newest spots
+    if (idle.classList.contains("news") && Date.now() - idleNewsAt > 60e3) (state.idle_content === "spots" ? idleSpots : idleNews)();
   }
 }, 1000);
 
@@ -2487,7 +2599,7 @@ async function openLink() {
     wifi: wifiView, receiver: receiverView,
     gallery: galleryView, gallerysettings: gallerySettings, podcasts, news, sensors, ais: ships, timer: timerView,
     podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList, propagation: propagationView, qso: qsoLog,
-    survey: surveyView }[name] || home;
+    survey: surveyView, spots: spotsView }[name] || home;
   if (target === webradio && band === "search") Object.assign(webradio, { tab: "search", typing: true });
   show(target);
   if (target === tuner && band) {

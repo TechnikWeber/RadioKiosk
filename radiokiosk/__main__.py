@@ -2,8 +2,10 @@
 
 import asyncio
 import ipaddress
+import logging
 import socket
 
+import aiohttp
 from aiohttp import web
 
 from . import __version__, audio, bluetooth, device, network_audio
@@ -23,6 +25,7 @@ from .gallery import Gallery, subfolders
 from .qsolog import BANDS as LOG_BANDS, MODES as LOG_MODES, QsoLog
 from .sources.survey import RANGES, Survey, as_text
 from .spaceweather import SpaceWeather
+from .spots import Spots
 from .sources import podcasts as podcast_directory
 from .sources.ais import Ais
 from .sources.podcasts import PROVIDERS, Podcasts
@@ -39,6 +42,12 @@ async def errors(request, handler):
         raise
     except (RuntimeError, KeyError, ValueError, OSError) as e:
         return web.json_response({"error": str(e) or type(e).__name__}, status=400)
+    except aiohttp.ClientError:
+        # some service on the internet did not answer; no source should let that through, but none may crash on it
+        return web.json_response({"error": "a service on the internet cannot be reached"}, status=400)
+    except Exception as e:   # a mistake in this program: say so readably instead of a bare server error
+        logging.getLogger(__name__).exception("request %s failed", request.path)
+        return web.json_response({"error": f"internal error: {type(e).__name__}"}, status=500)
 
 
 def addresses(port):
@@ -81,7 +90,7 @@ def build(cfg):
     weather = Weather()
     gallery = Gallery(cfg)
     feeds = Feeds(cfg)
-    space, log, survey = SpaceWeather(), QsoLog(cfg), Survey(core)
+    space, log, survey, spots = SpaceWeather(), QsoLog(cfg), Survey(core), Spots()
     podcasts, sensors, ais = Podcasts(core), Sensors(core), Ais(core)
     alarm = Alarm(core)
     timer = Timer(core)
@@ -280,7 +289,7 @@ def build(cfg):
             save_setting(cfg, body["key"], body["value"].strip())
             return ok()
         allowed = {"fm_backend": CHOICES, "tuner_backend": CHOICES, "remote": (True, False),
-                   "idle_content": ("clock", "gallery", "feed"), "podcast_provider": PROVIDERS, "swl": (True, False)}
+                   "idle_content": ("clock", "gallery", "feed", "spots"), "podcast_provider": PROVIDERS, "swl": (True, False)}
         if body["value"] not in allowed.get(body["key"], ()):
             raise ValueError("unknown setting")
         if body["key"].endswith("_backend"):
@@ -504,7 +513,7 @@ def build(cfg):
 
     @routes.get("/api/feeds")
     async def feeds_get(request):
-        return web.json_response({"feeds": feeds.feeds, "suggested": feeds.suggestions(),
+        return web.json_response({"feeds": feeds.feeds, "suggested": await feeds.suggestions(),
                                   "articles": await feeds.articles()})
 
     @routes.post("/api/feeds")
@@ -519,6 +528,10 @@ def build(cfg):
     @routes.get("/api/propagation")
     async def propagation_get(request):
         return web.json_response(await space.get(cfg.get("location")))
+
+    @routes.get("/api/spots")
+    async def spots_get(request):
+        return web.json_response(await spots.get(request.query.get("kind", "dx")))
 
     @routes.get("/api/qso")
     async def qso_get(request):

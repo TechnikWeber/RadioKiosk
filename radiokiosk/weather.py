@@ -48,8 +48,8 @@ class Weather:
                 async with http.get(URL, params=params) as r:
                     r.raise_for_status()
                     data = await r.json()
-        except (aiohttp.ClientError, TimeoutError) as e:
-            raise RuntimeError(f"weather service unreachable: {e}")
+        except (aiohttp.ClientError, TimeoutError, ValueError):
+            raise RuntimeError("weather service unreachable")
         daily = data["daily"]
         self.cached = {
             "now": {"temperature": data["current"]["temperature_2m"], "code": data["current"]["weather_code"],
