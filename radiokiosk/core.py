@@ -64,6 +64,7 @@ class Core:
             "adsb": adsb_decoder() is not None,
             "sensors": shutil.which("rtl_433") is not None,
             "ais": shutil.which("rtl_ais") is not None,
+            "survey": shutil.which("rtl_power") is not None,
             "bluetooth": shutil.which("bluetoothctl") is not None,
             "stream": shutil.which("ffmpeg") is not None,
             "apps": [

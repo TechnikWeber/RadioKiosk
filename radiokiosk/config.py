@@ -49,6 +49,9 @@ DEFAULTS = {
     "podcast_provider": "fyyd",
     "podcast_key": "",
     "podcast_secret": "",
+    # logbook: the own call sign, and whether the log is that of a listener (SWL)
+    "callsign": "",
+    "swl": False,
     "apps": [
         # SDR++ gets its own settings folder, so a private SDR++ setup stays untouched.
         # Next to the kiosk browser it needs more than the 1 GB of a Raspberry Pi 3:

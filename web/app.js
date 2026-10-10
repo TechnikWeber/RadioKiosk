@@ -73,6 +73,28 @@ const STRINGS = {
     sectionDevice: "Device and network", idleAfter: "Starts after",
     suggestions: "Suggestions", tiles: "Tiles on the start screen", tilesHint: "Tap a tile to hide it or bring it back.",
     shown: "shown", hiddenTile: "hidden",
+    propagation: "Propagation", propagationSub: "Sun, bands, MUF", sunspots: "Sunspots", solarWind: "Solar wind", xray: "X-ray",
+    geomagnetic: "Geomagnetic field", noiseLevel: "Noise", bandConditions: "Shortwave bands", day: "Day", night: "Night",
+    conditions: { good: "good", fair: "fair", poor: "poor" }, mufHere: "MUF over", sondeAway: "km away, measured",
+    minutesAgo: "min ago", noSonde: "No ionosonde nearby has reported lately; set your location for the MUF.",
+    propagationCredit: "Figures and band conditions: N0NBH (hamqsl.com). MUF: KC2G from the GIRO ionosondes.",
+    moon: "Moon", moonLit: "lit", nextFull: "Full moon", nextNew: "New moon", showMoon: "Moon", showSpace: "Propagation",
+    extrasHint: "Moon and propagation appear on the idle screen and in the weather tile.",
+    moonPhases: ["New moon", "Waxing crescent", "First quarter", "Waxing gibbous", "Full moon", "Waning gibbous", "Last quarter", "Waning crescent"],
+    qso: "QSO log", qsoSub: "Logbook", newQso: "New entry", myCall: "My call sign", listener: "Listener (SWL)",
+    exportAdif: "Save as ADIF", exportCsv: "Save as CSV", savedTo: "Saved to", download: "Download", noQsos: "The log is empty.",
+    callSign: "Call sign", frequencyMhz: "Frequency (MHz)", bandLabel: "Band", modeLabel: "Mode", rstSent: "RST sent",
+    rstRcvd: "RST received", rstHeard: "RST (as heard)", opName: "Name", qth: "QTH", locator: "Locator", notes: "Notes",
+    workedStation: "Was working", timeUtc: "Time (UTC)", now: "now", saveEntry: "Save", deleteEntry: "Delete", fromReceiver: "From the receiver",
+    survey: "Radio survey", surveySub: "What is on the air?", surveyIntro: "Sweeps a range again and again for the chosen time and reports what was on the air: what comes and goes (somebody transmitting), what is always there, and narrow carriers that look like interference. Takes the SDR stick; what was playing through it stops.",
+    surveyRange: "Range", surveyTime: "Duration", oneSweep: "one sweep", startSurvey: "Start the survey", surveyRunning: "Survey running",
+    sweepsDone: "sweeps", saveReport: "Save the report", newSurvey: "New survey", lastReport: "Last report",
+    surveyRanges: { all: "Everything (24–1766 MHz)", hf: "Shortwave (0.5–30 MHz)", vhf: "VHF (30–300 MHz)", uhf: "UHF (300–1000 MHz)", air: "Air band", "2m": "2 m", "70cm": "70 cm", pmr: "PMR446" },
+    centresTitle: "Where activity is expected", nowAndThen: "On the air now and then (somebody transmitting)",
+    suspectsTitle: "Narrow and always there where people talk (possible interference)", steadyTitle: "Always there (broadcast, data links)",
+    bandsTitle: "Bands", quiet: "quiet", activeIn: "active in", ofSweeps: "% of the sweeps", overNoise: "dB over noise",
+    occupiedShare: "% occupied", signalsWord: "signals", alwaysWord: "always there", noneFound: "Nothing found.", tapToListen: "Tap a line to listen there.",
+    surveySummary: "{signals} signals in {sweeps} sweeps over {seconds} s, slices of {slice} kHz",
     theme: "Design", themes: { dark: "dark", light: "light" },
     bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
@@ -160,6 +182,28 @@ const STRINGS = {
     sectionDevice: "Gerät und Netz", idleAfter: "Beginnt nach",
     suggestions: "Vorschläge", tiles: "Kacheln auf dem Startbildschirm", tilesHint: "Tippe eine Kachel an, um sie auszublenden oder zurückzuholen.",
     shown: "sichtbar", hiddenTile: "ausgeblendet",
+    propagation: "Funkwetter", propagationSub: "Sonne, Bänder, MUF", sunspots: "Sonnenflecken", solarWind: "Sonnenwind", xray: "Röntgen",
+    geomagnetic: "Erdmagnetfeld", noiseLevel: "Rauschen", bandConditions: "Kurzwellenbänder", day: "Tag", night: "Nacht",
+    conditions: { good: "gut", fair: "mäßig", poor: "schlecht" }, mufHere: "MUF über", sondeAway: "km entfernt, gemessen vor",
+    minutesAgo: "min", noSonde: "Keine Ionosonde in der Nähe hat zuletzt gemeldet; für die MUF muss der Standort festgelegt sein.",
+    propagationCredit: "Werte und Bandbedingungen: N0NBH (hamqsl.com). MUF: KC2G aus den Ionosonden des GIRO-Netzes.",
+    moon: "Mond", moonLit: "beleuchtet", nextFull: "Vollmond", nextNew: "Neumond", showMoon: "Mond", showSpace: "Funkwetter",
+    extrasHint: "Mond und Funkwetter erscheinen im Ruhebildschirm und in der Wetter-Kachel.",
+    moonPhases: ["Neumond", "Zunehmende Sichel", "Erstes Viertel", "Zunehmender Mond", "Vollmond", "Abnehmender Mond", "Letztes Viertel", "Abnehmende Sichel"],
+    qso: "QSO-Log", qsoSub: "Logbuch", newQso: "Neuer Eintrag", myCall: "Mein Rufzeichen", listener: "Hörer (SWL)",
+    exportAdif: "Als ADIF speichern", exportCsv: "Als CSV speichern", savedTo: "Gespeichert unter", download: "Herunterladen", noQsos: "Das Log ist leer.",
+    callSign: "Rufzeichen", frequencyMhz: "Frequenz (MHz)", bandLabel: "Band", modeLabel: "Betriebsart", rstSent: "RST gegeben",
+    rstRcvd: "RST erhalten", rstHeard: "RST (gehört)", opName: "Name", qth: "QTH", locator: "Locator", notes: "Notizen",
+    workedStation: "Arbeitete mit", timeUtc: "Zeit (UTC)", now: "jetzt", saveEntry: "Speichern", deleteEntry: "Löschen", fromReceiver: "Vom Empfänger",
+    survey: "Funk-Analyse", surveySub: "Was ist auf Sendung?", surveyIntro: "Durchläuft einen Bereich immer wieder über die gewählte Zeit und berichtet, was auf Sendung war: was kommt und geht (da funkt jemand), was dauernd da ist, und schmale Träger, die nach Störung aussehen. Belegt den SDR-Stick; was darüber lief, wird beendet.",
+    surveyRange: "Bereich", surveyTime: "Dauer", oneSweep: "ein Durchlauf", startSurvey: "Analyse starten", surveyRunning: "Analyse läuft",
+    sweepsDone: "Durchläufe", saveReport: "Bericht speichern", newSurvey: "Neue Analyse", lastReport: "Letzter Bericht",
+    surveyRanges: { all: "Alles (24–1766 MHz)", hf: "Kurzwelle (0,5–30 MHz)", vhf: "VHF (30–300 MHz)", uhf: "UHF (300–1000 MHz)", air: "Flugfunk", "2m": "2 m", "70cm": "70 cm", pmr: "PMR446" },
+    centresTitle: "Wo Aktivität zu erwarten ist", nowAndThen: "Zeitweise auf Sendung (da funkt jemand)",
+    suspectsTitle: "Schmal und dauernd da, wo sonst gesprochen wird (mögliche Störung)", steadyTitle: "Dauernd da (Rundfunk, Datenstrecken)",
+    bandsTitle: "Bänder", quiet: "ruhig", activeIn: "aktiv in", ofSweeps: "% der Durchläufe", overNoise: "dB über Rauschen",
+    occupiedShare: "% belegt", signalsWord: "Signale", alwaysWord: "dauernd da", noneFound: "Nichts gefunden.", tapToListen: "Tippe eine Zeile an, um dort zu hören.",
+    surveySummary: "{signals} Signale in {sweeps} Durchläufen über {seconds} s, Schrittweite {slice} kHz",
     theme: "Design", themes: { dark: "dunkel", light: "hell" },
     bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
@@ -208,6 +252,11 @@ const MESSAGES_DE = [
   [/^this computer does not let RadioKiosk change that setting$/, "Dieser Rechner lässt RadioKiosk diese Einstellung nicht ändern"],
   [/^no Wi-Fi connection$/, "Keine WLAN-Verbindung"],
   [/^this folder cannot be opened$/, "Dieser Ordner lässt sich nicht öffnen"],
+  [/^propagation data unreachable$/, "Die Funkwetter-Daten sind nicht erreichbar"],
+  [/^a call sign is needed$/, "Ein Rufzeichen fehlt"],
+  [/^the frequency must be a number in MHz$/, "Die Frequenz muss eine Zahl in MHz sein"],
+  [/^rtl_power could not open the SDR stick$/, "rtl_power konnte den SDR-Stick nicht öffnen"],
+  [/^there is no report yet$/, "Es gibt noch keinen Bericht"],
   [/^no reception on block (.+)$/, "Kein Empfang auf Block $1"],
   [/^welle-cli could not open the SDR$/, "welle-cli konnte den SDR-Stick nicht öffnen"],
   [/^welle-cli did not start$/, "welle-cli ist nicht gestartet"],
@@ -254,6 +303,9 @@ const ICONS = {
   sensors: '<path d="M10 14V5a2 2 0 014 0v9a4 4 0 11-4 0z"/><path d="M12 17v-6"/>',
   ais: '<path d="M3 17l2 4h14l2-4M5 17v-6h14v6M9 11V6h6v5M12 6V3"/>',
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6"/>',
+  propagation: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
+  qso: '<path d="M6 3h11a2 2 0 012 2v16H8a2 2 0 01-2-2zM6 3a2 2 0 00-2 2v14M10 8h6M10 12h6M10 16h3"/>',
+  survey: '<path d="M3 20h18M5 20v-4M9 20V8M13 20v-7M17 20V4M21 20v-9"/>',
   gallery: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-8 8"/>',
   weather: '<circle cx="8" cy="8" r="3"/><path d="M8 2v1M2 8h1M3.8 3.8l.7.7M12.2 3.8l-.7.7M8 20h9a4 4 0 000-8 6 6 0 00-11 2 3 3 0 002 6z"/>',
   bluetooth: '<path d="M7 7l10 10-5 4V3l5 4L7 17"/>',
@@ -363,8 +415,8 @@ const KEYS = {
   numbers: ["1234567890", "-/:;()&@+", ".,?!'\"#_=~%"],
 };
 
-function keyboard(input, onEnter) {
-  let shift = false, numbers = false;
+function keyboard(input, onEnter, numbers = false) {
+  let shift = false;
   const el = h("div", { className: "keys" });
   const set = value => { input.value = value; input.dispatchEvent(new Event("input")); };
   const draw = () => {
@@ -518,6 +570,9 @@ const home = {
       tile("weather", t.weather, null, () => show(weather)),
       tile("gallery", t.gallery, null, () => show(galleryView), t.gallerySub),
       tile("timer", t.timer, null, () => show(timerView), t.timerSub),
+      tile("propagation", t.propagation, null, () => show(propagationView), t.propagationSub),
+      tile("qso", t.qso, null, () => show(qsoLog), t.qsoSub),
+      tile("survey", t.survey, c.survey ? sdrProblem : `rtl_power ${t.notInstalled}`, () => show(surveyView), t.surveySub),
       tile("settings", t.settings, null, () => show(settings)),
       ].filter(el => !hidden.includes(el.dataset.tile))));
   },
@@ -1016,10 +1071,18 @@ const weather = {
       h("span", { textContent: `${Math.round(d.min)}° / ${Math.round(d.max)}°` }),
       h("small", { textContent: d.rain === null ? "" : `${t.rain} ${d.rain} %` }));
     $("heading").textContent = data.place ? `${t.weather} · ${data.place}` : t.weather;
+    const m = moon(), space = showSpace() ? await loadSpaceWeather() : null;
+    if (current !== this) return;
     view.replaceChildren(
       h("div", { className: "dial", innerHTML: `${Math.round(data.now.temperature)}° <small>${describe(data.now.code)}</small>` }),
       h("p", { className: "label meter", textContent: `${t.wind} ${Math.round(data.now.wind)} km/h` }),
-      ...data.days.map(day));
+      ...data.days.map(day),
+      ...(showMoon() ? [h("div", { className: "day extra" }, h("b", { innerHTML: `${moonIcon(m.phase)} ${t.moon}` }),
+        h("span", { textContent: `${m.name}, ${m.lit} % ${t.moonLit}` }),
+        h("span", { textContent: `${t.nextFull} ${shortDay(m.full)}` }), h("small", { textContent: `${t.nextNew} ${shortDay(m.newMoon)}` }))] : []),
+      ...(space ? [h("button", { className: "day extra", onclick: () => show(propagationView) }, h("b", { textContent: t.propagation }),
+        h("span", { textContent: spaceLine(space) }),
+        h("span", { textContent: space.field || "" }), h("small", { textContent: space.xray ? `${t.xray} ${space.xray}` : "" }))] : []));
   },
 };
 
@@ -1270,8 +1333,8 @@ const wifiView = {
 // One view for every text that has to be typed: a feed's address, a key. It brings the on-screen keyboard.
 const textPrompt = {
   title: "",
-  label: "", value: "", done: null, origin: null,
-  ask(options) { Object.assign(this, { value: "" }, options); show(this); },
+  label: "", value: "", done: null, origin: null, numbers: false,
+  ask(options) { Object.assign(this, { value: "", numbers: false }, options); show(this); },
   render() {
     const input = h("input", { type: "text", value: this.value, placeholder: this.label, autocapitalize: "off", spellcheck: false });
     const note = h("p", { className: "label" });
@@ -1284,7 +1347,7 @@ const textPrompt = {
     if (own) input.inputMode = "none";
     view.replaceChildren(h("p", { className: "label", textContent: this.label }), note,
       h("div", { className: "toolbar" }, input, h("button", { className: "primary", textContent: "OK", onclick: finish })),
-      ...(own ? [keyboard(input, finish)] : []));
+      ...(own ? [keyboard(input, finish, this.numbers)] : []));
     if (!own) input.focus();
   },
   back() { show(this.origin); return true; },
@@ -1666,6 +1729,279 @@ const timerView = {
   onState() { this.draw(); },
 };
 
+/* ---------- moon ---------- */
+
+// The phase follows from the length of the lunar month, counted from a known new moon.
+// Good to a few hours, which is plenty for a calendar.
+const LUNATION = 29.530588853, KNOWN_NEW_MOON = Date.UTC(2000, 0, 6, 18, 14);
+function moon(date = new Date()) {
+  const phase = ((((date - KNOWN_NEW_MOON) / 864e5) % LUNATION + LUNATION) % LUNATION) / LUNATION;
+  const next = target => new Date(date.getTime() + ((target - phase + 1) % 1) * LUNATION * 864e5);
+  return { phase, lit: Math.round((1 - Math.cos(2 * Math.PI * phase)) * 50), name: t.moonPhases[Math.round(phase * 8) % 8],
+    full: next(0.5), newMoon: next(0) };
+}
+// The lit part: half the disc on the side of the sun, closed by the terminator, an ellipse that flattens towards the quarters.
+function moonIcon(phase, size = 28) {
+  const waxing = phase < 0.5, bulge = (10 * Math.abs(Math.cos(2 * Math.PI * phase))).toFixed(2);
+  const gibbous = phase > 0.25 && phase < 0.75;
+  return `<svg viewBox="0 0 24 24" style="width:${size}px;height:${size}px;stroke:none">`
+    + `<circle cx="12" cy="12" r="10" fill="#3b4656"/>`
+    + `<path fill="#f1e9c9" d="M12 2A10 10 0 0 ${waxing ? 1 : 0} 12 22A${bulge} 10 0 0 ${waxing === gibbous ? 1 : 0} 12 2z"/></svg>`;
+}
+const moonLine = () => { const m = moon(); return `${m.name} ${m.lit} %`; };
+const shortDay = date => date.toLocaleDateString(lang, { weekday: "short", day: "numeric", month: "short" });
+const showMoon = () => pref("show_moon", "off") === "on", showSpace = () => pref("show_space", "off") === "on";
+
+/* ---------- propagation ---------- */
+
+let spaceWeather = null, spaceWeatherAt = 0;
+async function loadSpaceWeather() {
+  if (Date.now() - spaceWeatherAt < 10 * 60e3 && spaceWeather) return spaceWeather;
+  spaceWeatherAt = Date.now();
+  try { spaceWeather = await api("/api/propagation"); } catch (e) { /* keep what was read last */ }
+  return spaceWeather;
+}
+const spaceLine = s => [s.flux != null ? `SFI ${s.flux}` : null, s.k != null ? `K ${s.k}` : null,
+  s.sonde ? `MUF ${s.sonde.muf} MHz` : null].filter(Boolean).join(" · ");
+
+const propagationView = {
+  title: t.propagation,
+  timer: null,
+  async render() {
+    view.replaceChildren(hint(t.loading));
+    spaceWeatherAt = 0;
+    const s = await loadSpaceWeather();
+    if (current !== this) return;
+    if (!s) { view.replaceChildren(hint(say("propagation data unreachable"))); return; }
+    const figure = (label, value) => value == null || value === "" ? null
+      : h("div", {}, h("b", { textContent: value }), h("small", { textContent: label }));
+    const ranges = [...new Set(s.bands.map(b => b.band))];
+    const cell = (band, time) => {
+      const state = (s.bands.find(b => b.band === band && b.time === time) || {}).state;
+      return h("span", { className: `cond ${state || ""}`, textContent: t.conditions[state] || "–" });
+    };
+    const open = s.vhf.filter(p => !/closed/i.test(p.state));
+    view.replaceChildren(
+      h("div", { className: "figures" }, figure("SFI", s.flux), figure(t.sunspots, s.sunspots), figure("K", s.k), figure("A", s.a),
+        figure(t.xray, s.xray), figure(`${t.solarWind} km/s`, s.wind != null ? Math.round(s.wind) : null), figure("Bz nT", s.bz)),
+      h("p", { className: "explain", textContent: s.sonde
+        ? `${t.mufHere} ${s.sonde.name}: ${s.sonde.muf} MHz` + (s.sonde.fof2 ? ` · foF2 ${s.sonde.fof2} MHz` : "")
+          + ` (${s.sonde.km} ${t.sondeAway} ${s.sonde.age} ${t.minutesAgo})`
+        : t.noSonde }),
+      h("h2", { className: "section", textContent: t.bandConditions }),
+      h("div", { className: "conds" }, h("span"), h("b", { textContent: t.day }), h("b", { textContent: t.night }),
+        ...ranges.flatMap(band => [h("span", { textContent: band.replace("-", " – ") }), cell(band, "day"), cell(band, "night")])),
+      ...(open.length ? [h("p", { className: "explain", textContent: open.map(p => `${p.name} (${p.where}): ${p.state}`).join(" · ") })] : []),
+      h("p", { className: "label", textContent: [s.field ? `${t.geomagnetic}: ${s.field}` : null,
+        s.noise ? `${t.noiseLevel}: ${s.noise}` : null, s.updated].filter(Boolean).join(" · ") }),
+      h("p", { className: "label", textContent: t.propagationCredit }));
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => { if (current === this) this.render(); }, 10 * 60e3);
+  },
+  leave() { clearTimeout(this.timer); },
+};
+
+/* ---------- logbook ---------- */
+
+const utcStamp = unix => new Date(unix * 1000).toISOString().slice(0, 16).replace("T", " ");
+const qsoLog = {
+  title: t.qso,
+  data: null,
+  note: "",
+  async render() {
+    this.data = await api("/api/qso");
+    const d = this.data, remote = !["localhost", "127.0.0.1"].includes(location.hostname);
+    const save = kind => async () => {
+      try { this.note = `${t.savedTo} ${(await api("/api/qso/export", { kind })).path}`; } catch (e) { this.note = say(e.message); }
+      this.render();
+    };
+    const top = view.scrollTop;
+    view.replaceChildren(
+      h("div", { className: "toolbar wrap" },
+        h("button", { className: "primary", textContent: t.newQso, onclick: () => qsoForm.open(null) }),
+        h("button", { textContent: `${t.myCall}: ${d.callsign || "–"}`, onclick: () => textPrompt.ask({
+          title: t.myCall, label: t.myCall, value: d.callsign, origin: this,
+          done: value => api("/api/settings", { key: "callsign", value }) }) }),
+        h("button", { className: d.swl ? "on" : "", textContent: `${t.listener}: ${d.swl ? t.on : t.off}`,
+          onclick: async () => { await api("/api/settings", { key: "swl", value: !d.swl }); this.render(); } }),
+        h("button", { textContent: t.exportAdif, disabled: !d.entries.length, onclick: save("adi") }),
+        h("button", { textContent: t.exportCsv, disabled: !d.entries.length, onclick: save("csv") }),
+        ...(remote && d.entries.length ? [h("a", { className: "button", href: "/api/qso/log.adi", textContent: `${t.download} (ADIF)` })] : [])),
+      ...(this.note ? [h("p", { className: "label", textContent: this.note })] : []),
+      ...(d.entries.length ? d.entries.map(e => stationRow({
+        title: `${e.call} · ${e.mhz ? e.mhz.toFixed(3) + " MHz" : e.band} ${e.mode}`,
+        info: [utcStamp(e.time) + " UTC", [e.rst_sent, d.swl ? null : e.rst_rcvd].filter(Boolean).join("/"),
+          e.worked ? `→ ${e.worked}` : null, e.name, e.qth || e.locator].filter(Boolean).join(" · "),
+        onPlay: () => qsoForm.open(e),
+      })) : [hint(t.noQsos)]));
+    view.scrollTop = top;
+  },
+};
+
+// One entry. Text is typed one field at a time, each with the on-screen keyboard; band and mode are tapped.
+const qsoForm = {
+  title: t.newQso,
+  entry: null,
+  open(entry) {
+    if (entry) this.entry = { ...entry };
+    else {
+      const heard = state.source === "tuner" && state.detail.hz ? state.detail : null;   // log what the receiver is tuned to
+      const mode = heard ? { nfm: "FM", wfm: "FM", am: "AM", usb: "SSB", lsb: "SSB" }[heard.mode] : pref("qso_mode", "SSB");
+      this.entry = { call: "", mhz: heard ? heard.hz / 1e6 : Number(pref("qso_mhz", "145.5")), band: heard ? "" : pref("qso_band", "2m"),
+        mode, rst_sent: mode === "CW" ? "599" : "59", rst_rcvd: mode === "CW" ? "599" : "59",
+        name: "", qth: "", locator: "", notes: "", worked: "", time: Math.floor(Date.now() / 1000) };
+    }
+    show(this);
+  },
+  render() {
+    const e = this.entry, d = qsoLog.data || { bands: {}, modes: [], swl: false };
+    const note = h("p", { className: "label" });
+    const text = (key, label, options = {}) => h("button", { textContent: `${label}: ${e[key] || "–"}`,
+      onclick: () => textPrompt.ask({ title: label, label, value: String(e[key] || ""), origin: this, numbers: options.numbers,
+        done: value => { e[key] = options.upper ? value.toUpperCase() : options.number ? Number(value.replace(",", ".")) || 0 : value; } }) });
+    const top = view.scrollTop;
+    view.replaceChildren(
+      h("div", { className: "toolbar wrap" },
+        text("call", t.callSign, { upper: true }),
+        h("button", { textContent: `${t.timeUtc}: ${utcStamp(e.time)}`, onclick: () => { e.time = Math.floor(Date.now() / 1000); this.render(); } }),
+        text("mhz", t.frequencyMhz, { number: true, numbers: true })),
+      h("p", { className: "label", textContent: t.bandLabel }),
+      h("div", { className: "toolbar wrap" }, ...Object.keys(d.bands).map(band => h("button", {
+        className: e.band === band ? "on" : "", textContent: band,
+        onclick: () => { e.band = band; e.mhz = d.bands[band]; this.render(); } }))),
+      h("p", { className: "label", textContent: t.modeLabel }),
+      h("div", { className: "toolbar wrap" }, ...d.modes.map(mode => h("button", {
+        className: e.mode === mode ? "on" : "", textContent: mode === "DIGITALVOICE" ? "DV" : mode,
+        onclick: () => {
+          const report = m => m === "CW" || m === "RTTY" || m === "PSK" ? "599" : "59";
+          if (e.rst_sent === report(e.mode)) e.rst_sent = report(mode);   // only where nobody typed something else
+          if (e.rst_rcvd === report(e.mode)) e.rst_rcvd = report(mode);
+          e.mode = mode;
+          this.render();
+        } }))),
+      h("div", { className: "toolbar wrap" },
+        text("rst_sent", d.swl ? t.rstHeard : t.rstSent, { numbers: true }),
+        ...(d.swl ? [text("worked", t.workedStation, { upper: true })] : [text("rst_rcvd", t.rstRcvd, { numbers: true })]),
+        text("name", t.opName), text("qth", t.qth), text("locator", t.locator, { upper: true }), text("notes", t.notes)),
+      note,
+      h("div", { className: "toolbar wrap" },
+        h("button", { className: "primary", textContent: t.saveEntry, onclick: async () => {
+          try { await api("/api/qso", e); } catch (error) { note.textContent = say(error.message); return; }
+          setPref("qso_band", e.band); setPref("qso_mode", e.mode); setPref("qso_mhz", e.mhz);
+          show(qsoLog);
+        } }),
+        ...(e.id ? [h("button", { textContent: t.deleteEntry, onclick: async () => { await api("/api/qso/delete", { id: e.id }); show(qsoLog); } })] : [])));
+    view.scrollTop = top;
+  },
+  back() { show(qsoLog); return true; },
+};
+
+/* ---------- radio survey ---------- */
+
+// The service names what it found in English; these are the German names.
+const SURVEY_DE = {
+  "Medium wave broadcast": "Mittelwelle Rundfunk", "broadcast": "Rundfunk", "amateur": "Amateurfunk", "CB radio": "CB-Funk",
+  "FM broadcast": "UKW-Rundfunk", "Air navigation": "Flugnavigation", "Air band voice": "Flugfunk (Sprache)",
+  "Weather satellites": "Wettersatelliten", "Marine VHF": "Seefunk", "Business and public radio": "Betriebs- und Behördenfunk",
+  "DAB+ broadcast": "DAB+", "TETRA (authorities)": "TETRA (Behörden)", "ISM 433 MHz (remotes, sensors)": "ISM 433 MHz (Fernbedienungen, Sensoren)",
+  "Business radio": "Betriebsfunk", "Television (DVB-T2)": "Fernsehen (DVB-T2)", "Mobile phones": "Mobilfunk",
+  "ISM 868 MHz (sensors, LoRa)": "ISM 868 MHz (Sensoren, LoRa)", "Air navigation (DME, ADS-B)": "Flugnavigation (DME, ADS-B)",
+  "Satellite navigation": "Satellitennavigation", "calling": "Anruf", "repeater outputs": "Relais-Ausgaben", "channel": "Kanal",
+  "Air band emergency": "Flugfunk-Notfrequenz", "Marine": "Seefunk",
+};
+const surveyName = name => lang !== "de" ? name
+  : Object.entries(SURVEY_DE).sort((a, b) => b[0].length - a[0].length).reduce((text, [en, de]) => text.replace(en, de), name);
+// how to listen to a frequency the survey found
+const listenMode = (mhz, service = "") => mhz < 30 ? (/amateur/.test(service) ? (mhz < 10 ? "lsb" : "usb") : "am")
+  : mhz >= 87.5 && mhz <= 108 ? "wfm" : mhz >= 118 && mhz < 137 ? "am" : "nfm";
+
+const surveyView = {
+  title: t.survey,
+  range: "all",
+  seconds: 300,
+  report: null,
+  ranges: {},
+  note: "",
+  wasRunning: false,
+  ticker: null,
+  async render() {
+    ({ ranges: this.ranges, report: this.report } = await api("/api/survey"));
+    if (current !== this) return;
+    clearInterval(this.ticker);
+    this.ticker = setInterval(() => { if (state.source === "survey") this.draw(); }, 1000);
+    this.draw();
+  },
+  leave() { clearInterval(this.ticker); },
+  draw() {
+    const running = state.source === "survey" && state.detail.survey;
+    if (running) {
+      const p = running, passed = Math.round(Date.now() / 1000 - p.started);
+      view.replaceChildren(
+        h("div", { className: "big words", textContent: t.surveyRunning }),
+        h("p", { className: "hint", textContent: `${t.surveyRanges[p.range]} · ${p.sweeps} ${t.sweepsDone} · `
+          + `${clockTime(passed)}${p.seconds ? " / " + clockTime(p.seconds) : ""}` }),
+        h("div", { className: "toolbar center" }, h("button", { textContent: t.cancel, onclick: () => api("/api/stop", {}) })));
+      return;
+    }
+    const top = view.scrollTop;
+    const chips = (label, choices, key, name) => [h("p", { className: "label", textContent: label }),
+      h("div", { className: "toolbar wrap" }, ...choices.map(c => h("button", {
+        className: this[key] === c ? "on" : "", textContent: name(c), onclick: () => { this[key] = c; this.draw(); } })))];
+    const TIMES = [0, 60, 300, 900, 1800, 3600];
+    view.replaceChildren(
+      h("p", { className: "explain", textContent: t.surveyIntro }),
+      ...chips(t.surveyRange, Object.keys(this.ranges), "range", id => t.surveyRanges[id] || id),
+      ...chips(t.surveyTime, TIMES, "seconds", s => s ? `${s / 60} ${t.minutes}` : t.oneSweep),
+      h("div", { className: "toolbar" }, h("button", { className: "primary", textContent: t.startSurvey, disabled: !state.caps.sdr,
+        onclick: async e => {
+          e.target.disabled = true;
+          try { await api("/api/survey/start", { range: this.range, seconds: this.seconds }); } catch (error) { this.note = say(error.message); this.draw(); }
+        } })),
+      ...(this.note ? [h("p", { className: "label", textContent: this.note })] : []),
+      ...(this.report ? this.reportParts(this.report) : []));
+    view.scrollTop = top;
+  },
+  reportParts(r) {
+    const remote = !["localhost", "127.0.0.1"].includes(location.hostname);
+    const listen = s => () => api("/api/tuner/tune", { hz: Math.round(s.mhz * 1e6), mode: listenMode(s.mhz, s.service || s.name),
+      label: `${s.mhz} MHz` });
+    const share = s => `${Math.round(s.share * 100)} ${t.ofSweeps}`;
+    const signals = (title, list) => [h("h2", { className: "section", textContent: title }),
+      ...(list.length ? list.map(s => stationRow({
+        title: `${s.mhz.toFixed(s.width_khz < 10 ? 4 : 3)} MHz`,
+        info: [surveyName(s.service), `${s.db} ${t.overNoise}`, `${s.width_khz} kHz`, share(s)].filter(Boolean).join(" · "),
+        onPlay: listen(s) })) : [hint(t.noneFound)])];
+    return [
+      h("h2", { className: "section", textContent: `${t.lastReport}: ${t.surveyRanges[r.range] || r.range}, ${timeOf(r.started)}` }),
+      h("p", { className: "explain", textContent: t.surveySummary.replace("{signals}", r.signals).replace("{sweeps}", r.sweeps)
+        .replace("{seconds}", Math.round(r.seconds)).replace("{slice}", r.slice_khz) + ". " + t.tapToListen }),
+      h("div", { className: "toolbar wrap" },
+        h("button", { textContent: t.saveReport, onclick: async () => {
+          try { this.note = `${t.savedTo} ${(await api("/api/survey/save", {})).path}`; } catch (e) { this.note = say(e.message); }
+          this.draw();
+        } }),
+        ...(remote ? [h("a", { className: "button", href: "/api/survey/report.txt", textContent: t.download })] : [])),
+      h("h2", { className: "section", textContent: t.centresTitle }),
+      ...(r.centres.length ? r.centres.map(c => stationRow({
+        title: `${surveyName(c.name)}`, active: c.share > 0,
+        info: `${c.mhz} MHz · ` + (c.share ? `${t.activeIn} ${share(c)}, ${c.db} ${t.overNoise}` : t.quiet),
+        onPlay: listen(c) })) : [hint(t.noneFound)]),
+      ...signals(t.nowAndThen, r.now_and_then), ...signals(t.suspectsTitle, r.suspects), ...signals(t.steadyTitle, r.steady),
+      h("h2", { className: "section", textContent: t.bandsTitle }),
+      ...r.bands.map(b => stationRow({
+        title: surveyName(b.name),
+        info: `${b.from}–${b.to} MHz · ${b.occupied} ${t.occupiedShare} · ${b.signals} ${t.signalsWord}, ${b.steady} ${t.alwaysWord}`,
+        onPlay: b.strongest ? listen({ mhz: b.strongest, service: b.name }) : () => {} })),
+    ];
+  },
+  onState() {
+    const running = state.source === "survey";
+    if (this.wasRunning && !running) this.render();   // finished or cancelled: fetch the report
+    else if (running !== this.wasRunning) this.draw();
+    this.wasRunning = running;
+  },
+};
+
 /* ---------- which tiles the start screen shows ---------- */
 
 // Every tile but the settings, which are the way back here.
@@ -1677,7 +2013,7 @@ const tilesView = {
     const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner], ["adsb", t.adsb],
       ...c.apps.map(a => [a.id, a.name]), ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
       ["podcast", t.podcasts], ["news", t.news], ["sensors", t.sensors], ["ais", t.ais], ["weather", t.weather],
-      ["gallery", t.gallery], ["timer", t.timer]];
+      ["gallery", t.gallery], ["timer", t.timer], ["propagation", t.propagation], ["qso", t.qso], ["survey", t.survey]];
     const top = view.scrollTop;
     view.replaceChildren(h("p", { className: "explain", textContent: t.tilesHint }),
       h("div", { className: "toolbar wrap" }, ...all.map(([id, name]) => h("button", {
@@ -1934,7 +2270,10 @@ const settings = {
             await api("/api/settings", { key: "idle_content", value: kinds[(kinds.indexOf(state.idle_content || "clock") + 1) % kinds.length] });
             this.render();
           },
-        })),
+        }),
+        cycle(t.showMoon, "show_moon", "off", { off: t.off, on: t.on }),
+        cycle(t.showSpace, "show_space", "off", { off: t.off, on: t.on })),
+      h("p", { className: "label", textContent: t.extrasHint }),
 
       ...section(t.sectionContent,
         h("button", { textContent: t.gallery, onclick: () => show(gallerySettings) }),
@@ -1979,8 +2318,11 @@ function drawIdle() {
   $("idle-date").textContent = now.toLocaleDateString(lang, { weekday: "long", day: "numeric", month: "long" });
   $("idle-extra").textContent = [
     idleWeather ? [idleWeather.place, `${Math.round(idleWeather.temperature)}°`, describe(idleWeather.code)].filter(Boolean).join(" ") : null,
+    showMoon() ? moonLine() : null,
+    showSpace() && spaceWeather ? spaceLine(spaceWeather) : null,
     state.alarm ? `⏰ ${state.alarm}` : null,
   ].filter(Boolean).join("  ·  ");
+  if (showSpace()) loadSpaceWeather();   // asks the service at most every ten minutes
   const playing = state.source && state.status !== "error";
   $("idle-title").textContent = playing ? state.title : "";
   $("idle-text").textContent = playing ? say(state.text) : "";
@@ -2081,7 +2423,7 @@ addEventListener("keydown", () => {
 setInterval(() => {
   const minutes = Number(pref("idle", "2"));
   // a map is there to be looked at, and so is the gallery
-  const watching = [adsb, ships, locationPicker, news, article, sensors].includes(current)
+  const watching = [adsb, ships, locationPicker, news, article, sensors, qsoLog, qsoForm, surveyView].includes(current)
     || (current === galleryView && galleryView.slides);
   if (idle.hidden && minutes && !watching && Date.now() - lastTouch > minutes * 60e3) showIdle();
   else if (!idle.hidden) {
@@ -2131,7 +2473,8 @@ async function openLink() {
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
     wifi: wifiView, receiver: receiverView,
     gallery: galleryView, gallerysettings: gallerySettings, podcasts, news, sensors, ais: ships, timer: timerView,
-    podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList }[name] || home;
+    podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList, propagation: propagationView, qso: qsoLog,
+    survey: surveyView }[name] || home;
   if (target === webradio && band === "search") Object.assign(webradio, { tab: "search", typing: true });
   show(target);
   if (target === tuner && band) {

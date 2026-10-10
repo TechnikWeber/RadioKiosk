@@ -20,6 +20,9 @@ from .sources.webradio import Webradio
 from .schedule import Schedule
 from .feeds import Feeds
 from .gallery import Gallery, subfolders
+from .qsolog import BANDS as LOG_BANDS, MODES as LOG_MODES, QsoLog
+from .sources.survey import RANGES, Survey, as_text
+from .spaceweather import SpaceWeather
 from .sources import podcasts as podcast_directory
 from .sources.ais import Ais
 from .sources.podcasts import PROVIDERS, Podcasts
@@ -78,6 +81,7 @@ def build(cfg):
     weather = Weather()
     gallery = Gallery(cfg)
     feeds = Feeds(cfg)
+    space, log, survey = SpaceWeather(), QsoLog(cfg), Survey(core)
     podcasts, sensors, ais = Podcasts(core), Sensors(core), Ais(core)
     alarm = Alarm(core)
     timer = Timer(core)
@@ -254,6 +258,7 @@ def build(cfg):
                                   "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
                                   "idle_content": cfg["idle_content"], "podcast_provider": cfg["podcast_provider"],
                                   "podcast_key": cfg["podcast_key"], "podcast_secret": cfg["podcast_secret"],
+                                  "callsign": cfg["callsign"], "swl": cfg["swl"],
                                   "version": __version__, "build": BUILD, "stream": network_audio.can_stream(),
                                   "backends": available_backends(),
                                   "engine_load": engine_load(), "engine_load_limit": ENGINE_LOAD_LIMIT})
@@ -268,11 +273,14 @@ def build(cfg):
             save_setting(cfg, "hidden_tiles", sorted(set(body["value"])))
             await core._broadcast()
             return ok()
+        if body["key"] == "callsign" and isinstance(body["value"], str):
+            save_setting(cfg, "callsign", body["value"].strip().upper()[:15])
+            return ok()
         if body["key"] in ("podcast_key", "podcast_secret") and isinstance(body["value"], str):
             save_setting(cfg, body["key"], body["value"].strip())
             return ok()
         allowed = {"fm_backend": CHOICES, "tuner_backend": CHOICES, "remote": (True, False),
-                   "idle_content": ("clock", "gallery", "feed"), "podcast_provider": PROVIDERS}
+                   "idle_content": ("clock", "gallery", "feed"), "podcast_provider": PROVIDERS, "swl": (True, False)}
         if body["value"] not in allowed.get(body["key"], ()):
             raise ValueError("unknown setting")
         if body["key"].endswith("_backend"):
@@ -507,6 +515,61 @@ def build(cfg):
         else:
             feeds.remove(body["url"])
         return ok()
+
+    @routes.get("/api/propagation")
+    async def propagation_get(request):
+        return web.json_response(await space.get(cfg.get("location")))
+
+    @routes.get("/api/qso")
+    async def qso_get(request):
+        return web.json_response({"entries": log.list(), "callsign": cfg["callsign"], "swl": cfg["swl"],
+                                  "bands": LOG_BANDS, "modes": LOG_MODES})
+
+    @routes.post("/api/qso")
+    async def qso_save(request):
+        log.save(await request.json())
+        return ok()
+
+    @routes.post("/api/qso/{action}")
+    async def qso_do(request):
+        action, body = request.match_info["action"], await request.json()
+        if action == "delete":
+            log.delete(body["id"])
+            return ok()
+        if action == "export":
+            return ok(path=log.export(body.get("kind")))
+        raise web.HTTPNotFound()
+
+    @routes.get("/api/qso/log.{kind}")
+    async def qso_download(request):
+        kind = "csv" if request.match_info["kind"] == "csv" else "adi"
+        return web.Response(text=log.text(kind), content_type="text/csv" if kind == "csv" else "text/plain",
+                            headers={"Content-Disposition": f'attachment; filename="qso-log.{kind}"'})
+
+    @routes.get("/api/survey")
+    async def survey_get(request):
+        return web.json_response({"ranges": {k: [v[0] / 1e6, v[1] / 1e6, v[2] / 1e3] for k, v in RANGES.items()},
+                                  "report": survey.report})
+
+    @routes.post("/api/survey/{action}")
+    async def survey_do(request):
+        action, body = request.match_info["action"], await request.json()
+        if action == "start":
+            seconds = float(body.get("seconds", 0))
+            if not 0 <= seconds <= 6 * 3600:
+                raise ValueError("a survey runs for at most six hours")
+            await survey.start(body["range"], seconds)
+            return ok()
+        if action == "save":
+            return ok(path=survey.save())
+        raise web.HTTPNotFound()
+
+    @routes.get("/api/survey/report.txt")
+    async def survey_download(request):
+        if not survey.report:
+            raise web.HTTPNotFound()
+        return web.Response(text=as_text(survey.report), content_type="text/plain",
+                            headers={"Content-Disposition": 'attachment; filename="radio-survey.txt"'})
 
     @routes.post("/api/timer")
     async def timer_set(request):
