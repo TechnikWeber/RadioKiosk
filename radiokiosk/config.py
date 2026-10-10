@@ -22,6 +22,8 @@ DEFAULTS = {
     "location": None,
     "location_name": None,   # looked up automatically
     "dab_port": 7979,
+    # screen brightness in percent the idle screen returns to; None until it is first set or dimmed
+    "brightness": None,
     # receiver backend per tile: "engine" (own receiver with waterfall), "rtl_fm" (classic),
     # or "auto": the own receiver where the processor is fast enough
     "fm_backend": "auto",

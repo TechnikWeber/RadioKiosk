@@ -1060,7 +1060,6 @@ const deviceView = {
     });
     const bright = delta => h("button", { textContent: delta > 0 ? "+" : "−", onclick: async () => {
       d.brightness = (await api("/api/device/brightness", { percent: d.brightness + delta })).brightness;
-      setPref("brightness", d.brightness);
       this.draw();
     } });
     view.replaceChildren(
@@ -1250,20 +1249,13 @@ function drawIdle() {
 }
 
 // The idle screen also dims the display where its brightness can be set; the first touch brings it back.
-let dimmedFrom = null;
-async function dim(on) {
-  try {
-    if (on && dimmedFrom === null) {
-      const { brightness } = await api("/api/device");
-      if (brightness === null) return;
-      dimmedFrom = brightness;
-      await api("/api/device/brightness", { percent: Math.max(5, Math.round(brightness * 0.3)) });
-    } else if (!on && dimmedFrom !== null) {
-      const restore = dimmedFrom;
-      dimmedFrom = null;
-      await api("/api/device/brightness", { percent: restore });
-    }
-  } catch (e) { /* no adjustable backlight */ }
+// The service keeps the brightness to return to. Requests go out one after another, so a touch
+// right after the idle screen appeared cannot be overtaken by the dimming it cancels.
+let dimmed = false, dimming = Promise.resolve();
+function dim(on) {
+  if (on === dimmed) return;
+  dimmed = on;
+  dimming = dimming.then(() => api("/api/device/dim", { on })).catch(() => { /* no adjustable backlight */ });
 }
 
 function showIdle() {

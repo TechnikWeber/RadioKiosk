@@ -128,7 +128,9 @@ def build(cfg):
     @routes.get("/api/device")
     async def device_get(request):
         return web.json_response({
-            "brightness": device.brightness(), "power": await device.can_power_off(),
+            # the chosen brightness, not what the idle screen has dimmed it to
+            "brightness": cfg["brightness"] if device.brightness() is not None and cfg["brightness"] else device.brightness(),
+            "power": await device.can_power_off(),
             "wifi": device.has_wifi(), "update": device.can_update(), "version": __version__,
             "receivers": receivers.list(),
         })
@@ -137,7 +139,17 @@ def build(cfg):
     async def device_do(request):
         action, body = request.match_info["action"], await request.json()
         if action == "brightness":
-            return ok(brightness=device.set_brightness(body["percent"]))
+            save_setting(cfg, "brightness", device.set_brightness(body["percent"]))
+            return ok(brightness=cfg["brightness"])
+        if action == "dim":
+            # The idle screen dims the display. The brightness to return to is stored before
+            # dimming, so a reloaded page or a restart can never mistake the dimmed value for it.
+            if device.brightness() is None:
+                return ok()
+            if not cfg["brightness"]:
+                save_setting(cfg, "brightness", device.brightness())
+            device.set_brightness(round(cfg["brightness"] * 0.3) if body["on"] else cfg["brightness"])
+            return ok()
         if action == "power":
             await core.stop()
             await device.power(body["action"])
@@ -382,6 +394,8 @@ def build(cfg):
     app.router.add_static("/", WEB_DIR)
 
     async def on_startup(app):
+        if cfg["brightness"] and device.brightness() is not None:
+            device.set_brightness(cfg["brightness"])   # a restart while the idle screen was up left it dimmed
         await core.refresh_volume()
         app["audio_watch"] = asyncio.create_task(audio.watch(core.refresh_volume))
         app["alarm"] = asyncio.create_task(alarm.run())
