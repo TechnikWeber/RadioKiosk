@@ -38,11 +38,16 @@ class Mpv:
             f"--input-ipc-server={self.socket}",
             stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL,
         )
-        for _ in range(50):
-            if self.socket.exists():
+        # A small computer that has just started the service takes several seconds here.
+        # Giving up early left the station on "loading" for good.
+        for _ in range(200):
+            if self.socket.exists() or self.proc.returncode is not None:
                 break
             await asyncio.sleep(0.1)
-        reader, self.writer = await asyncio.open_unix_connection(str(self.socket))
+        try:
+            reader, self.writer = await asyncio.open_unix_connection(str(self.socket))
+        except OSError:
+            raise RuntimeError("the player (mpv) did not start")
         asyncio.create_task(self._read(reader))
         await self.command("observe_property", 1, "media-title")
         await self.command("observe_property", 2, "core-idle")
@@ -66,6 +71,8 @@ class Mpv:
         self.pending.clear()
 
     async def command(self, *args):
+        if self.writer is None:
+            raise RuntimeError("the player (mpv) is not running")
         self.next_id += 1
         fut = asyncio.get_running_loop().create_future()
         self.pending[self.next_id] = fut

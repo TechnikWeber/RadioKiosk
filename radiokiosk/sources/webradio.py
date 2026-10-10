@@ -46,7 +46,10 @@ class Webradio:
             self.core.update(source=self.name, status="loading", title=station["name"], text="",
                              error=None, detail={"id": station["id"]})
             self.core.remember("webradio", station["name"], station=station)
-            await self.core.mpv.play(station["url"])
+            try:
+                await self.core.mpv.play(station["url"])
+            except (RuntimeError, OSError) as e:
+                self.core.fail(str(e))   # otherwise the station would stay on "loading"
 
     def on_title(self, title):
         # mpv reports the URL or file name until the stream sends a real title

@@ -91,7 +91,11 @@ class Podcasts:
                              text=episode["title"], error=None, detail={"id": episode["id"]})
             self.core.remember("podcast", episode["title"], episode=episode)
             start = max(0, self.positions.get(episode["id"], 0) - REWIND)
-            await self.core.mpv.play(episode["audio"], f"start={start}" if start else "")
+            try:
+                await self.core.mpv.play(episode["audio"], f"start={start}" if start else "")
+            except (RuntimeError, OSError) as e:
+                self.core.fail(str(e))
+                return
             self.watch = asyncio.create_task(self._watch(episode))
 
     async def _watch(self, episode):
