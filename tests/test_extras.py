@@ -3,7 +3,7 @@ import unittest
 
 from radiokiosk.alerts import parse as parse_alerts
 from radiokiosk.audiobooks import chapters_of
-from radiokiosk.satellites import look_angles, parse_elements, passes
+from radiokiosk.satellites import available, look_angles, parse_elements, passes
 from radiokiosk.sources.aprs import packet, position
 
 ASTRA = ("1 37775U 11041A   26282.95360937  .00000111  00000+0  00000+0 0  9999",
@@ -14,6 +14,7 @@ MIDNIGHT = calendar.timegm((2026, 10, 10, 0, 0, 0))
 
 
 class SatelliteTest(unittest.TestCase):
+    @unittest.skipUnless(available(), "needs the sgp4 package")
     def test_a_television_satellite_stands_where_every_dish_points(self):
         # Astra at 19.2 degrees east: from Stuttgart about 33 degrees up, a little east of south, all day
         for hour in (0, 6, 12, 18):
@@ -21,6 +22,7 @@ class SatelliteTest(unittest.TestCase):
             self.assertAlmostEqual(float(elevation[0]), 33.2, delta=0.5)
             self.assertAlmostEqual(float(azimuth[0]), 166.8, delta=0.5)
 
+    @unittest.skipUnless(available(), "needs the sgp4 package")
     def test_passes_of_the_space_station(self):
         found = passes({25544: ISS}, 48.78, 9.18, MIDNIGHT)
         self.assertTrue(3 <= len(found) <= 8)

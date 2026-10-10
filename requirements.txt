@@ -1,2 +1,5 @@
 aiohttp>=3.9
 numpy>=1.24
+# optional: without Pillow the gallery sends pictures unscaled, without sgp4 the satellite tile has no passes
+pillow>=10
+sgp4>=2.20
