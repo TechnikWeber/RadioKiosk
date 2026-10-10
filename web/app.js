@@ -32,7 +32,9 @@ const STRINGS = {
     connecting: "Connecting…", connected: "connected", update: "Update RadioKiosk", updating: "Updating…",
     upToDate: "Already up to date", updated: "Updated – restarting", restart: "Restart", shutDown: "Shut down",
     sure: "Tap again to confirm", liveStream: "Listen along on other devices (remote control must be on):",
-    scanChannels: "Scan", stopScan: "Stop scan", onAir: "Scheduled to be on the air now, within ±250 kHz (EiBi list)",
+    scanChannels: "Scan", stopScan: "Stop scan", onAir: "Scheduled to be on the air now, within ±250 kHz (EiBi list)", onNow: "on now", daily: "daily",
+    broadcastGroups: { german: "In German", english: "In English for Europe", others: "Other languages for Europe" },
+    broadcastsHint: "From the current EiBi schedule, your local time. Stations on the air right now come first; whether they can be heard depends on antenna and conditions.",
     record: "Record", recordingTo: "Recording to Music/RadioKiosk",
     warn: { undervoltage: "The power supply is too weak: reception suffers and the SDR stick may hang." },
     adsb: "Aircraft", adsbSub: "Live map (ADS-B)", aircraftSeen: "aircraft received", withPosition: "with position",
@@ -164,7 +166,9 @@ const STRINGS = {
     connecting: "Verbinde…", connected: "verbunden", update: "RadioKiosk aktualisieren", updating: "Aktualisiere…",
     upToDate: "Bereits aktuell", updated: "Aktualisiert – starte neu", restart: "Neu starten", shutDown: "Ausschalten",
     sure: "Zum Bestätigen noch einmal tippen", liveStream: "Auf anderen Geräten mithören (Fernbedienung muss an sein):",
-    scanChannels: "Suchlauf", stopScan: "Suchlauf stoppen", onAir: "Laut Sendeplan jetzt auf Sendung, im Umkreis von ±250 kHz (EiBi-Liste)",
+    scanChannels: "Suchlauf", stopScan: "Suchlauf stoppen", onAir: "Laut Sendeplan jetzt auf Sendung, im Umkreis von ±250 kHz (EiBi-Liste)", onNow: "jetzt", daily: "täglich",
+    broadcastGroups: { german: "Auf Deutsch", english: "Auf Englisch für Europa", others: "Andere Sprachen für Europa" },
+    broadcastsHint: "Aus dem aktuellen EiBi-Sendeplan, in deiner Ortszeit. Sender, die gerade senden, stehen oben; ob man sie hört, hängt von Antenne und Ausbreitung ab.",
     record: "Aufnehmen", recordingTo: "Aufnahme läuft nach Musik/RadioKiosk",
     warn: { undervoltage: "Das Netzteil ist zu schwach: Der Empfang leidet und der SDR-Stick kann sich aufhängen." },
     adsb: "Flugzeuge", adsbSub: "Live-Karte (ADS-B)", aircraftSeen: "Flugzeuge empfangen", withPosition: "mit Position",
@@ -915,10 +919,22 @@ const tuner = {
     this.draw();
     return true;
   },
+  broadcasts: null,   // stations from the schedule, shown below the shortwave bands
+  // hours of the schedule are UTC; the list shows them in local time
+  hours(times) {
+    const local = hhmm => new Date(Date.UTC(2000, 0, 1, Math.floor(hhmm / 100) % 24, hhmm % 100) - new Date().getTimezoneOffset() * 60e3)
+      .toISOString().slice(11, 16);
+    return times.map(([start, stop, days]) => (start === 0 && stop === 2400 ? "0–24" : `${local(start)}–${local(stop)}`) +
+      (days ? ` (${days})` : "")).join(", ");
+  },
   open(band, preset) {
     this.band = band;
+    if (band.id === "sw") {
+      api("/api/tuner/broadcasts").then(found => { this.broadcasts = found; if (current === this && this.band === band) this.draw(); })
+        .catch(() => {});   // without the schedule the bands alone are shown
+    }
     this.squelch = band.squelch || 0;
-    this.select(preset || band.presets[0]);
+    this.select(preset || band.presets.find(p => p.hz === band.first) || band.presets[0]);   // lists start at their lowest band, listening where there is most to hear
   },
   select(preset) {
     this.tune(preset.hz, preset.mode || this.band.mode, preset.name ? tr(preset.name) : "");
@@ -963,6 +979,22 @@ const tuner = {
     if (!this.band) return this.drawBands();
     const isFavorite = this.favorites.some(f => f.hz === this.hz && f.mode === this.mode);
     const step = (label, factor) => h("button", { textContent: label, onclick: () => this.tune(this.hz + factor * this.band.step) });
+    // the schedule's lists frame what is on the air near the tuned frequency: German and English first
+    const scheduled = names => (this.band.id === "sw" && this.broadcasts ? names : []).flatMap((group, i) => {
+        const rows = this.broadcasts[group] || [];
+        return rows.length ? [
+          h("p", { className: "label", textContent: t.broadcastGroups[group] }), ...(i || names.length < 2 ? [] : [hint(t.broadcastsHint)]),
+          ...rows.map(e => {
+            const row = stationRow({
+              title: e.station, active: e.khz * 1000 === this.hz, onPlay: () => this.tune(e.khz * 1000, "am", e.station),
+              info: [e.now ? t.onNow : "", `${e.khz} kHz`, group === "german" ? "" : e.language, this.hours(e.times)].filter(Boolean).join(" · "),
+            });
+            row.classList.add("tall");
+            row.classList.toggle("onair", e.now);
+            return row;
+          }),
+        ] : [];
+      });
     const top = view.scrollTop;
     view.replaceChildren(
       h("div", { className: "dial", innerHTML: formatHz(this.hz), onclick: () => { this.entry = ""; this.draw(); } }),
@@ -1001,11 +1033,6 @@ const tuner = {
         }),
       ),
       ...(this.error ? [hint(say(this.error))] : []),
-      ...(this.onair.length ? [h("p", { className: "label", textContent: t.onAir })] : []),
-      ...this.onair.map(e => stationRow({
-        title: e.station, info: `${e.khz} kHz · ${e.language}${e.target ? " → " + e.target : ""}`,
-        active: e.khz * 1000 === this.hz, onPlay: () => this.tune(e.khz * 1000, "am", e.station),
-      })),
       ...this.band.presets.flatMap((p, i, all) => {
         const row = stationRow({
           title: tr(p.name), active: p.hz === this.hz, onPlay: () => this.select(p),
@@ -1015,6 +1042,13 @@ const tuner = {
         const heading = p.group && tr(p.group) !== tr((all[i - 1] || {}).group || "");
         return heading ? [h("p", { className: "label", textContent: tr(p.group) }), row] : [row];
       }),
+      ...scheduled(["german", "english"]),
+      ...(this.onair.length ? [h("p", { className: "label", textContent: t.onAir })] : []),
+      ...this.onair.map(e => stationRow({
+        title: e.station, info: `${e.khz} kHz · ${e.language}${e.target ? " → " + e.target : ""}`,
+        active: e.khz * 1000 === this.hz, onPlay: () => this.tune(e.khz * 1000, "am", e.station),
+      })),
+      ...scheduled(["others"]),
     );
     view.scrollTop = top;
   },

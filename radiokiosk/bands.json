@@ -9,73 +9,175 @@
   "step": 5000,
   "presets": [
    {
-    "hz": 3950000,
-    "name": {
-     "de": "75 m (3950–4000 kHz)",
-     "en": "75 m (3950–4000 kHz)"
+    "hz": 2300000,
+    "name": "120 m (2300–2495 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "Tropenband: Sender aus Afrika, Asien und Lateinamerika, nachts",
+     "en": "tropical band: stations from Africa, Asia and Latin America, at night"
+    }
+   },
+   {
+    "hz": 3200000,
+    "name": "90 m (3200–3400 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "Tropenband: Sender aus Afrika, Asien und Lateinamerika, nachts",
+     "en": "tropical band: stations from Africa, Asia and Latin America, at night"
+    }
+   },
+   {
+    "hz": 3900000,
+    "name": "75 m (3900–4000 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "abends und nachts, Europa",
+     "en": "evenings and nights, Europe"
+    }
+   },
+   {
+    "hz": 4750000,
+    "name": "60 m (4750–5060 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "Tropenband: Sender aus Afrika, Asien und Lateinamerika, nachts",
+     "en": "tropical band: stations from Africa, Asia and Latin America, at night"
     }
    },
    {
     "hz": 5900000,
-    "name": {
-     "de": "49 m (5900–6200 kHz)",
-     "en": "49 m (5900–6200 kHz)"
+    "name": "49 m (5900–6200 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "das Europaband: tagsüber nah, abends weit",
+     "en": "the European band: near by day, far in the evening"
     }
    },
    {
-    "hz": 6070000,
-    "name": "Channel 292"
-   },
-   {
     "hz": 7200000,
-    "name": {
-     "de": "41 m (7200–7450 kHz)",
-     "en": "41 m (7200–7450 kHz)"
+    "name": "41 m (7200–7450 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "abends und nachts",
+     "en": "evenings and nights"
     }
    },
    {
     "hz": 9400000,
-    "name": {
-     "de": "31 m (9400–9900 kHz)",
-     "en": "31 m (9400–9900 kHz)"
+    "name": "31 m (9400–9900 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "rund um die Uhr das meistbelegte Band",
+     "en": "the busiest band around the clock"
     }
    },
    {
     "hz": 11600000,
-    "name": {
-     "de": "25 m (11600–12100 kHz)",
-     "en": "25 m (11600–12100 kHz)"
+    "name": "25 m (11600–12100 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "tagsüber und abends",
+     "en": "daytime and evenings"
     }
    },
    {
     "hz": 13570000,
-    "name": {
-     "de": "22 m (13570–13870 kHz)",
-     "en": "22 m (13570–13870 kHz)"
+    "name": "22 m (13570–13870 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "tagsüber",
+     "en": "daytime"
     }
    },
    {
     "hz": 15100000,
-    "name": {
-     "de": "19 m (15100–15800 kHz)",
-     "en": "19 m (15100–15800 kHz)"
+    "name": "19 m (15100–15800 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "tagsüber, weite Strecken",
+     "en": "daytime, long distances"
     }
    },
    {
     "hz": 17480000,
-    "name": {
-     "de": "16 m (17480–17900 kHz)",
-     "en": "16 m (17480–17900 kHz)"
+    "name": "16 m (17480–17900 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "tagsüber, weite Strecken",
+     "en": "daytime, long distances"
+    }
+   },
+   {
+    "hz": 18900000,
+    "name": "15 m (18900–19020 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "kaum belegt",
+     "en": "hardly used"
     }
    },
    {
     "hz": 21450000,
-    "name": {
-     "de": "13 m (21450–21850 kHz)",
-     "en": "13 m (21450–21850 kHz)"
+    "name": "13 m (21450–21850 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "tagsüber bei guter Ausbreitung",
+     "en": "daytime in good conditions"
+    }
+   },
+   {
+    "hz": 25670000,
+    "name": "11 m (25670–26100 kHz)",
+    "group": {
+     "de": "Rundfunkbänder",
+     "en": "Broadcast bands"
+    },
+    "note": {
+     "de": "nur bei sehr guter Ausbreitung",
+     "en": "only in very good conditions"
     }
    }
-  ]
+  ],
+  "first": 5900000
  },
  {
   "id": "mw",
@@ -1130,7 +1232,8 @@
     },
     "mode": "usb"
    }
-  ]
+  ],
+  "first": 14200000
  },
  {
   "id": "2m",

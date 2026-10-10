@@ -5,6 +5,7 @@ schedules twice a year. It is fetched once and kept in the cache folder.
 """
 
 import asyncio
+import re
 import time
 
 import aiohttp
@@ -14,6 +15,13 @@ from .config import CACHE_DIR
 URL = "http://www.eibispace.de/dx/sked-{season}.csv"   # the site does not offer https
 KEEP = 14 * 86400
 DAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+# the shortwave broadcast bands in kHz, a little wider than assigned: many stations sit just outside
+BROADCAST = ((2300, 2495), (3200, 3400), (3900, 4000), (4750, 5060), (5800, 6450), (7200, 7800), (9250, 9900),
+             (11500, 12160), (13570, 13870), (15030, 15800), (17480, 17900), (18900, 19020), (21450, 21850),
+             (25600, 26100))
+EUROPE = {"Eu", "WEu", "CEu", "NEu", "SEu", "EEu"}
+ONE_OFF = re.compile(r"\d[A-Z][a-z]{2}|Test")   # a date such as 31May: a single broadcast
+NOT_SPEECH = ("DIGITAL", "RTTY", "Fax")
 
 
 def seasons(now=None):
@@ -44,6 +52,23 @@ def _on_day(days, weekday):
         elif part == DAYS[weekday]:
             return True
     return not any(d in days for d in DAYS)   # codes like "irr": do not hide the station
+
+
+def _joined(times):
+    """Hours that overlap or follow each other on the same days, as one stretch each."""
+    joined = []
+    for start, stop, days in sorted(times, key=lambda t: (t[2], t[0], t[1])):
+        last = joined[-1] if joined else None
+        if last and last[2] == days and last[0] < last[1] and start <= last[1]:
+            if start < stop:
+                last[1] = max(last[1], stop)
+            elif stop < last[0]:
+                last[1] = stop       # runs on past midnight
+            else:
+                last[0], last[1] = 0, 2400
+        else:
+            joined.append([start, stop, days])
+    return joined
 
 
 class Schedule:
@@ -80,6 +105,35 @@ class Schedule:
             except (ValueError, IndexError):
                 continue
         return entries
+
+    def broadcasts(self, now=None):
+        """Shortwave broadcasters worth a try from Europe, in three groups: in German, in English to Europe,
+        in other languages to Europe. One row per station and frequency with all its hours; those
+        transmitting at this moment come first."""
+        t = time.gmtime(now)
+        clock, weekday = t.tm_hour * 100 + t.tm_min, t.tm_wday
+        groups = {"german": {}, "english": {}, "others": {}}
+        for khz, start, stop, days, station, language, target in self.entries:
+            if not language or ONE_OFF.search(days) or any(word in station for word in NOT_SPEECH) \
+                    or not any(low <= khz <= high for low, high in BROADCAST):
+                continue   # no language: fax and data; DRM is only noise to an AM receiver
+            spoken = language.split(",")
+            if "D" in spoken:
+                group = "german"
+            elif target in EUROPE:
+                group = "english" if "E" in spoken else "others"
+            else:
+                continue
+            row = groups[group].setdefault((station, khz), {"khz": khz, "station": station, "language": language,
+                                                              "times": [], "now": False})
+            row["times"].append([start, stop, days])
+            running = start <= clock < stop if start < stop else clock >= start or clock < stop
+            row["now"] = row["now"] or (running and _on_day(days, weekday))
+        for rows in groups.values():
+            for row in rows.values():
+                row["times"] = _joined(row["times"])
+        return {name: sorted(rows.values(), key=lambda r: (not r["now"], r["station"].lower(), r["khz"]))
+                for name, rows in groups.items()}
 
     async def ready(self):
         if not self.entries:

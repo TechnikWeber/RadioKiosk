@@ -228,6 +228,13 @@ def build(cfg):
         khz = float(request.query["hz"]) / 1000
         return web.json_response(schedule.on_air(khz - 250, khz + 250)[:60])
 
+    @routes.get("/api/tuner/broadcasts")
+    async def tuner_broadcasts(request):
+        """Shortwave broadcasters to try from Europe, from the schedule; empty while it cannot be fetched."""
+        if not await schedule.ready():
+            return web.json_response({"german": [], "english": [], "others": []})
+        return web.json_response(schedule.broadcasts())
+
     @routes.post("/api/tuner/scan")
     async def tuner_scan(request):
         body = await request.json()
