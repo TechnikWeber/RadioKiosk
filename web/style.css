@@ -382,6 +382,12 @@ body.immersive header, body.immersive footer, body.immersive #warn, body.immersi
 /* the stop button pauses what can go on from where it was, and then starts it again */
 #stop .pause, #stop .go, #stop.pauses .square, #stop.goes .square { display: none; }
 #stop.pauses .pause, #stop.goes .go { display: inline; }
+/* held down, a square draws itself around the sign: once it is closed, playing stops for good */
+#stop { touch-action: none; user-select: none; -webkit-user-select: none; }
+#stop .hold { display: none; stroke: var(--danger); stroke-dasharray: 100; stroke-dashoffset: 100; }
+#stop.holding .hold { display: inline; animation: stop-hold .9s linear forwards; }
+#stop.holding { border-color: var(--danger); }
+@keyframes stop-hold { to { stroke-dashoffset: 0; } }
 #mute .cross, #mute.on .sound { display: none; }
 #mute.on .cross { display: inline; }
 #mute.on { color: var(--danger); border-color: var(--danger); }

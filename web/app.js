@@ -3881,7 +3881,23 @@ function connect() {
 $("back").onclick = () => { if (!(current.back && current.back())) show(home); };
 // Podcasts, music and online media go on from where they were, so their button pauses; radio stops.
 const canPause = () => ["podcast", "music", "media"].includes(state.source) && ["playing", "paused"].includes(state.status);
-$("stop").onclick = () => canPause() ? api("/api/pause", { on: state.status === "playing" }).catch(() => {}) : api("/api/stop", {});
+// Held for a moment, the same button stops them for good; the square that forms around it shows how long.
+const HOLD_TO_STOP = 900;
+let holdTimer = null, heldToStop = false;
+const endHold = () => { clearTimeout(holdTimer); holdTimer = null; $("stop").classList.remove("holding"); };
+$("stop").onpointerdown = () => {
+  heldToStop = false;
+  if (!canPause()) return;
+  $("stop").classList.add("holding");
+  holdTimer = setTimeout(() => { endHold(); heldToStop = true; api("/api/stop", {}).catch(() => {}); }, HOLD_TO_STOP);
+};
+for (const event of ["pointerup", "pointerleave", "pointercancel"]) $("stop").addEventListener(event, endHold);
+$("stop").oncontextmenu = event => event.preventDefault();   // a long touch would open the browser's menu
+$("stop").onclick = () => {
+  if (heldToStop) { heldToStop = false; return; }   // the tap that ends a hold has done its work already
+  if (canPause()) api("/api/pause", { on: state.status === "playing" }).catch(() => {});
+  else api("/api/stop", {});
+};
 $("rec").onclick = () => api("/api/record", { on: !state.recording }).catch(() => {});
 $("mute").onclick = () => api("/api/mute", { on: !state.muted }).catch(() => {});
 $("vol-down").onclick = () => api("/api/volume", { value: (state.volume ?? 50) - 5 });

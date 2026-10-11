@@ -142,7 +142,7 @@ The interface is English by default and can be switched to German under Settings
 
 With remote control switched on under Settings, phones and computers in the same network can open the interface in a browser. There is no login, so use it only in a network you trust.
 
-The bottom bar has a mute button beside the volume; the alarm lifts the muting so that it still wakes. The record button in the bottom bar, switched on under Settings → *Record button*, saves what is playing to `Music/RadioKiosk`. With remote control on, other devices in the network can also listen along at `http://<address>:8080/live.mp3`.
+Podcasts, music and online media pause and go on with the button that stops radio; held for a second, it stops them for good. The bottom bar has a mute button beside the volume; the alarm lifts the muting so that it still wakes. The record button in the bottom bar, switched on under Settings → *Record button*, saves what is playing to `Music/RadioKiosk`. With remote control on, other devices in the network can also listen along at `http://<address>:8080/live.mp3`.
 
 RadioKiosk warns when a Raspberry Pi reports too little voltage, and it restarts an SDR stick that has hung on the USB bus instead of asking you to replug it.
 
