@@ -3349,6 +3349,7 @@ async function idleNews() {
       box.classList.add("tight");
       fill();
     }
+    box.classList.toggle("few", box.children.length < 3);
     return newest.length > 0;
   } catch (e) { return false; }
 }
@@ -3357,6 +3358,7 @@ async function idleSpots() {
   try {
     const { spots } = await api("/api/spots?kind=dx"), box = $("idle-news");
     box.replaceChildren();
+    box.classList.remove("tight", "few");
     box.style.bottom = `${$("idle-box").offsetHeight + 26}px`;
     for (const s of spots.slice(0, 12)) {
       const entry = h("div", { className: "spot" }, h("b", { textContent: `${s.dx} · ${s.khz.toFixed(1)} kHz${s.mode ? " · " + s.mode : ""}` }),
@@ -3376,7 +3378,7 @@ async function idleVerse() {
   try {
     const v = await api("/api/verse"), box = $("idle-news");
     box.style.bottom = `${$("idle-box").offsetHeight + 26}px`;
-    box.classList.remove("tight");
+    box.classList.remove("tight", "few");
     box.replaceChildren(h("div", { className: "verse" }, ...v.texts.flatMap(x => [h("p", { textContent: x.text }),
       ...(v.reference ? [h("small", { textContent: x.ref })] : [])])));
     // a short verse stands large, a long one is set smaller until all of it fits
@@ -3392,7 +3394,7 @@ async function idleReminders() {
   idleNewsAt = Date.now();
   const due = state.reminders || [], box = $("idle-news");
   box.style.bottom = `${$("idle-box").offsetHeight + 26}px`;
-  box.classList.remove("tight");
+  box.classList.remove("tight", "few");
   box.replaceChildren(h("div", { className: "verse" }, ...due.flatMap(r => [h("p", { textContent: r.text }),
     h("small", { textContent: `${t.remBanner} · ${reminderWhen(r)}` })])));
   for (let size = 40; size >= 14; size -= 2) {
