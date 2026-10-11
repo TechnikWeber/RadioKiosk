@@ -84,6 +84,7 @@ A small Python service controls the receivers and serves a web interface that a 
 | Aircraft | live map and list of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |
 | Bluetooth | connect a Bluetooth speaker, or let a phone play through this device | `bluetoothctl`, PipeWire |
 | Weather | current weather and a four-day forecast | Open-Meteo |
+| Calendar | the coming dates of calendars kept elsewhere, read from their iCal address (Google, Apple, waste collection, school holidays); the next date of today and tomorrow also stands on the idle screen | – |
 | Podcasts | search, subscriptions, episode list, skipping back and forth; remembers how far an episode has been heard | fyyd, Apple Podcasts or Podcast Index, `mpv` |
 | Music | your own collection from a folder, USB stick or mounted network folder: browse folders, play everything or shuffled | `mpv` |
 | Audiobooks | public domain audiobooks from LibriVox, with a search; a book continues where it stopped | Internet Archive, `mpv` |
@@ -126,7 +127,7 @@ The Losungen are not part of RadioKiosk: they are free of charge for non-commerc
 
 Without an internet connection everything that needs none keeps working (FM, DAB+, receiver, gallery, timer, QSO log, radio survey); the other tiles say that their source cannot be reached.
 
-Official weather warnings of the German weather service for the set location appear as a bar below the header and in full in the weather tile (data through brightsky.dev, for places in Germany only; can be switched off in the settings).
+Official weather warnings of the German weather service and the warnings of civil protection (NINA: floods, fires, drinking water, bomb disposal; read from warnung.bund.de) for the set location appear as a bar below the header and in full in the weather tile (data through brightsky.dev, for places in Germany only; can be switched off in the settings).
 
 Moon phase and propagation can be switched on in the settings; they then appear on the idle screen and in the weather tile. Both are off by default.
 

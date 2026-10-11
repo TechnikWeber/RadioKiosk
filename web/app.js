@@ -62,7 +62,7 @@ const STRINGS = {
     warn: { undervoltage: "The power supply is too weak: reception suffers and the SDR stick may hang.",
       autostop: "Playback was stopped because nobody had operated the radio for a long time (see Settings)." },
     adsb: "Aircraft", adsbSub: "Live map (ADS-B)", aircraftSeen: "aircraft received", withPosition: "with position",
-    weather: "Weather", wind: "Wind", rain: "Rain", today: "Today", yesterday: "Yesterday",
+    weather: "Weather", wind: "Wind", rain: "Rain", today: "Today", yesterday: "Yesterday", tomorrow: "Tomorrow",
     needLocation: "Set your location first: Settings → Location.",
     location: "Location", locationHint: "Move the map until the cross marks your place.", locationSave: "Use this place",
     locationSet: "set", locationUnset: "not set", sleepTimer: "Sleep timer", minutes: "min",
@@ -139,7 +139,7 @@ const STRINGS = {
     satellites: "Satellites", satellitesSub: "Passes overhead", passNow: "overhead now", highest: "up to", passIn: "in",
     noPasses: "No pass in the next 24 hours.", orbitsOld: "orbit data is {n} hours old",
     compass: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"],
-    aprs: "APRS", aprsSub: "Positions by radio", aprsSeen: "stations received", weatherAlerts: "Weather warnings", until: "until",
+    aprs: "APRS", aprsSub: "Positions by radio", aprsSeen: "stations received", weatherAlerts: "Official warnings (weather, civil protection)", until: "until",
     verse: "Bible verse", verseIntro: "A verse for every day on the idle screen, the same one the Bible Verse Widget shows. Choose it under Idle screen › Shows.",
     verseSource: "Source", verseSources: { list: "Curated list", losungen: "Herrnhuter Losungen" },
     verseTranslation: "Translation", verseTranslations: { auto: "as the interface", de: "Deutsch (Luther 1912)", en: "English (WEB)", es: "Español (RVR 1909)" },
@@ -155,6 +155,11 @@ const STRINGS = {
     mediaMissing: "yt-dlp is not installed. It can be fetched from its project into RadioKiosk's own folder.", mediaFetch: "Fetch yt-dlp",
     mediaRenew: "Renew yt-dlp", mediaHint: "The Online media tile finds and opens its titles with the program yt-dlp and plays their sound. The sites it reads change often: if titles stop playing, renew yt-dlp here. The newest version is fetched from its project into RadioKiosk's own folder.",
     about: "about", dayBefore: "The day before yesterday", testTone: "Test tone", sides: { left: "left", right: "right", both: "both" },
+    calendar: "Calendar", calendarSub: "What comes next", calendarAdd: "Add a calendar", calendarManage: "Calendars", calendarRefresh: "Fetch again",
+    calendarName: "Name of the calendar", calendarAddress: "Its address (iCal, https://… or webcal://…)", calendarRemove: "Stop reading",
+    calendarEmpty: "Nothing in the coming weeks.",
+    calendarIntro: "Shows the dates of calendars kept elsewhere: a Google or Apple calendar, the waste collection dates of your town, school holidays, a club. Each of them offers an address for subscribing (iCal). The calendars are only read, never changed.",
+    calendarHint: "The address is long: typing it is easiest from a phone or computer by remote control. The star removes a calendar.",
     hamTiles: "Radio hobby", hamHint: "Aircraft, ships, radio sensors, APRS, propagation, DX cluster, satellites, QSO log, radio survey and the expert receivers. A tile whose program is not installed stays away.",
     mediaSearches: "Kept searches", mediaTitles: "Kept titles", paused: "Paused", mediaKeepSearch: "Keep this search", mediaDating: "date loading …",
     tileSize: "Tiles", bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
@@ -230,7 +235,7 @@ const STRINGS = {
     warn: { undervoltage: "Das Netzteil ist zu schwach: Der Empfang leidet und der SDR-Stick kann sich aufhängen.",
       autostop: "Die Wiedergabe wurde gestoppt, weil das Radio lange nicht bedient wurde (siehe Einstellungen)." },
     adsb: "Flugzeuge", adsbSub: "Live-Karte (ADS-B)", aircraftSeen: "Flugzeuge empfangen", withPosition: "mit Position",
-    weather: "Wetter", wind: "Wind", rain: "Regen", today: "Heute", yesterday: "Gestern",
+    weather: "Wetter", wind: "Wind", rain: "Regen", today: "Heute", yesterday: "Gestern", tomorrow: "Morgen",
     needLocation: "Lege zuerst deinen Standort fest: Einstellungen → Standort.",
     location: "Standort", locationHint: "Verschiebe die Karte, bis das Kreuz auf deinem Ort liegt.", locationSave: "Diesen Ort übernehmen",
     locationSet: "festgelegt", locationUnset: "nicht festgelegt", sleepTimer: "Sleep-Timer", minutes: "min",
@@ -307,7 +312,7 @@ const STRINGS = {
     satellites: "Satelliten", satellitesSub: "Überflüge", passNow: "gerade am Himmel", highest: "bis", passIn: "in",
     noPasses: "Kein Überflug in den nächsten 24 Stunden.", orbitsOld: "Bahndaten sind {n} Stunden alt",
     compass: ["N", "NO", "O", "SO", "S", "SW", "W", "NW"],
-    aprs: "APRS", aprsSub: "Positionen per Funk", aprsSeen: "Stationen empfangen", weatherAlerts: "Unwetterwarnungen", until: "bis",
+    aprs: "APRS", aprsSub: "Positionen per Funk", aprsSeen: "Stationen empfangen", weatherAlerts: "Amtliche Warnungen (Wetter, Bevölkerungsschutz)", until: "bis",
     verse: "Bibelvers", verseIntro: "Ein Vers für jeden Tag im Ruhebildschirm, derselbe, den das Bible Verse Widget zeigt. Einschalten unter Ruhebildschirm › Zeigt.",
     verseSource: "Quelle", verseSources: { list: "Kuratierte Liste", losungen: "Herrnhuter Losungen" },
     verseTranslation: "Übersetzung", verseTranslations: { auto: "wie die Oberfläche", de: "Deutsch (Luther 1912)", en: "English (WEB)", es: "Español (RVR 1909)" },
@@ -323,6 +328,11 @@ const STRINGS = {
     mediaMissing: "yt-dlp ist nicht installiert. Es lässt sich von seinem Projekt in den eigenen Ordner von RadioKiosk holen.", mediaFetch: "yt-dlp holen",
     mediaRenew: "yt-dlp erneuern", mediaHint: "Die Kachel Online-Medien findet und öffnet ihre Titel mit dem Programm yt-dlp und spielt deren Ton. Die Seiten, die es liest, ändern sich oft: Spielen Titel nicht mehr, hier yt-dlp erneuern. Die neueste Version wird von seinem Projekt in den eigenen Ordner von RadioKiosk geholt.",
     about: "ca.", dayBefore: "Vorgestern", testTone: "Testton", sides: { left: "links", right: "rechts", both: "beide" },
+    calendar: "Kalender", calendarSub: "Was als Nächstes kommt", calendarAdd: "Kalender hinzufügen", calendarManage: "Kalender", calendarRefresh: "Neu abrufen",
+    calendarName: "Name des Kalenders", calendarAddress: "Seine Adresse (iCal, https://… oder webcal://…)", calendarRemove: "Nicht mehr lesen:",
+    calendarEmpty: "Nichts in den nächsten Wochen.",
+    calendarIntro: "Zeigt die Termine von Kalendern, die woanders geführt werden: ein Google- oder Apple-Kalender, der Abfallkalender der Gemeinde, Schulferien, ein Verein. Jeder davon bietet eine Adresse zum Abonnieren an (iCal). Die Kalender werden nur gelesen, nie verändert.",
+    calendarHint: "Die Adresse ist lang: Am einfachsten gibst du sie vom Handy oder PC über die Fernbedienung ein. Der Stern entfernt einen Kalender.",
     hamTiles: "Funk-Hobby", hamHint: "Flugzeuge, Schiffe, Funksensoren, APRS, Funkwetter, DX-Cluster, Satelliten, QSO-Log, Funk-Analyse und die Experten-Empfänger. Eine Kachel, deren Programm nicht installiert ist, bleibt weg.",
     mediaSearches: "Gemerkte Suchen", mediaTitles: "Gemerkte Titel", paused: "Pausiert", mediaKeepSearch: "Suche merken", mediaDating: "Datum lädt …",
     tileSize: "Kacheln", bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
@@ -434,6 +444,10 @@ const MESSAGES_DE = [
   [/^nothing has been played yet$/, "Es wurde noch nichts abgespielt"],
   [/^scan timed out$/, "Der Suchlauf hat zu lange gedauert"],
   [/^mpv is not installed$/, "mpv ist nicht installiert"],
+  [/^the calendar cannot be reached$/, "Der Kalender ist nicht erreichbar"],
+  [/^this address does not lead to a calendar$/, "Unter dieser Adresse liegt kein Kalender"],
+  [/^this is not an address$/, "Das ist keine Adresse"],
+  [/^there are too many calendars already$/, "Es sind schon zu viele Kalender"],
   [/^yt-dlp is not installed$/, "yt-dlp ist nicht installiert"],
   [/^yt-dlp took too long$/, "yt-dlp hat zu lange gebraucht"],
   [/^yt-dlp failed: (.*)$/, "yt-dlp ist gescheitert: $1"],
@@ -467,6 +481,7 @@ const ICONS = {
   sensors: '<path d="M10 14V5a2 2 0 014 0v9a4 4 0 11-4 0z"/><path d="M12 17v-6"/>',
   ais: '<path d="M3 17l2 4h14l2-4M5 17v-6h14v6M9 11V6h6v5M12 6V3"/>',
   notes: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h5"/>',
+  calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>',
   reminders: '<path d="M6 17V11a6 6 0 0112 0v6l2 2H4z"/><path d="M10 21h4"/>',
   power: '<path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1011.4 0"/>',
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6"/>',
@@ -714,6 +729,15 @@ function makeWaterfall(onTune) {
   };
 }
 
+// The next date of today or tomorrow in a few words, for a tile and the idle screen.
+function agendaLine() {
+  const next = (state.agenda || [])[0];
+  if (!next) return "";
+  const tomorrow = dayStart(next.start) > dayStart(Date.now());
+  const time = next.all_day ? "" : " " + new Date(next.start).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
+  return `${tomorrow ? t.tomorrow : t.today}${time}: ${clipped(next.title)}`;
+}
+
 /* ---------- home ---------- */
 
 // the tiles of the radio hobby, which one setting shows or hides together
@@ -758,6 +782,8 @@ const home = {
       ...(c.bluetooth ? [tile("bluetooth", t.bluetooth, null, () => show(bluetooth), t.btSub)] : []),
       tile("news", t.news, null, () => show(news), t.newsSub),
       tile("weather", t.weather, null, () => show(weather)),
+      tile("calendar", t.calendar, null, () => show(agendaView),
+        (state.agenda || []).length ? agendaLine() : t.calendarSub),
       tile("gallery", t.gallery, null, () => show(galleryView), t.gallerySub),
       tile("alarm", t.alarm, null, () => show(alarm), state.alarm || t.off),
       tile("timer", t.timer, null, () => show(timerView), t.timerSub),
@@ -3077,7 +3103,7 @@ const tilesView = {
     // in the order of the start screen
     const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner],
       ["podcast", t.podcasts], ["music", t.music], ["audiobooks", t.audiobooks], ["media", t.media], ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
-      ["news", t.news], ["weather", t.weather], ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders],
+      ["news", t.news], ["weather", t.weather], ["calendar", t.calendar], ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders],
       ...(state.ham === false ? [] : [["adsb", t.adsb], ["ais", t.ais], ["sensors", t.sensors], ["aprs", t.aprs], ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["qso", t.qso], ["survey", t.survey],
         ...c.apps.map(a => [a.id, a.name])])];
     const top = view.scrollTop;
@@ -3156,6 +3182,82 @@ const verseSettings = {
     view.scrollTop = top;
   },
   back() { show(settings); return true; },
+};
+
+/* ---------- calendar ---------- */
+
+// What the subscribed calendars hold for the coming weeks, day by day. The calendars themselves
+// are kept elsewhere (a phone, a town's web site); here they are only read.
+const dayStart = date => new Date(date).setHours(0, 0, 0, 0);
+function dayName(iso) {
+  const days = Math.round((dayStart(iso) - dayStart(Date.now())) / 86400000);
+  const date = new Date(iso).toLocaleDateString(lang, { weekday: "long", day: "numeric", month: "long" });
+  return days >= 0 && days <= 1 ? `${[t.today, t.tomorrow][days]} · ${date}` : date;
+}
+const eventTime = e => e.all_day ? t.remAllDay : new Date(e.start).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
+const agendaView = {
+  title: t.calendar,
+  data: null,
+  async render() {
+    this.draw();
+    try { this.data = await api("/api/calendar"); } catch (e) { this.data = { events: [], calendars: [] }; }
+    if (current === this) this.draw();
+  },
+  draw() {
+    const d = this.data;
+    if (!d) { view.replaceChildren(hint(t.loading)); return; }
+    const parts = [];
+    if (!d.calendars.length) {
+      parts.push(h("p", { className: "explain", textContent: t.calendarIntro }),
+        h("div", { className: "toolbar center" }, h("button", { className: "primary", textContent: t.calendarAdd, onclick: () => show(agendaCalendars) })));
+    } else {
+      let day = "";
+      for (const e of d.events) {
+        if (e.start.slice(0, 10) !== day) {
+          day = e.start.slice(0, 10);
+          parts.push(h("p", { className: "label", textContent: dayName(e.start) }));
+        }
+        parts.push(h("div", { className: "row" }, h("div", { className: "texts event" }, h("b", { textContent: `${eventTime(e)}  ${e.title}` }),
+          h("small", { textContent: [e.place, d.calendars.length > 1 ? e.calendar : null].filter(Boolean).join(" · ") }))));
+      }
+      if (!d.events.length) parts.push(hint(t.calendarEmpty));
+      parts.push(h("div", { className: "toolbar wrap" },
+        h("button", { textContent: t.calendarManage, onclick: () => show(agendaCalendars) }),
+        h("button", { textContent: t.calendarRefresh, onclick: async () => {
+          try { this.data = await api("/api/calendar/refresh", {}); } catch (e) { /* the list stays */ }
+          if (current === this) this.draw();
+        } })));
+    }
+    const top = view.scrollTop;
+    view.replaceChildren(...parts);
+    view.scrollTop = top;
+  },
+};
+
+// The calendars that are read: a name and the address the calendar gives for subscribing.
+const agendaCalendars = {
+  title: t.calendarManage,
+  note: "",
+  async render() {
+    let d;
+    try { d = await api("/api/calendar"); } catch (e) { d = { calendars: [] }; }
+    if (current !== this) return;
+    const add = () => textPrompt.ask({ title: t.calendarAdd, label: t.calendarName, origin: this, done: async name => {
+      // the address is asked for on its own page; the name is kept until then
+      setTimeout(() => textPrompt.ask({ title: t.calendarAdd, label: t.calendarAddress, origin: this,
+        done: url => api("/api/calendar/add", { name, url }) }), 0);
+    } });
+    view.replaceChildren(
+      h("p", { className: "explain", textContent: t.calendarIntro }),
+      ...d.calendars.map(c => stationRow({ title: c.name, info: c.problem ? say(c.problem) : c.url.replace(/^https?:\/\//, "").slice(0, 60),
+        onPlay: () => {}, starred: true, onStar: () => ask(`${t.calendarRemove} „${c.name}“?`, [[t.remove, async () => {
+          await api("/api/calendar/remove", { id: c.id });
+          if (current === this) this.render();
+        }, "primary"], [t.cancel]]) })),
+      h("div", { className: "toolbar" }, h("button", { className: "primary", textContent: t.calendarAdd, onclick: add })),
+      h("p", { className: "label", textContent: t.calendarHint }));
+  },
+  back() { show(agendaView); return true; },
 };
 
 /* ---------- gallery ---------- */
@@ -3553,6 +3655,7 @@ function drawIdle() {
     showMoon() ? moonLine() : null,
     showSpace() && spaceWeather ? spaceLine(spaceWeather) : null,
     state.alarm ? `⏰ ${state.alarm}` : null,
+    (state.agenda || []).length ? `▦ ${agendaLine()}` : null,
   ].filter(Boolean).join("  ·  ");
   if (showSpace()) loadSpaceWeather();   // asks the service at most every ten minutes
   const playing = state.source && state.status !== "error";
@@ -3832,7 +3935,7 @@ async function openLink() {
   if (name === "idle") showIdle();
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
     wifi: wifiView, receiver: receiverView, gallerymanage: galleryManage, notes: notesView, reminders: remindersView, clock: clockView,
-    gallery: galleryView, gallerysettings: gallerySettings, media: mediaView, mediasettings: mediaSettings, podcasts, news, sensors, ais: ships, timer: timerView,
+    gallery: galleryView, gallerysettings: gallerySettings, calendar: agendaView, calendars: agendaCalendars, media: mediaView, mediasettings: mediaSettings, podcasts, news, sensors, ais: ships, timer: timerView,
     podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList, propagation: propagationView, qso: qsoLog,
     survey: surveyView, spots: spotsView, verse: verseSettings, music: musicView, audiobooks: audiobooksView, satellites: satellitesView,
     aprs: aprsView }[name] || home;

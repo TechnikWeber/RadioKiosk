@@ -28,6 +28,7 @@ from .sources.survey import RANGES, Survey, as_text
 from .spaceweather import SpaceWeather
 from .spots import Spots
 from . import audiobooks, satellites as satellite_passes
+from .agenda import Agenda
 from .alerts import Alerts
 from .verses import Verses
 from .sources.aprs import Aprs
@@ -106,6 +107,7 @@ def build(cfg):
     verses = Verses(cfg)
     podcasts, sensors, ais = Podcasts(core), Sensors(core), Ais(core)
     media = Media(core)
+    agenda = Agenda(core)
     alarm = Alarm(core)
     timer = Timer(core)
     notes, reminders = Notes(), Reminders(core)
@@ -630,6 +632,24 @@ def build(cfg):
     async def ais_ships(request):
         return web.json_response({"ships": ais.list(), "location": cfg.get("location")})
 
+    @routes.get("/api/calendar")
+    async def calendar_get(request):
+        return web.json_response(await asyncio.to_thread(agenda.listing))
+
+    @routes.post("/api/calendar/{action}")
+    async def calendar_do(request):
+        body = await request.json() if request.can_read_body else {}
+        action = request.match_info["action"]
+        if action == "add":
+            await agenda.add(str(body.get("name", "")), str(body.get("url", "")))
+        elif action == "remove":
+            agenda.remove(body["id"])
+        elif action == "refresh":
+            await agenda.refresh()
+        else:
+            raise web.HTTPNotFound()
+        return web.json_response(await asyncio.to_thread(agenda.listing))
+
     @routes.get("/api/media")
     async def media_get(request):
         return web.json_response({"kept": media.kept, "searches": media.searches, "version": await online_media.version()})
@@ -905,6 +925,7 @@ def build(cfg):
         app["alerts"] = asyncio.create_task(alerts.run())
         app["updater"] = asyncio.create_task(updater.run())
         app["media_fresh"] = asyncio.create_task(online_media.keep_fresh())
+        app["agenda"] = asyncio.create_task(agenda.run())
         app["reminders"] = asyncio.create_task(reminders.run())
         await receivers.start_enabled()
         core.update(alarm=alarm.data["time"] if alarm.data["enabled"] else None)
@@ -918,6 +939,7 @@ def build(cfg):
         app["updater"].cancel()
         app["reminders"].cancel()
         app["media_fresh"].cancel()
+        app["agenda"].cancel()
         await receivers.close()
         if bt.pairing:
             await bt.set_visible(False)

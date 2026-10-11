@@ -84,6 +84,7 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Flugzeuge | Live-Karte und Liste der Flugzeuge in deiner Umgebung (ADS-B) | `dump1090` oder `readsb`, Leaflet, OpenStreetMap |
 | Bluetooth | Bluetooth-Lautsprecher verbinden oder ein Handy über dieses Gerät abspielen lassen | `bluetoothctl`, PipeWire |
 | Wetter | aktuelles Wetter und Vorhersage für vier Tage | Open-Meteo |
+| Kalender | die nächsten Termine von Kalendern, die woanders geführt werden, gelesen über ihre iCal-Adresse (Google, Apple, Abfallkalender, Schulferien); der nächste Termin von heute und morgen steht auch im Ruhebildschirm | – |
 | Podcasts | Suche, Abos, Folgenliste, Vor- und Zurückspringen; merkt sich, wie weit eine Folge gehört ist | fyyd, Apple Podcasts oder Podcast Index, `mpv` |
 | Musik | die eigene Sammlung aus einem Ordner, USB-Stick oder eingebundenen Netzwerkordner: Ordner durchblättern, alles oder zufällig abspielen | `mpv` |
 | Hörbücher | gemeinfreie Hörbücher von LibriVox, mit Suche; ein Buch geht dort weiter, wo es aufgehört hat | Internet Archive, `mpv` |
@@ -126,7 +127,7 @@ Die Losungen gehören nicht zu RadioKiosk: Sie sind für nicht-kommerzielle Nutz
 
 Ohne Internet läuft alles weiter, was keines braucht (UKW, DAB+, Empfänger, Galerie, Timer, QSO-Log, Funk-Analyse); die übrigen Kacheln sagen, dass ihre Quelle nicht erreichbar ist.
 
-Amtliche Unwetterwarnungen des Deutschen Wetterdienstes für den eingestellten Standort erscheinen als Balken unter der Kopfzeile und ausführlich in der Wetter-Kachel (Daten über brightsky.dev, nur für Orte in Deutschland, abschaltbar in den Einstellungen).
+Amtliche Unwetterwarnungen des Deutschen Wetterdienstes und die Warnungen des Bevölkerungsschutzes (NINA: Hochwasser, Brände, Trinkwasser, Bombenfunde; gelesen von warnung.bund.de) für den eingestellten Standort erscheinen als Balken unter der Kopfzeile und ausführlich in der Wetter-Kachel (Daten über brightsky.dev, nur für Orte in Deutschland, abschaltbar in den Einstellungen).
 
 Mondphase und Funkwetter lassen sich in den Einstellungen zuschalten; sie erscheinen dann im Ruhebildschirm und in der Wetter-Kachel. Beides ist standardmäßig aus.
 
