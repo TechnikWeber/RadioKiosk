@@ -29,9 +29,16 @@ class GalleryTest(unittest.TestCase):
     def test_settings_from_the_interface_are_validated(self):
         gallery = Gallery({})
         self.assertEqual(gallery.check("folder", str(self.folder)), str(self.folder))
-        for key, value in (("folder", "/no/such/folder"), ("seconds", 7), ("shuffle", "yes"), ("fit", "stretch")):
+        for key, value in (("folder", "/no/such/folder"), ("seconds", 7), ("shuffle", "yes"), ("fit", "stretch"),
+                           ("effect", "explode")):
             with self.assertRaises(ValueError):
                 gallery.check(key, value)
+
+    def test_effects_between_pictures_can_be_chosen(self):
+        from radiokiosk.gallery import EFFECTS
+        gallery = Gallery({})
+        self.assertEqual(gallery.settings["effect"], "fade")
+        self.assertEqual([gallery.check("effect", effect) for effect in EFFECTS], list(EFFECTS))
 
     def test_a_missing_folder_means_no_pictures_not_an_error(self):
         gallery = Gallery({"gallery": {"folder": "/no/such/folder"}})
@@ -55,6 +62,20 @@ class ManagingPictures(unittest.TestCase):
         picture = io.BytesIO()
         gallery.Image.new("RGB", (8, 6), "red").save(picture, "JPEG")
         self.jpeg = picture.getvalue()
+
+    def test_the_backdrop_is_a_small_dark_copy_made_once(self):
+        from unittest import mock
+        cache = self.folder / "cache"
+        with mock.patch.object(self.gallery_module, "SCALED", cache):
+            self.gallery_module.Image.new("RGB", (300, 900), "white").save(self.folder / "tall.jpg", "JPEG")
+            self.gallery.refresh(True)
+            first = self.gallery.picture(0, 800, 480, back=True)
+            with self.gallery_module.Image.open(first) as picture:
+                self.assertLessEqual(max(picture.size), 320)
+                self.assertLess(picture.getpixel((50, 150))[0], 180)      # white, darkened
+            self.assertNotEqual(first, self.gallery.picture(0, 800, 480))
+            made = first.stat().st_mtime_ns
+            self.assertEqual(self.gallery.picture(0, 800, 480, back=True).stat().st_mtime_ns, made)
 
     def test_added_pictures_never_replace_each_other(self):
         self.gallery.add("holiday.jpg", self.jpeg)

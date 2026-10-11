@@ -19,14 +19,15 @@ from pathlib import Path
 from .config import CACHE_DIR, WEB_DIR
 
 try:
-    from PIL import Image, ImageOps
+    from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 except ImportError:   # without Pillow the pictures go out as they are
     Image = None
 
 KINDS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"}
 # fit: "whole" shows all of a picture, "fill" crops it to the screen, "smart" crops only where little is lost
-DEFAULTS = {"folder": None, "seconds": 15, "shuffle": True, "fit": "whole", "subfolders": True}
+DEFAULTS = {"folder": None, "seconds": 15, "shuffle": True, "fit": "whole", "subfolders": True, "effect": "fade"}
 FITS = ("whole", "smart", "fill")
+EFFECTS = ("fade", "slide", "flip", "zoom", "mix")   # how one picture gives way to the next; "mix" takes them in turn
 DEMO = WEB_DIR.parent / "demo-pictures"   # shown until a folder is chosen
 SECONDS = (5, 10, 15, 30, 60, 300)
 LIMIT = 5000              # pictures taken from one folder
@@ -77,6 +78,27 @@ def scaled(path, box):
             SCALED.mkdir(parents=True, exist_ok=True)
             partial = target.with_suffix(".part")
             picture.convert("RGB").save(partial, "JPEG", quality=85)
+            partial.replace(target)
+    except (OSError, ValueError, SyntaxError):
+        return None
+    return target
+
+
+def backdrop(path):
+    """What lies behind a picture that does not fill the screen: the picture itself, small, blurred and
+    darkened, for the interface to stretch over the screen. Made once and cached, so a small computer
+    does not have to blur anything while the pictures change. None without Pillow or for no picture."""
+    small = scaled(path, SIZES[0])
+    if small is None or Image is None:
+        return None
+    target = small.with_name(small.stem + "-back.jpg")
+    if target.exists():
+        return target
+    try:
+        with Image.open(small) as picture:
+            picture = picture.convert("RGB").filter(ImageFilter.GaussianBlur(14))
+            partial = target.with_suffix(".part")
+            ImageEnhance.Brightness(picture).enhance(0.55).save(partial, "JPEG", quality=75)
             partial.replace(target)
     except (OSError, ValueError, SyntaxError):
         return None
@@ -153,6 +175,8 @@ class Gallery:
             return value
         if key == "fit" and value in FITS:
             return value
+        if key == "effect" and value in EFFECTS:
+            return value
         raise ValueError("unknown setting")
 
     def listing(self):
@@ -195,9 +219,10 @@ class Gallery:
         target.unlink()
         self.refresh(True)
 
-    def picture(self, index, width, height):
-        """File to send for picture number `index`; the numbers wrap around."""
+    def picture(self, index, width, height, back=False):
+        """File to send for picture number `index`, or for the blurred backdrop behind it; the numbers wrap around."""
         self.refresh()
         if not self.pictures:
             return None
-        return scaled(self.pictures[index % len(self.pictures)], box_for(width, height))
+        path = self.pictures[index % len(self.pictures)]
+        return backdrop(path) if back else scaled(path, box_for(width, height))

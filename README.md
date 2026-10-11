@@ -97,7 +97,7 @@ A small Python service controls the receivers and serves a web interface that a 
 | Timer | kitchen timer that also rings over the station that is playing, and a stopwatch | `mpv` |
 | Notes | write short notes, pin, change and delete them; all of them can be saved as one text file | – |
 | Reminders | a reminder for a day, with a time of day and a repeat (daily to yearly) if wanted; it stays as a bar on every screen and on the idle screen until it is acknowledged or put off | `mpv` for the tone |
-| Gallery | slide show from a folder, on its own through the tile or behind the clock on the idle screen; with or without subfolders, pictures whole, slightly zoomed or filling the screen; pictures can be added and deleted in the interface, also from a phone or computer by remote control | Pillow |
+| Gallery | slide show from a folder, on its own through the tile or behind the clock on the idle screen; with or without subfolders, pictures whole (a blurred copy of the picture then fills the free edges instead of black bars), slightly zoomed or filling the screen; the change from one picture to the next fades, wipes, turns the page or zooms, as set; pictures can be added and deleted in the interface, also from a phone or computer by remote control | Pillow |
 | SDR++ | the full SDR program for everything else | started as a normal program |
 | Settings | language, light or dark design, audio output, sleep timer, idle screen, size of the bottom bar, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
 | Device | screen brightness, Wi-Fi, Wi-Fi power saving on/off, update, restart and shut down, AirPlay and Spotify Connect receivers | NetworkManager, systemd, `shairport-sync`, `librespot` |

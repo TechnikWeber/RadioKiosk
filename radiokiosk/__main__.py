@@ -457,7 +457,8 @@ def build(cfg):
     @routes.get("/api/gallery/picture/{index}")
     async def gallery_picture(request):
         size = [int(request.query.get(side, 960)) for side in ("w", "h")]
-        file = await asyncio.to_thread(gallery.picture, int(request.match_info["index"]), *size)
+        file = await asyncio.to_thread(gallery.picture, int(request.match_info["index"]), *size,
+                                       "backdrop" in request.query)
         if file is None:
             raise web.HTTPNotFound()
         return web.FileResponse(file)

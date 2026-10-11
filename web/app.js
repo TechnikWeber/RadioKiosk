@@ -98,6 +98,7 @@ const STRINGS = {
     idleContentsHint: "Switch on what the idle screen is to show. With more than one it changes between them. The clock alone is black and dims the display; everything else keeps it bright.",
     idleRotate: "Changes every",
     galleryFit: "Pictures", galleryFits: { whole: "whole picture", smart: "zoom slightly", fill: "fill the screen" },
+    galleryEffect: "Change", galleryEffects: { fade: "fade", slide: "wipe", flip: "turn the page", zoom: "zoom in", mix: "in turn" },
     subfoldersToo: "Subfolders", demoPictures: "Demo pictures (no folder of your own chosen yet)",
     sectionPlayback: "Playback", sectionDisplay: "Display", sectionContent: "Content", sectionReception: "Reception",
     sectionDevice: "Device and network", idleAfter: "Starts after",
@@ -256,6 +257,7 @@ const STRINGS = {
     idleContentsHint: "Schalte ein, was der Ruhebildschirm zeigen soll. Bei mehr als einem wechselt er zwischen ihnen. Die Uhr allein ist schwarz und dunkelt das Display ab; alles andere lässt es hell.",
     idleRotate: "Wechsel alle",
     galleryFit: "Bilder", galleryFits: { whole: "ganzes Bild", smart: "leicht zoomen", fill: "Bildschirm füllen" },
+    galleryEffect: "Übergang", galleryEffects: { fade: "überblenden", slide: "wischen", flip: "blättern", zoom: "heranzoomen", mix: "abwechselnd" },
     subfoldersToo: "Unterordner", demoPictures: "Demobilder (noch kein eigener Ordner gewählt)",
     sectionPlayback: "Wiedergabe", sectionDisplay: "Anzeige", sectionContent: "Inhalte", sectionReception: "Empfang",
     sectionDevice: "Gerät und Netz", idleAfter: "Beginnt nach",
@@ -2957,11 +2959,14 @@ async function loadGallery() {
   return galleryInfo;
 }
 
-// One slide show for the gallery tile and the idle screen: two stacked pictures that fade
-// into each other. A picture is shown only once it has loaded, so a slow folder never shows half of one.
+// One slide show for the gallery tile and the idle screen: two layers, one coming in while the
+// other goes. A picture is shown only once it has loaded, so a slow folder never shows half of one.
+// Where a picture leaves the screen's edges free, a blurred copy of itself lies behind it.
+const SLIDE_EFFECTS = ["fade", "slide", "flip", "zoom"];
 function slideShow() {
-  const el = h("div", { className: "slides" }, h("img", { alt: "" }), h("img", { alt: "" }));
-  let front = 0, order = [], at = -1, timer = null, running = false;
+  const layer = () => h("div", {}, h("img", { className: "back", alt: "" }), h("img", { alt: "" }));
+  const el = h("div", { className: "slides" }, layer(), layer());
+  let front = 0, order = [], at = -1, timer = null, running = false, turns = 0;
   const later = seconds => { clearTimeout(timer); if (running) timer = setTimeout(() => go(1), seconds * 1000); };
   function go(step) {
     if (!galleryInfo || !galleryInfo.count) return;
@@ -2976,19 +2981,29 @@ function slideShow() {
       at = -1;
     }
     at = (Math.max(at, 0) + (at < 0 ? 0 : step) + order.length) % order.length;
-    const next = el.children[1 - front];
-    next.onload = () => {
+    const next = el.children[1 - front], [back, picture] = next.children;
+    picture.onload = () => {
       // "smart" crops a picture to the screen only where that costs less than a seventh of it
-      const shape = next.naturalWidth / next.naturalHeight, screen = el.clientWidth / el.clientHeight;
+      const shape = picture.naturalWidth / picture.naturalHeight, screen = el.clientWidth / el.clientHeight;
       const little = Math.min(shape, screen) / Math.max(shape, screen) > 0.85;
-      next.style.objectFit = galleryInfo.fit === "fill" || (galleryInfo.fit === "smart" && little) ? "cover" : "contain";
-      el.children[front].classList.remove("shown");
-      next.classList.add("shown");
+      const cover = galleryInfo.fit === "fill" || (galleryInfo.fit === "smart" && little);
+      picture.style.objectFit = cover ? "cover" : "contain";
+      back.hidden = cover;
+      // the very first picture fades in whatever is set: there is nothing yet to wipe or turn away
+      const effect = !turns ? "fade" : galleryInfo.effect === "mix" ? SLIDE_EFFECTS[turns % SLIDE_EFFECTS.length]
+        : SLIDE_EFFECTS.includes(galleryInfo.effect) ? galleryInfo.effect : "fade";
+      turns++;
+      el.classList.toggle("backwards", step < 0);
+      el.children[front].className = `out ${effect}`;
+      next.className = `in ${effect}`;
       front = 1 - front;
     };
-    next.onerror = () => later(1);   // unreadable picture: on to the next one
+    picture.onerror = () => later(1);   // unreadable picture: on to the next one
     // the service scales to the screen, so it needs to know its size
-    next.src = `/api/gallery/picture/${order[at]}?w=${Math.round(innerWidth * devicePixelRatio)}&h=${Math.round(innerHeight * devicePixelRatio)}`;
+    const url = `/api/gallery/picture/${order[at]}?w=${Math.round(innerWidth * devicePixelRatio)}&h=${Math.round(innerHeight * devicePixelRatio)}`;
+    // the backdrop first, so that it is there when the picture appears; without one the edges stay black
+    back.onload = back.onerror = () => { picture.src = url; };
+    back.src = `${url}&backdrop=1`;
     later(galleryInfo.seconds);
   }
   return {
@@ -3067,6 +3082,10 @@ const gallerySettings = {
         h("button", { textContent: `${t.galleryFit}: ${t.galleryFits[g.fit]}`, onclick: () => {
           const fits = Object.keys(t.galleryFits);
           set("fit", fits[(fits.indexOf(g.fit) + 1) % fits.length]);
+        } }),
+        h("button", { textContent: `${t.galleryEffect}: ${t.galleryEffects[g.effect]}`, onclick: () => {
+          const effects = Object.keys(t.galleryEffects);
+          set("effect", effects[(effects.indexOf(g.effect) + 1) % effects.length]);
         } })),
       h("p", { className: "explain", textContent: t.galleryNetwork }));
   },

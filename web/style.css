@@ -257,9 +257,34 @@ body:has(.keys) footer, body:has(.keys) #warn, body:has(.keys) #remind { display
 /* idle screen */
 #idle { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; background: #000; color: #c9d1da; text-align: center; }
 #idle[hidden] { display: none; }
-.slides { position: absolute; inset: 0; background: #000; }
-.slides img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 1.2s; }
-.slides img.shown { opacity: 1; }
+.slides { position: absolute; inset: 0; background: #000; overflow: hidden; }
+/* two layers, each a picture over its own blurred backdrop; one comes in while the other goes */
+.slides > div { position: absolute; inset: 0; background: #000; visibility: hidden; }
+.slides img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.slides img.back { object-fit: cover; }
+.slides > .in { visibility: visible; z-index: 2; animation: 1.2s both; }
+.slides > .out { z-index: 1; animation: slides-stay 1.2s both; }
+.slides > .in.fade { animation-name: slides-fade; }
+.slides > .in.zoom { animation-name: slides-zoom; animation-timing-function: ease-out; }
+.slides > .slide { animation-duration: .9s; animation-timing-function: ease-in-out; }
+.slides > .in.slide { animation-name: slides-from-right; }
+.slides > .out.slide { animation-name: slides-to-left; }
+.slides.backwards > .in.slide { animation-name: slides-from-left; }
+.slides.backwards > .out.slide { animation-name: slides-to-right; }
+/* turning a page: the old picture swings away around its left edge; backwards the new one swings in */
+.slides > .flip { transform-origin: left center; animation-duration: 1.1s; animation-timing-function: ease-in-out; }
+.slides:not(.backwards) > .out.flip { z-index: 3; animation-name: slides-turn-away; }
+.slides.backwards > .in.flip { animation-name: slides-turn-in; }
+@keyframes slides-stay { from { visibility: visible; } to { visibility: hidden; } }
+@keyframes slides-fade { from { opacity: 0; } }
+@keyframes slides-zoom { from { opacity: 0; transform: scale(1.18); } }
+@keyframes slides-from-right { from { transform: translateX(100%); } }
+@keyframes slides-from-left { from { transform: translateX(-100%); } }
+@keyframes slides-to-left { from { visibility: visible; } to { visibility: hidden; transform: translateX(-100%); } }
+@keyframes slides-to-right { from { visibility: visible; } to { visibility: hidden; transform: translateX(100%); } }
+@keyframes slides-turn-away { from { visibility: visible; transform: perspective(1800px) rotateY(0); }
+  to { visibility: hidden; transform: perspective(1800px) rotateY(-92deg); } }
+@keyframes slides-turn-in { from { transform: perspective(1800px) rotateY(-92deg); } to { transform: perspective(1800px) rotateY(0); } }
 #idle .slides { display: none; }
 #idle.pictures .slides { display: block; }
 /* over a picture the clock moves into the corner and gets a shadow to stay readable */
