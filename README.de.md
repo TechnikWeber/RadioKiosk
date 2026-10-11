@@ -2,7 +2,7 @@
 
 # RadioKiosk
 
-Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfänger: Webradio, DAB+, UKW, Kurzwelle, Amateurfunk und mehr in einer Touch-Oberfläche.
+Ein Radio fürs Küchenregal, ein digitaler Bilderrahmen und mit einem RTL-SDR-Stick ein Weltempfänger für den Funkplatz: RadioKiosk macht aus einem Linux-Rechner alle drei. Gebaut ist es für ein Touch-Display, es läuft aber genauso auf einem Laptop oder PC mit Maus und Tastatur.
 
 [![Tests](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml/badge.svg)](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml)
 
@@ -10,12 +10,11 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 
 | | |
 |---|---|
-| ![Startbildschirm mit den Kacheln](docs/screenshots/home.png) | ![UKW mit Sendername und Wasserfall](docs/screenshots/fm.png) |
+| ![Startbildschirm eines Küchenradios: nur Hören und Alltag](docs/screenshots/kitchen.png) | ![Ruhebildschirm als Bilderrahmen, mit Uhr, Wetter und dem, was läuft](docs/screenshots/idle.png) |
+| ![Startbildschirm mit allen Kacheln, auch dem Funk-Hobby](docs/screenshots/home.png) | ![UKW mit Sendername und Wasserfall](docs/screenshots/fm.png) |
 | ![Freier Empfänger auf dem 2-m-Amateurfunkband](docs/screenshots/receiver.png) | ![Live-Flugzeugkarte](docs/screenshots/aircraft.png) |
-| ![Ruhebildschirm mit der Galerie hinter der Uhr](docs/screenshots/idle.png) | ![Funkaktivität: der DX-Cluster](docs/screenshots/spots.png) |
-| ![Funkwetter: Sonnenwerte und Bandbedingungen](docs/screenshots/propagation.png) | ![Bericht einer Funk-Analyse](docs/screenshots/survey.png) |
 
-> Version 0.24: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
+> Version 0.24: Alles hier Aufgeführte ist gebaut, aber nicht alles auf jeder Art von Hardware ausprobiert. Was ungetestet ist, steht in den Release-Notizen.
 
 ## Installation
 
@@ -23,159 +22,119 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash
 ```
 
-Der Installer läuft auf Fedora und auf Debian-basierten Systemen (Debian, Ubuntu, Raspberry Pi OS). Starte ihn als normaler Benutzer; er fragt nach deinem Passwort, um Pakete zu installieren. Danach erledigt er Folgendes:
+Läuft auf Fedora, Debian, Ubuntu und Raspberry Pi OS. Als normaler Benutzer ausführen; der Installer fragt für die Pakete nach dem Passwort, lädt RadioKiosk nach `~/.local/share/radiokiosk` und startet es als Hintergrunddienst. Danach **RadioKiosk** im Anwendungsmenü öffnen oder <http://localhost:8080> aufrufen.
 
-1. Er installiert die Empfänger und Abspieler, die RadioKiosk steuert (`mpv`, `rtl-sdr`, `welle-cli`, SDR++, `dump1090` oder `readsb`, `rtl_433`, `rtl_ais`).
-2. Er hindert den TV-Treiber des Kernels daran, den SDR-Stick zu belegen.
-3. Er lädt RadioKiosk nach `~/.local/share/radiokiosk`.
-4. Er startet es als Hintergrunddienst, der auch nach jeder Anmeldung wieder läuft.
+Optionen, angehängt nach `bash -s --`:
 
-Anschließend öffnest du **RadioKiosk** im Anwendungsmenü oder rufst <http://localhost:8080> auf. Zum Aktualisieren führst du dieselbe Zeile noch einmal aus.
+| Option | Wirkung |
+|---|---|
+| `--kiosk` | öffnet die Oberfläche nach jeder Anmeldung im Vollbild und lässt das System seine Sicherheitsupdates selbst einspielen (`--no-security-updates` lässt das weg) |
+| `--ham` | nimmt das Funk-Hobby dazu: Flugzeuge, Schiffe, Funksensoren, APRS, Satelliten und SDR++ werden installiert und ihre Kacheln gezeigt |
+| `--with-sdrangel` | SDRangel als zweiter Experten-Empfänger |
+| `--rotate=180` | dreht Bildschirm und Touch-Eingabe (auch `90`, `270`; Raspberry Pi OS) |
 
-Der Installer bringt mit, was zum Hören und für den Alltag nötig ist. Mit `--ham` kommt das Funk-Hobby dazu: Flugzeuge, Schiffe, Funksensoren, APRS, Satelliten und SDR++ werden dann installiert und ihre Kacheln gezeigt (**Einstellungen › Kacheln auf dem Startbildschirm › Funk-Hobby** schaltet die Kacheln später um). Eine Kachel, deren Programm nicht installiert ist, bleibt weg.
+Ohne `--ham` kommt, was zum Hören und für den Alltag nötig ist. Die Hobby-Kacheln lassen sich später unter **Einstellungen › Kacheln auf dem Startbildschirm** einschalten; eine Kachel, deren Programm fehlt, bleibt weg.
 
-Mit `--kiosk` öffnet sich die Oberfläche nach jeder Anmeldung im Vollbild, `--rotate=180` dreht den Bildschirm (Raspberry Pi OS), und mit `--with-sdrangel` kommt SDRangel als zweiter Experten-Empfänger dazu:
+### Raspberry Pi
 
-```sh
-curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --ham --with-sdrangel
-```
+**Raspberry Pi OS (64-bit) mit Desktop** aufspielen, ins Netz bringen und den Installer mit `--kiosk` ausführen. Nach dem nächsten Start öffnet der Pi RadioKiosk von selbst.
 
-Mit `--kiosk` lässt der Installer das System außerdem seine Sicherheitsupdates selbst einspielen (`unattended-upgrades` auf Debian-artigen Systemen, `dnf-automatic` auf Fedora; nur Sicherheitsupdates, kein automatischer Neustart). `--no-security-updates` lässt das weg, `--security-updates` schaltet es ohne `--kiosk` ein.
+- **Bild steht auf dem Kopf:** Beim offiziellen 7-Zoll-Display ist das oft so; `--rotate=180` anhängen.
+- **Strom:** Ein Pi mit Display und Stick braucht ein kräftiges Netzteil. RadioKiosk warnt, wenn der Pi zu wenig Spannung meldet.
+- **Pi 3:** läuft, mit Grenzen. Die Oberfläche ist etwa zwei Minuten nach dem Einschalten da, der Wasserfall überfordert den Prozessor, und SDR++ passt nicht in den Speicher.
 
-Programme, die deine Distribution nicht als Paket anbietet, werden übersprungen; ihre Kacheln bleiben deaktiviert oder unsichtbar, alles andere funktioniert.
-
-## Raspberry Pi
-
-Spiele **Raspberry Pi OS (64-bit) mit Desktop** auf, starte den Pi, verbinde ihn mit deinem Netz und führe den Installer mit `--kiosk` aus:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk
-```
-
-Nach dem nächsten Start öffnet der Pi RadioKiosk von selbst im Vollbild. Wissenswert:
-
-- **Bild steht auf dem Kopf oder auf der Seite:** Hänge `--rotate=180` an (oder `90`, `270`). Das dreht den Desktop und nach dem nächsten Neustart auch den Startbildschirm. Das offizielle 7-Zoll-Touch-Display steht zum Beispiel in vielen Gehäusen und Ständern auf dem Kopf. Die Touch-Eingabe dreht sich mit. Auf anderen Systemen nimmst du die Anzeige-Einstellungen deines Desktops.
-- **Strom:** Ein Pi mit Display und SDR-Stick braucht ein kräftiges Netzteil. Zeigt `vcgencmd get_throttled` etwas anderes als `0x0`, ist das Netzteil oder sein Kabel zu schwach; Sticks hängen sich dann auf und der Empfang leidet.
-- **Pi 3:** Die Oberfläche ist etwa zwei Minuten nach dem Einschalten da. Getestet sind dort Webradio, UKW mit Sendernamen und die Flugzeugkarte. Der Wasserfall ist für seinen Prozessor zu viel; lass ihn dort ausgeschaltet. SDR++ braucht neben dem Browser mehr als dessen 1 GB Arbeitsspeicher, deshalb ist diese Kachel dort deaktiviert.
-- **Flugzeuge:** Raspberry Pi OS hat `readsb` statt `dump1090`; darum kümmert sich der Installer.
-
-## Unterstützte Hardware
+## Hardware
 
 | Teil | Unterstützt | Getestet |
 |---|---|---|
-| Rechner | 64-bit-Linux auf x86 oder ARM mit Fedora, Debian, Ubuntu oder Raspberry Pi OS | Fedora 44 auf einem x86-Laptop |
-| Raspberry Pi | Pi 3, 4 und 5 mit Raspberry Pi OS 64-bit | Pi 3 B+ mit dem offiziellen 7-Zoll-Display: Installer, Kiosk-Start, Webradio, UKW, Flugzeugkarte |
-| SDR-Stick | jeder Stick, den die Bibliothek `librtlsdr` kennt: RTL-SDR Blog V4 und V3, Nooelec NESDR und andere RTL2832U-Sticks, auch ältere DVB-T-Sticks mit E4000-, FC0012/13- oder FC2580-Tuner. Kurzwelle nur mit V4 (eingebauter Umsetzer) oder Sticks mit Direct Sampling wie dem V3. Andere SDR-Familien (Airspy, HackRF, SDRplay) werden nicht unterstützt. | RTL-SDR Blog V4 |
-| Display | beliebig; die Oberfläche ist für Touch ab 800×480 gebaut und wird auf großen Bildschirmen (ab 1500 Pixel Breite) eine Stufe größer | 800×480 am offiziellen 7-Zoll-Display; 480×320 bis 1920×1080 im Browser |
-| Ton | jede Ausgabe, die PipeWire oder PulseAudio anbietet: Klinke, USB, Bluetooth, HDMI | eingebauter Ton |
+| Rechner | 64-Bit-Linux auf x86 oder ARM: Fedora, Debian, Ubuntu, Raspberry Pi OS | Fedora 44 auf einem Laptop; Raspberry Pi 3 B+ |
+| Bildschirm | jeder, mit oder ohne Touch; ausgelegt für 800×480 aufwärts, auf großen Bildschirmen eine Stufe größer | offizielles 7-Zoll-Display; 480×320 bis 1920×1080 im Browser |
+| SDR-Stick | optional. Jeder RTL2832U-Stick, den `librtlsdr` kennt (RTL-SDR Blog V3/V4, Nooelec). Airspy, HackRF und SDRplay werden nicht unterstützt | RTL-SDR Blog V4 |
+| Ton | jeder Ausgang, den PipeWire oder PulseAudio anbietet: Klinke, USB, Bluetooth, HDMI | eingebauter Ton |
 
-Kurzwelle braucht einen Stick, der unter 24 MHz abstimmen kann: Der V4 macht das mit seinem eingebauten Umsetzer, der V3 über Direct Sampling. In beiden Fällen ist eine lange Drahtantenne nötig. Langwelle (153–279 kHz) liegt unter dem, wofür der V4 spezifiziert ist (500 kHz), und kommt bestenfalls schwach an. Ohne Stick funktioniert weiterhin das Webradio.
+Ohne Stick läuft alles, was über das Internet kommt. Kurzwelle braucht einen Stick, der unter 24 MHz abstimmt (den V4, oder den V3 mit Direktabtastung), und eine lange Drahtantenne.
 
 ## Was es kann
 
-Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche aus, die ein Browser im Vollbild zeigt.
+Ein kleiner Python-Dienst steuert Player und Empfänger und liefert eine Weboberfläche aus, die ein Browser im Vollbild zeigt.
 
-| Kachel | Funktionen | Technik dahinter |
-|---|---|---|
-| Webradio | Sendersuche, beliebte Sender, Senderlogos | radio-browser.info, `mpv` |
-| DAB+ | Sendersuchlauf, Senderliste, Lauftext, Bilder, die die Sender mitschicken, Empfangsanzeige zum Ausrichten der Antenne | `welle-cli`, `mpv` |
-| UKW | Stereo, Sendernamen und Radiotext (RDS), Sendersuchlauf, Speicherplätze, Spektrum und Wasserfall | eingebauter Empfänger oder `rtl_fm`, `rtl_power`, `mpv` |
-| Empfänger | freies Abstimmen in FM, AM und Seitenband mit Wasserfall, Rauschsperre, Kanal-Suchlauf und Bandplan: Lang-, Mittel- und Kurzwelle, Amateurfunk, PMR446, Freenet, CB; dort zeigt er, wer gerade sendet | eingebauter Empfänger, `mpv`, EiBi-Fahrplan |
-| Flugzeuge | Live-Karte und Liste der Flugzeuge in deiner Umgebung (ADS-B) | `dump1090` oder `readsb`, Leaflet, OpenStreetMap |
-| Bluetooth | Bluetooth-Lautsprecher verbinden oder ein Handy über dieses Gerät abspielen lassen | `bluetoothctl`, PipeWire |
-| Wetter | aktuelles Wetter und Vorhersage für vier Tage | Open-Meteo |
-| Kalender | die nächsten Termine von Kalendern, die woanders geführt werden, gelesen über ihre iCal-Adresse (Google, Apple, Abfallkalender, Schulferien); der nächste Termin von heute und morgen steht auch im Ruhebildschirm | – |
-| Smart Home | Schalter, die beim Antippen eine Adresse aufrufen (ein Webhook von Home Assistant, ioBroker oder Node-RED, eine Shelly- oder Tasmota-Steckdose), und Werte, die zeigen, was eine Adresse antwortet, zum Beispiel eine Temperatur | – |
-| Podcasts | Suche, Abos, Folgenliste, Vor- und Zurückspringen; merkt sich, wie weit eine Folge gehört ist | fyyd, Apple Podcasts oder Podcast Index, `mpv` |
-| Musik | die eigene Sammlung aus einem Ordner, USB-Stick oder eingebundenen Netzwerkordner: Ordner durchblättern, alles oder zufällig abspielen | `mpv` |
-| Hörbücher | gemeinfreie Hörbücher von LibriVox, mit Suche; ein Buch geht dort weiter, wo es aufgehört hat | Internet Archive, `mpv` |
-| Online-Medien | Titel, die yt-dlp findet und öffnet, über Suchwörter oder eine Adresse, als Ton gespielt; Titel und Suchen lassen sich merken | `yt-dlp` (holt der Installer oder die Einstellungen, wöchentlich erneuert), `mpv` |
-| Nachrichten | RSS- und Atom-Feeds als Liste der neuesten Artikel, aktualisiert sich selbst | eigener Feed-Leser |
-| Funksensoren | Funk-Thermometer, Wetterstationen und andere Sensoren der Umgebung auf 433 MHz | `rtl_433` |
-| Schiffe | Live-Karte und Liste der Schiffe in der Umgebung (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |
-| Funkwetter | Sonnenfluss, Sonnenflecken, K- und A-Index, Bandbedingungen für Kurzwelle und die MUF der nächsten Ionosonde | hamqsl.com (N0NBH), prop.kc2g.com (KC2G, GIRO) |
-| Funkaktivität | wer gerade auf Sendung ist: DX-Cluster und Parks on the Air, nach Band gefiltert, ein Tipp stimmt den Empfänger dorthin ab | HamQTH (ersatzweise DX Summit), pota.app |
-| Satelliten | Überflüge der ISS und hörenswerter Satelliten in den nächsten 24 Stunden, mit Höhe, Richtung und Frequenz; ein Tipp stimmt den Empfänger ab | CelesTrak, `python3-sgp4` |
-| APRS | Positionsmeldungen von Funkamateuren auf 144,800 MHz auf der Karte | `rtl_fm`, `direwolf`, Leaflet |
-| QSO-Log | Logbuch für Funkverbindungen und für reine Hörer (SWL), mit Bändern und Betriebsarten zum Antippen; Export als ADIF und CSV nach `Dokumente/RadioKiosk` | – |
-| Funk-Analyse | durchläuft einen Bereich über eine gewählte Zeit und berichtet, was zeitweise sendet, was dauernd da ist und was nach Störung aussieht; Bericht zum Speichern | `rtl_power`, NumPy |
-| Wecker | weckt mit einem festen Sender oder dem zuletzt gehörten, ersatzweise oder auf Wunsch nur mit einem Ton (wählbar: Ticken, Klopfen, Glocke, Piepen; gilt auch für Timer und Erinnerungen); die Weckzeit steht auch im Ruhebildschirm | `mpv` |
-| Einstellungen und Ausschalten | zwei kleine Knöpfe am rechten Ende der Favoritenzeile auf der Startseite; Ausschalten fährt den Rechner sauber herunter oder startet ihn neu und fragt vorher nach | – |
-| Timer | Kurzzeitwecker, der auch über dem laufenden Sender klingelt, und Stoppuhr | `mpv` |
-| Notizen | kurze Notizen schreiben, anheften, ändern und löschen; alle zusammen lassen sich als Textdatei sichern | – |
-| Erinnerungen | Erinnerung für einen Tag, auf Wunsch mit Uhrzeit und Wiederholung (täglich bis jährlich); sie bleibt als Leiste auf jedem Bildschirm und im Ruhebildschirm stehen, bis sie quittiert oder verschoben wird | `mpv` für den Hinweiston |
-| Galerie | Diashow aus einem Ordner, pur über die Kachel oder im Ruhebildschirm hinter der Uhr; mit oder ohne Unterordner, Bilder ganz (die freien Ränder füllt dann das Bild selbst, unscharf und abgedunkelt, statt schwarzer Balken), leicht gezoomt oder bildschirmfüllend; der Wechsel zum nächsten Bild als Überblenden, Wischen, Blättern oder Heranzoomen einstellbar; ein auf den Bildschirm beschnittenes Bild schwenkt langsam von einem Ende zum anderen, wahlweise über fast den ganzen, den ganzen oder den halben Weg; Bilder lassen sich in der Oberfläche hinzufügen und löschen, auch vom Handy oder PC über die Fernbedienung | Pillow |
-| SDR++ | das vollwertige SDR-Programm für alles Weitere | startet als normales Programm |
-| Einstellungen | Sprache, helles oder dunkles Design, Tonausgabe, Sleep-Timer, Ruhebildschirm, Größe der unteren Leiste, Bildschirmtastatur, Standort, Fernbedienung, Empfangsart | PipeWire oder PulseAudio |
-| Gerät | Bildschirmhelligkeit, WLAN, WLAN-Stromsparen ein/aus, Aktualisieren, Neustart und Ausschalten, AirPlay- und Spotify-Connect-Empfänger | NetworkManager, systemd, `shairport-sync`, `librespot` |
+**Hören**
 
-Der Ruhebildschirm hat fünf Arten, einzeln oder mehrere im Wechsel: die Uhr auf schwarzem Grund mit abgedunkeltem Display (Standard), die Galerie hinter der Uhr, die neuesten Artikel aus den Nachrichten, die neuesten Meldungen aus dem DX-Cluster oder ein Bibelvers für den Tag. Außer bei der Uhr bleibt das Display hell.
+| Kachel | Was du bekommst |
+|---|---|
+| Webradio | Sendersuche, beliebte Sender, Logos |
+| DAB+ | Suchlauf, Senderliste, Lauftext und die Bilder, die Sender mitschicken |
+| UKW | Stereo, Sendernamen und Radiotext (RDS), Suchlauf, Wasserfall |
+| Empfänger | freies Abstimmen in FM, AM und Seitenband mit Bandplan: Lang-, Mittel- und Kurzwelle, Amateurfunk, PMR446, Freenet, CB; auf den Rundfunkbändern steht, wer gerade sendet |
+| Podcasts | Suche, Abos, Folgen; merkt sich, wie weit du gehört hast |
+| Musik | eigene Dateien aus einem Ordner, vom USB-Stick oder Netzwerkordner |
+| Hörbücher | gemeinfreie Hörbücher von LibriVox |
+| Online-Medien | Titel, die yt-dlp findet und öffnet, über Suchwörter oder eine Adresse, als Ton gespielt; Suchen und Titel lassen sich merken |
+| Bluetooth | einen Lautsprecher verbinden oder ein Handy über dieses Gerät spielen lassen |
 
-Der Bibelvers kommt aus der kuratierten Liste des [Bible Verse Widget](https://github.com/TechnikWeber/bible-verse-widget) (1000 Verse, Luther 1912, World English Bible oder Reina-Valera 1909, alle gemeinfrei) und wird nach demselben Verfahren gewählt, sodass Widget und RadioKiosk am selben Tag denselben Vers zeigen. Welche Quelle gilt, stellst du unter Einstellungen › Inhalte › Bibelvers ein.
+**Alltag**
 
-Sind mehrere Arten eingeschaltet (Einstellungen › Ruhebildschirm › Zeigt), wechselt der Ruhebildschirm nach einer einstellbaren Zeit zwischen ihnen, etwa alle fünf Minuten zwischen Nachrichten und Bibelvers.
+| Kachel | Was du bekommst |
+|---|---|
+| Nachrichten | RSS- und Atom-Feeds als Liste der neuesten Artikel |
+| Wetter | aktuelles Wetter, Vorhersage für vier Tage, amtliche Warnungen |
+| Kalender | die nächsten Termine von Kalendern, die woanders geführt werden, gelesen über ihre iCal-Adresse (Google, Apple, Abfallkalender, Schulferien) |
+| Galerie | Diashow eines Ordners; Bilder lassen sich in der Oberfläche hinzufügen und löschen, auch vom Handy |
+| Smart Home | Schalter, die beim Antippen eine Adresse aufrufen (ein Webhook von Home Assistant, eine Shelly-Steckdose), und Werte, die zeigen, was eine Adresse antwortet |
+| Wecker, Timer | wecken mit einem Sender oder einem Ton; Küchentimer und Stoppuhr |
+| Notizen, Erinnerungen | kurze Notizen; Erinnerungen für einen Tag, die bleiben, bis sie quittiert sind |
 
-### Herrnhuter Losungen einspielen
+**Funk-Hobby** (mit `--ham`)
 
-Die Losungen gehören nicht zu RadioKiosk: Sie sind für nicht-kommerzielle Nutzung kostenfrei, aber kein freier Inhalt. Du lädst die Jahresdatei selbst herunter und spielst sie ein. Das ist jedes Jahr zu wiederholen; ohne Datei erscheint die kuratierte Liste.
+| Kachel | Was du bekommst |
+|---|---|
+| Flugzeuge, Schiffe | Live-Karten aus ADS-B und AIS |
+| Funksensoren | Funk-Thermometer und Wetterstationen der Umgebung auf 433 MHz |
+| APRS | Positionen, die Funkamateure auf 144,800 MHz senden, auf der Karte |
+| Funkwetter | Sonnenwerte, Bandbedingungen und die MUF der nächsten Ionosonde |
+| Funkaktivität | DX-Cluster und Parks on the Air; ein Tipp stimmt den Empfänger dorthin ab |
+| Satelliten | Überflüge der ISS und anderer hörenswerter Satelliten |
+| QSO-Log | Logbuch mit ADIF- und CSV-Export |
+| Funk-Analyse | beobachtet einen Bereich über eine gewählte Zeit und berichtet, was auf Sendung war |
+| SDR++ | das volle SDR-Programm für alles andere |
 
-1. Lade unter <https://www.losungen.de/digital/> die Jahresdatei im Format XML herunter (eine ZIP-Datei). Dort akzeptierst du die Nutzungsbedingungen.
-2. Spiele sie ein, auf dem Weg, der gerade passt:
-   - **Mit dem Handy oder Laptop, auf dem die Datei liegt (am einfachsten):** Schalte am RadioKiosk unter Einstellungen › Gerät und Netz die Fernbedienung ein. Öffne dann am Handy im Browser die Adresse, die dort steht (etwa `http://radio.local:8080`), gehe zu Einstellungen › Inhalte › Bibelvers und tippe auf *Datei von diesem Gerät einspielen*. Das Handy muss im selben Netz sein.
-   - **Vom USB-Stick oder aus einem Ordner:** Kopiere die Datei auf einen Stick, stecke ihn an und wähle unter Einstellungen › Inhalte › Bibelvers *Aus einem Ordner dieses Rechners einspielen* den Ordner aus. RadioKiosk nimmt jede ZIP- oder XML-Datei mit „Losung“ im Namen.
-   - **Mit dem Bible Verse Widget:** Hat das Widget die Losungen auf demselben Rechner schon eingespielt, liest RadioKiosk dessen Datei mit; es ist nichts weiter zu tun.
-3. Stelle unter Einstellungen › Inhalte › Bibelvers die Quelle auf *Herrnhuter Losungen* und unter Ruhebildschirm › Zeigt den Bibelvers ein.
+Einstellungen und Ausschalten sind zwei kleine Knöpfe am Ende der Favoritenzeile. Jeder Sender kann einen Stern bekommen, egal aus welcher Quelle; Favoriten starten mit einem Tipp vom Startbildschirm. Die Oberfläche ist standardmäßig englisch und lässt sich auf Deutsch umstellen.
 
-Ohne Internet läuft alles weiter, was keines braucht (UKW, DAB+, Empfänger, Galerie, Timer, QSO-Log, Funk-Analyse); die übrigen Kacheln sagen, dass ihre Quelle nicht erreichbar ist.
+### Bilderrahmen und Ruhebildschirm
 
-Amtliche Unwetterwarnungen des Deutschen Wetterdienstes und die Warnungen des Bevölkerungsschutzes (NINA: Hochwasser, Brände, Trinkwasser, Bombenfunde; gelesen von warnung.bund.de) für den eingestellten Standort erscheinen als Balken unter der Kopfzeile und ausführlich in der Wetter-Kachel. Eine Warnung bleibt, bis jemand sie als gelesen markiert; im Ruhebildschirm steht sie als Zeile, und eine der beiden höchsten Stufen kommt einmal über den ganzen Ruhebildschirm (nachts nur die höchste). Ein Ton für Warnungen der höchsten Stufe lässt sich einschalten (Daten über brightsky.dev, nur für Orte in Deutschland, abschaltbar in den Einstellungen).
+Nach einer Weile ohne Berührung übernimmt der Ruhebildschirm. Er zeigt die Uhr auf Schwarz mit abgedunkeltem Display, oder eines oder mehrere davon im Wechsel: die Galerie hinter der Uhr, die neuesten Nachrichten, den DX-Cluster, einen Bibelvers für den Tag. Uhr, Datum, Wetter und das, was läuft, bleiben im Blick.
 
-Mondphase und Funkwetter lassen sich in den Einstellungen zuschalten; sie erscheinen dann im Ruhebildschirm und in der Wetter-Kachel. Beides ist standardmäßig aus.
+Als Bilderrahmen zeigt die Galerie jeden Ordner, den der Rechner lesen kann. Ein Bild, das den Bildschirm nicht füllt, bekommt statt schwarzer Ränder sich selbst unscharf als Hintergrund, oder es wird beschnitten und schwenkt langsam durch; der Wechsel zwischen Bildern blendet über, wischt, blättert oder zoomt. Bis du einen Ordner wählst, laufen Beispielbilder (gemeinfrei, siehe [demo-pictures/CREDITS.md](demo-pictures/CREDITS.md)).
 
-Die Funk-Analyse misst grob: Über den ganzen Bereich von 24 bis 1766 MHz dauert ein Durchlauf auf einem Raspberry Pi 3 etwa 25 Sekunden, und der Stick ist nicht überall gleich empfindlich. Ob auf einem Band gerade jemand funkt, zeigt sie am zuverlässigsten, wenn du nur dieses Band wählst (2 m: etwa ein Durchlauf pro Sekunde). Jeder zweite Durchlauf wird anders abgestimmt; was nur eine der beiden Abstimmungen zeigt, erzeugt der Stick selbst und wird weggelassen. „Alles“ reicht so weit, wie der angeschlossene Stick abstimmt, mit einem Blog V4 ab 0,5 MHz.
+Nachts lässt sich der Ruhebildschirm abdunkeln, auf die abgedunkelte Uhr reduzieren oder das Display ausschalten (**Einstellungen › Ruhebildschirm**). Damit ein vergessenes Radio nicht tagelang läuft, stoppt die Wiedergabe nach acht Stunden ohne Berührung von selbst (**Einstellungen › Wiedergabe**).
 
-Für die Podcast-Suche stehen drei Verzeichnisse zur Wahl (Einstellungen › Podcast-Verzeichnis). fyyd ist voreingestellt und braucht wie Apple Podcasts keinen Schlüssel; für den Podcast Index trägst du dort Schlüssel und Geheimnis ein, die es kostenlos auf podcastindex.org gibt.
+### Warnungen
 
-Bis du einen eigenen Ordner wählst, zeigt die Galerie mitgelieferte Demobilder (gemeinfrei, siehe [demo-pictures/CREDITS.md](demo-pictures/CREDITS.md)). Die Galerie zeigt jeden Ordner, den dieser Rechner lesen kann. Soll es ein USB-Stick oder ein Netzwerkordner (SMB, NFS) sein, musst du ihn selbst einbinden, zum Beispiel über den Dateimanager oder die `/etc/fstab`; danach lässt er sich in den Einstellungen unter *Galerie* wählen. Fotos werden einmal auf Bildschirmgröße verkleinert und zwischengespeichert.
+Für den eingestellten Standort in Deutschland zeigt RadioKiosk die Warnungen des Wetterdienstes (über brightsky.dev) und des Bevölkerungsschutzes (NINA, von warnung.bund.de) als Zeile unter der Kopfzeile. Eine Warnung bleibt, bis jemand sie als gelesen markiert. Im Ruhebildschirm steht sie als Zeile; eine der beiden höchsten Stufen kommt einmal über den ganzen Ruhebildschirm. Ein Ton für die höchste Stufe lässt sich einschalten.
 
-Jeder Sender kann einen Stern bekommen, egal aus welcher Quelle. Favoriten erscheinen als Zeile auf dem Startbildschirm und starten mit einem Tipp; einzelne oder alle entfernst du über den Stern am Ende dieser Zeile, etwa nach einem Ortswechsel.
+### Bibelvers und Herrnhuter Losungen
 
-Die Oberfläche ist standardmäßig englisch und lässt sich in den Einstellungen auf Deutsch umstellen.
+Der Vers stammt aus der kuratierten Liste des [Bibelvers-Widgets](https://github.com/TechnikWeber/bible-verse-widget) (gemeinfreie Übersetzungen) und ist in beiden am selben Tag derselbe.
 
-Ist in den Einstellungen die Fernbedienung eingeschaltet, können Handys und Rechner im selben Netz die Oberfläche im Browser öffnen. Eine Hausautomation oder ein Skript kann RadioKiosk auf demselben Weg steuern: siehe [docs/api.de.md](docs/api.de.md). Es gibt keine Anmeldung, nutze das also nur in einem Netz, dem du vertraust.
+Die Losungen sind nicht Teil von RadioKiosk: Sie sind für nichtkommerzielle Nutzung kostenlos, aber kein freier Inhalt. Lade die Jahresdatei (XML, ein ZIP) selbst von <https://www.losungen.de/digital/> und spiele sie unter **Einstellungen › Inhalte › Bibelvers** ein, vom Handy über die Fernbedienung oder aus einem Ordner oder vom USB-Stick. Das ist jedes Jahr zu wiederholen.
 
-Die Kopfzeile zeigt zwischen Titel und Uhr die neueste Schlagzeile aus den Nachrichten oder das Wetter, beides im Wechsel, wenn beides eingerichtet ist (abschaltbar unter Einstellungen › Anzeige). Podcasts, Musik und Online-Medien pausieren und laufen weiter mit dem Knopf, der Radio stoppt; eine Sekunde gehalten, stoppt er sie ganz. Die untere Leiste hat neben der Lautstärke einen Stumm-Knopf; der Wecker hebt die Stummschaltung auf, damit er trotzdem weckt. Der Aufnahmeknopf in der unteren Leiste, einzuschalten unter Einstellungen → *Aufnahmeknopf*, speichert, was gerade läuft, nach `Musik/RadioKiosk`. Bei eingeschalteter Fernbedienung können andere Geräte im Netz außerdem unter `http://<Adresse>:8080/live.mp3` mithören.
+### Fernbedienung und andere Programme
 
-RadioKiosk warnt, wenn ein Raspberry Pi zu wenig Spannung meldet, und startet einen SDR-Stick, der sich am USB aufgehängt hat, selbst neu, statt dich zum Umstecken aufzufordern.
+Ist in den Einstellungen die Fernbedienung an, können Handys und Rechner im selben Netz die Oberfläche im Browser öffnen; andere Geräte können unter `http://<Adresse>:8080/live.mp3` auch mithören. Eine Hausautomation oder ein Skript kann RadioKiosk auf demselben Weg steuern, siehe [docs/api.de.md](docs/api.de.md). Es gibt keine Anmeldung, nutze das also nur in einem Netz, dem du vertraust.
 
-Den Stick kann immer nur ein Empfänger nutzen, deshalb beendet der Dienst den laufenden, bevor er den nächsten startet. Kacheln, deren Programm oder Hardware fehlt, sind deaktiviert.
+### Gut zu wissen
 
-UKW und der freie Empfänger nutzen den eigenen Empfänger von RadioKiosk, geschrieben in Python mit NumPy: Er demoduliert, dekodiert RDS, zeichnet einen Wasserfall und stimmt um, ohne den Stick neu zu starten. Der Wasserfall ist standardmäßig aus und lässt sich in der UKW- und in der Empfänger-Ansicht getrennt einschalten. Ohne ihn nimmt der Empfänger nur den Sender selbst auf und braucht etwa ein Drittel der Rechenleistung; mit ihm beobachtet er 1,5 MHz auf einmal. In den Einstellungen lässt sich jede der beiden Kacheln stattdessen auf das klassische Programm `rtl_fm` umstellen (Mono, kein Wasserfall, schont den Prozessor) und vergleichen.
-
-Die Tuner-Verstärkung regelt sich beim Hören selbst nach, weil die Automatik des Sticks an einer guten Antenne übersteuert. Die Werte werden je Band gemerkt; nach einem Antennenwechsel setzt du sie in den Einstellungen zurück.
-
-Der Wecker weckt mit einem festen Sender oder mit dem zuletzt gehörten; startet der nicht, ertönt ersatzweise ein Ton. Der Rechner muss dafür laufen.
-
-Nach einer Weile ohne Berührung zeigt ein Ruhebildschirm Uhrzeit, Datum, Wetter und den laufenden Sender. Für die Sendersuche bringt die Oberfläche eine eigene Bildschirmtastatur mit, weil Systemtastaturen je nach Desktop verschieden sind; sie erscheint auf Touchscreens und lässt sich in den Einstellungen abschalten.
-
-Das Abhören von Funkdiensten, die nicht für die Allgemeinheit bestimmt sind, ist in vielen Ländern eingeschränkt. Der Bandplan enthält deshalb nur Rundfunk, Amateurfunk und anmeldefreie Bänder.
-
-Damit ein vergessenes Radio nicht tagelang läuft, stoppt die Wiedergabe von selbst, wenn acht Stunden lang niemand das Gerät bedient hat (**Einstellungen › Wiedergabe**; 2 bis 24 Stunden oder nie, dazu auf Wunsch eine feste Uhrzeit). Nachts lässt sich der Ruhebildschirm abdunkeln, auch wenn er Bilder oder Nachrichten zeigt, durch die abgedunkelte Uhr ersetzen oder das Display ganz ausschalten (**Einstellungen › Ruhebildschirm**, Standard 23 bis 6 Uhr nur die abgedunkelte Uhr); eine Berührung holt es zurück.
-
-Unter **Einstellungen › Gerät › Datum und Uhrzeit** lassen sich Zeitzone, Datum und Uhrzeit des Rechners stellen und das Stellen aus dem Internet ein- und ausschalten. Das Recht dazu richtet der Installer ein.
+- Den Stick kann immer nur ein Empfänger nutzen; der Dienst beendet den laufenden, bevor er den nächsten startet. Ein Stick, der sich am USB aufgehängt hat, wird neu gestartet.
+- UKW und der freie Empfänger nutzen den eigenen Empfänger von RadioKiosk, geschrieben in Python mit NumPy. Der Wasserfall ist standardmäßig aus; in den Einstellungen lässt sich jeder der beiden auf das sparsamere `rtl_fm` umstellen.
+- Podcasts, Musik und Online-Medien pausieren mit dem Knopf, der Radio stoppt; eine Sekunde gehalten, stoppt er sie ganz. Ein Aufnahmeknopf lässt sich in den Einstellungen einschalten; er speichert nach `Musik/RadioKiosk`.
+- yt-dlp ist nicht Teil von RadioKiosk. Der Installer oder die Kachel holt es von seinem Projekt; eine so geholte Kopie wird wöchentlich erneuert.
+- Das Abhören von Funkdiensten, die nicht für die Allgemeinheit bestimmt sind, ist in vielen Ländern eingeschränkt. Der Bandplan enthält nur Rundfunk, Amateurfunk und anmeldefreie Bänder.
 
 ## Aktualisieren
 
-Unter **Einstellungen › Gerät** sucht „Nach Updates suchen“ bei GitHub nach einem neueren Release; einmal am Tag sieht RadioKiosk auch von selbst nach und zeigt auf der Startseite neben der Versionsnummer, wenn eines bereitsteht. „Aktualisieren auf …“ installiert es. Mit „Nachts von selbst aktualisieren“ geschieht das auch ohne Zutun, zwischen 3 und 5 Uhr und nur solange nichts läuft; das ist eingeschaltet und lässt sich dort abschalten.
+Unter **Einstellungen › Gerät** fragt „Nach Updates suchen“ bei GitHub nach einem neueren Release; RadioKiosk sieht auch einmal am Tag selbst nach und spielt ein neues Release, sofern nicht abgeschaltet, nachts ein, während nichts läuft.
 
-Ein Update lässt das Gerät nicht dunkel zurück:
-
-1. Die neue Version wird in einen eigenen Ordner neben der laufenden geladen.
-2. Sie wird dort probeweise geladen. Fehlt ihr etwas, etwa ein Paket, bricht das Update hier ab und nichts ändert sich.
-3. Erst dann wird umgeschaltet und der Dienst neu gestartet.
-4. Meldet sich die neue Version nicht innerhalb von zweieinhalb Minuten, schaltet ein Wächter auf die vorherige zurück. Die Geräteseite sagt das beim nächsten Öffnen.
-
-Installiert werden nur Releases, nie ein Zwischenstand. Pakete des Betriebssystems installiert das Update nicht; braucht eine Version ein neues, sagt sie es, und der Installer wird noch einmal ausgeführt.
+Die neue Version wird in einen eigenen Ordner geholt und zuerst ausprobiert. Erst dann wird umgeschaltet, und antwortet die neue Version nicht innerhalb von zweieinhalb Minuten, schaltet ein Wächter zurück. Eingespielt werden nur Releases. Pakete des Betriebssystems bleiben unberührt; braucht eine Version ein neues, sagt sie das, und der Installer wird noch einmal ausgeführt.
 
 ## Aus dem Quelltext starten
 
@@ -185,38 +144,27 @@ cd RadioKiosk
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m radiokiosk
+.venv/bin/python -m unittest     # die Tests brauchen keinen SDR-Stick
 ```
 
-Dafür braucht es dieselben Programme, die der Installer einrichtet, und der DVB-Treiber des Kernels darf den Stick nicht belegen:
+Dafür braucht es die Programme, die der Installer einrichtet. Mit Stick darf der TV-Treiber des Kernels ihn nicht belegen:
 
 ```sh
 echo 'blacklist dvb_usb_rtl28xxu' | sudo tee /etc/modprobe.d/blacklist-rtlsdr.conf
 ```
 
-## Tests
+## Einstellungsdatei
 
-```sh
-.venv/bin/python -m unittest
-```
-
-Die Tests schicken künstliche Funksignale durch die Demodulatoren und den RDS-Dekoder; einen SDR-Stick brauchen sie nicht.
-
-## Einstellungen
-
-Optionale Datei `~/.config/radiokiosk/config.json`:
+Fast alles wird in der Oberfläche eingestellt. Ein paar Dinge stehen nur in der optionalen Datei `~/.config/radiokiosk/config.json`:
 
 | Schlüssel | Standard | Bedeutung |
 |---|---|---|
-| `remote` | `false` | erlaubt Handys und PCs im lokalen Netz, RadioKiosk zu bedienen (ohne Anmeldung); auch als Schalter in den Einstellungen |
 | `host` | `0.0.0.0` | auf `127.0.0.1` setzen, um nie im Netz zu lauschen |
 | `port` | `8080` | Port der Weboberfläche |
-| `country` | `DE` | Ländercode für die Liste beliebter Webradio-Sender |
-| `location` | nicht gesetzt | `[Breite, Länge]` für Flugzeug-Karte und Wetter; einfacher in den Einstellungen festzulegen |
-| `fm_backend`, `tuner_backend` | `auto` | Empfänger für die Kacheln UKW und Empfänger: `engine` (eingebaut), `rtl_fm` oder `auto`, das den eingebauten nimmt, wo der Prozessor schnell genug ist; auch in den Einstellungen |
-| `fm_stereo` | `auto` | UKW-Ton: `auto` (Stereo nur bei starkem Signal), `stereo` oder `mono`; auch als Knopf in der UKW-Ansicht |
-| `gain` | `auto` | Tuner-Verstärkung: `auto` regelt sie beim Hören nach, eine Zahl in dB erzwingt sie |
+| `country` | `DE` | Land für die Liste beliebter Webradio-Sender |
+| `gain` | `auto` | Tuner-Verstärkung: `auto` regelt beim Hören nach, eine Zahl in dB erzwingt sie |
 | `apps` | SDR++, SDRangel | externe Programme, die als Kachel erscheinen |
 
 ## Lizenz
 
-[MIT](LICENSE). Die Kurzwellen-Sendepläne stammen von [EiBi](http://www.eibispace.de/) von Eike Bierwirth, der sie kostenlos anbietet. Die mitgelieferte Kartenbibliothek Leaflet steht unter der BSD-2-Clause-Lizenz, siehe `web/vendor/leaflet/LICENSE`.
+[MIT](LICENSE). Die Kurzwellen-Sendepläne stammen von [EiBi](http://www.eibispace.de/) von Eike Bierwirth, der sie kostenlos anbietet. Die mitgelieferte Kartenbibliothek Leaflet steht unter BSD-2-Clause, siehe `web/vendor/leaflet/LICENSE`.

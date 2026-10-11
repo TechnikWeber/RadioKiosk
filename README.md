@@ -2,7 +2,7 @@
 
 # RadioKiosk
 
-Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world receiver: web radio, DAB+, FM, shortwave, amateur radio and more in one touch interface.
+A radio for the kitchen shelf, a digital picture frame, and with an RTL-SDR stick a world receiver for the shack: RadioKiosk turns a Linux computer into all three. It is built for a touch display, but runs just as well on a laptop or desktop with mouse and keyboard.
 
 [![Tests](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml/badge.svg)](https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml)
 
@@ -10,12 +10,11 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 
 | | |
 |---|---|
-| ![Start screen with the tiles](docs/screenshots/home.png) | ![FM with station name and waterfall](docs/screenshots/fm.png) |
+| ![Start screen of a kitchen radio: listening and everyday tiles only](docs/screenshots/kitchen.png) | ![Idle screen as a picture frame, with clock, weather and what is playing](docs/screenshots/idle.png) |
+| ![Start screen with every tile, radio hobby included](docs/screenshots/home.png) | ![FM with station name and waterfall](docs/screenshots/fm.png) |
 | ![Free receiver on the 2 m amateur band](docs/screenshots/receiver.png) | ![Live aircraft map](docs/screenshots/aircraft.png) |
-| ![Idle screen with the gallery behind the clock](docs/screenshots/idle.png) | ![On the air: the DX cluster](docs/screenshots/spots.png) |
-| ![Propagation: solar figures and band conditions](docs/screenshots/propagation.png) | ![Report of a radio survey](docs/screenshots/survey.png) |
 
-> Version 0.24: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
+> Version 0.24: everything listed here is built, but not all of it has been tried on every kind of hardware. The release notes say what is untested.
 
 ## Install
 
@@ -23,159 +22,119 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash
 ```
 
-The installer works on Fedora and on Debian-based systems (Debian, Ubuntu, Raspberry Pi OS). Run it as your normal user; it asks for your password to install packages. It then:
+Works on Fedora, Debian, Ubuntu and Raspberry Pi OS. Run it as your normal user; it asks for your password to install packages, fetches RadioKiosk to `~/.local/share/radiokiosk` and starts it as a background service. Then open **RadioKiosk** from the application menu or go to <http://localhost:8080>.
 
-1. installs the receivers and players RadioKiosk controls (`mpv`, `rtl-sdr`, `welle-cli`, SDR++, `dump1090` or `readsb`, `rtl_433`, `rtl_ais`),
-2. stops the kernel's TV driver from claiming the SDR stick,
-3. downloads RadioKiosk to `~/.local/share/radiokiosk`,
-4. starts it as a background service that also comes up after every login.
+Options, appended after `bash -s --`:
 
-Afterwards open **RadioKiosk** from the application menu or go to <http://localhost:8080>. Run the same line again to update.
+| Option | What it does |
+|---|---|
+| `--kiosk` | opens the interface full screen after every login, and lets the system install its security updates by itself (`--no-security-updates` leaves that out) |
+| `--ham` | adds the radio hobby: aircraft, ships, radio sensors, APRS, satellites and SDR++ are installed and their tiles shown |
+| `--with-sdrangel` | SDRangel as a second expert receiver |
+| `--rotate=180` | turns the screen and the touch input (also `90`, `270`; Raspberry Pi OS) |
 
-The installer brings what is needed for listening and everyday use. Add `--ham` for the radio hobby as well: aircraft, ships, radio sensors, APRS, satellites and SDR++ are then installed and their tiles shown (**Settings › Tiles on the start screen › Radio hobby** switches the tiles later). A tile whose program is not installed is left out.
+Without `--ham` you get what listening and everyday use need. The hobby tiles can be switched on later under **Settings › Tiles on the start screen**; a tile whose program is not installed is left out.
 
-Add `--kiosk` to open the interface full screen after every login, `--rotate=180` to turn the screen (Raspberry Pi OS), and `--with-sdrangel` for SDRangel as a second expert receiver:
+### Raspberry Pi
 
-```sh
-curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --ham --with-sdrangel
-```
+Flash **Raspberry Pi OS (64-bit) with desktop**, connect it to your network and run the installer with `--kiosk`. After the next start the Pi opens RadioKiosk by itself.
 
-With `--kiosk` the installer also lets the system install its security updates by itself (`unattended-upgrades` on Debian-based systems, `dnf-automatic` on Fedora; security updates only, no automatic restart). `--no-security-updates` leaves that out, `--security-updates` switches it on without `--kiosk`.
+- **Screen upside down:** the official 7 inch display often is; add `--rotate=180`.
+- **Power:** a Pi with display and stick needs a strong supply. RadioKiosk warns when the Pi reports too little voltage.
+- **Pi 3:** works, with limits. The interface is there about two minutes after power-on, the waterfall is too much for its processor, and SDR++ does not fit into its memory.
 
-Programs your distribution does not package are skipped; their tiles stay disabled or hidden and everything else works.
-
-## Raspberry Pi
-
-Flash **Raspberry Pi OS (64-bit) with desktop**, boot it, connect it to your network and run the installer with `--kiosk`:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk
-```
-
-After the next start the Pi opens RadioKiosk full screen by itself. Things worth knowing:
-
-- **Screen upside down or on its side:** add `--rotate=180` (or `90`, `270`). This turns the desktop and, after the next restart, the boot screen. The official 7 inch touch display, for example, ends up upside down in many cases and stands. The touch input turns with it. On other systems, use the display settings of your desktop.
-- **Power:** a Pi with display and SDR stick needs a strong supply. If `vcgencmd get_throttled` shows anything but `0x0`, the supply or its cable is too weak; sticks then hang and reception suffers.
-- **Pi 3:** the interface is there about two minutes after power-on. Web radio, FM with station names and the aircraft map have been tested on it. The waterfall is too much for its processor; leave it switched off there. SDR++ needs more than its 1 GB of memory next to the browser, so that tile is disabled there.
-- **Aircraft:** Raspberry Pi OS has `readsb` instead of `dump1090`; the installer takes care of it.
-
-## Supported hardware
+## Hardware
 
 | Part | Supported | Tested |
 |---|---|---|
-| Computer | 64-bit Linux on x86 or ARM with Fedora, Debian, Ubuntu or Raspberry Pi OS | Fedora 44 on an x86 laptop |
-| Raspberry Pi | Pi 3, 4 and 5 with Raspberry Pi OS 64-bit | Pi 3 B+ with the official 7 inch display: installer, kiosk start, web radio, FM, aircraft map |
-| SDR stick | any stick the `librtlsdr` library knows: RTL-SDR Blog V4 and V3, Nooelec NESDR and other RTL2832U sticks, also older DVB-T sticks with an E4000, FC0012/13 or FC2580 tuner. Shortwave only with a V4 (built-in upconverter) or sticks with direct sampling such as the V3. Other SDR families (Airspy, HackRF, SDRplay) are not supported. | RTL-SDR Blog V4 |
-| Display | any; the interface is built for touch from 800×480 upwards and goes one size up on large screens (1500 pixels wide or more) | 800×480 on the official 7 inch display; 480×320 to 1920×1080 in a browser |
-| Audio | every output PipeWire or PulseAudio offers: headphone jack, USB, Bluetooth, HDMI | built-in audio |
+| Computer | 64-bit Linux on x86 or ARM: Fedora, Debian, Ubuntu, Raspberry Pi OS | Fedora 44 on a laptop; Raspberry Pi 3 B+ |
+| Display | any, with or without touch; laid out for 800×480 upwards, one size up on large screens | official 7 inch display; 480×320 to 1920×1080 in a browser |
+| SDR stick | optional. Any RTL2832U stick `librtlsdr` knows (RTL-SDR Blog V3/V4, Nooelec). Airspy, HackRF and SDRplay are not supported | RTL-SDR Blog V4 |
+| Audio | every output PipeWire or PulseAudio offers: jack, USB, Bluetooth, HDMI | built-in audio |
 
-Shortwave needs a stick that can tune below 24 MHz: the V4 does it with its built-in upconverter, the V3 through direct sampling. Either way it needs a long wire antenna. Long wave (153–279 kHz) lies below what the V4 is specified for (500 kHz) and comes in weakly at best. Without a stick, web radio still works.
+Without a stick everything that comes over the internet works. Shortwave needs a stick that tunes below 24 MHz (the V4, or the V3 with direct sampling) and a long wire antenna.
 
 ## What it does
 
-A small Python service controls the receivers and serves a web interface that a browser shows full screen.
+A small Python service controls players and receivers and serves a web interface that a browser shows full screen.
 
-| Tile | What you get | Backend |
-|---|---|---|
-| Web radio | station search, popular stations, station logos | radio-browser.info, `mpv` |
-| DAB+ | station scan, station list, scrolling text, pictures the stations send, reception meter for aligning the antenna | `welle-cli`, `mpv` |
-| FM | stereo, station names and radio text (RDS), band scan, presets, spectrum and waterfall | built-in receiver or `rtl_fm`, `rtl_power`, `mpv` |
-| Receiver | free tuning in FM, AM and sideband with waterfall, squelch, channel scan and a band plan: long, medium and shortwave, amateur radio, PMR446, Freenet, CB; on these three it lists who is on the air right now | built-in receiver, `mpv`, EiBi schedule |
-| Aircraft | live map and list of the aircraft around you (ADS-B) | `dump1090` or `readsb`, Leaflet, OpenStreetMap |
-| Bluetooth | connect a Bluetooth speaker, or let a phone play through this device | `bluetoothctl`, PipeWire |
-| Weather | current weather and a four-day forecast | Open-Meteo |
-| Calendar | the coming dates of calendars kept elsewhere, read from their iCal address (Google, Apple, waste collection, school holidays); the next date of today and tomorrow also stands on the idle screen | – |
-| Smart home | switches that call an address when tapped (a webhook of Home Assistant, ioBroker or Node-RED, a Shelly or Tasmota plug) and values that show what an address answers, a temperature for instance | – |
-| Podcasts | search, subscriptions, episode list, skipping back and forth; remembers how far an episode has been heard | fyyd, Apple Podcasts or Podcast Index, `mpv` |
-| Music | your own collection from a folder, USB stick or mounted network folder: browse folders, play everything or shuffled | `mpv` |
-| Audiobooks | public domain audiobooks from LibriVox, with a search; a book continues where it stopped | Internet Archive, `mpv` |
-| Online media | titles found and opened by yt-dlp, by search words or an address, played as sound; titles and searches can be kept | `yt-dlp` (fetched by the installer or from the settings, renewed weekly), `mpv` |
-| News | RSS and Atom feeds as a list of the newest articles that refreshes itself | own feed reader |
-| Sensors | wireless thermometers, weather stations and other sensors nearby on 433 MHz | `rtl_433` |
-| Ships | live map and list of the ships nearby (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |
-| Propagation | solar flux, sunspots, K and A index, shortwave band conditions and the MUF of the nearest ionosonde | hamqsl.com (N0NBH), prop.kc2g.com (KC2G, GIRO) |
-| On the air | who is transmitting right now: DX cluster and Parks on the Air, filtered by band; a tap tunes the receiver there | HamQTH (DX Summit to fall back on), pota.app |
-| Satellites | passes of the ISS and of satellites worth hearing in the next 24 hours, with height, direction and frequency; a tap tunes the receiver | CelesTrak, `python3-sgp4` |
-| APRS | positions radio amateurs send on 144.800 MHz, on a map | `rtl_fm`, `direwolf`, Leaflet |
-| QSO log | logbook for contacts and for listeners (SWL), with bands and modes to tap; export as ADIF and CSV to `Documents/RadioKiosk` | – |
-| Radio survey | sweeps a range for a chosen time and reports what transmits now and then, what is always there and what looks like interference; the report can be saved | `rtl_power`, NumPy |
-| Alarm | wakes with a fixed station or the one heard last, with a tone if that fails or, if wanted, with the tone alone (to choose: ticking, knocking, bell, beeps; also used by timer and reminders); the alarm time is also shown on the idle screen | `mpv` |
-| Settings and switch off | two small buttons at the right end of the favourites row on the start page; switching off shuts the computer down cleanly or restarts it and asks first | – |
-| Timer | kitchen timer that also rings over the station that is playing, and a stopwatch | `mpv` |
-| Notes | write short notes, pin, change and delete them; all of them can be saved as one text file | – |
-| Reminders | a reminder for a day, with a time of day and a repeat (daily to yearly) if wanted; it stays as a bar on every screen and on the idle screen until it is acknowledged or put off | `mpv` for the tone |
-| Gallery | slide show from a folder, on its own through the tile or behind the clock on the idle screen; with or without subfolders, pictures whole (a blurred copy of the picture then fills the free edges instead of black bars), slightly zoomed or filling the screen; the change from one picture to the next fades, wipes, turns the page or zooms, as set; a picture cropped to the screen pans slowly from one end towards the other, over most, all or half of the way; pictures can be added and deleted in the interface, also from a phone or computer by remote control | Pillow |
-| SDR++ | the full SDR program for everything else | started as a normal program |
-| Settings | language, light or dark design, audio output, sleep timer, idle screen, size of the bottom bar, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
-| Device | screen brightness, Wi-Fi, Wi-Fi power saving on/off, update, restart and shut down, AirPlay and Spotify Connect receivers | NetworkManager, systemd, `shairport-sync`, `librespot` |
+**Listening**
 
-The idle screen comes in five kinds, one or several in turn: the clock on black with the display dimmed (the default), the gallery behind the clock, the newest articles of the news reader, the newest spots of the DX cluster, or a Bible verse for the day. All but the clock keep the display bright.
+| Tile | What you get |
+|---|---|
+| Web radio | station search, popular stations, logos |
+| DAB+ | scan, station list, scrolling text and the pictures stations send |
+| FM | stereo, station names and radio text (RDS), band scan, waterfall |
+| Receiver | free tuning in FM, AM and sideband with a band plan: long, medium and shortwave, amateur radio, PMR446, Freenet, CB; on the broadcast bands it lists who is on the air now |
+| Podcasts | search, subscriptions, episodes; remembers how far you have heard |
+| Music | your own files from a folder, USB stick or network folder |
+| Audiobooks | public domain audiobooks from LibriVox |
+| Online media | titles found and opened by yt-dlp, by search words or an address, played as sound; searches and titles can be kept |
+| Bluetooth | connect a speaker, or let a phone play through this device |
 
-The Bible verse comes from the curated list of the [Bible Verse Widget](https://github.com/TechnikWeber/bible-verse-widget) (1000 verses, Luther 1912, World English Bible or Reina-Valera 1909, all in the public domain) and is picked by the same rule, so widget and RadioKiosk show the same verse on the same day. Which source is used is set under Settings › Content › Bible verse.
+**Everyday**
 
-With several kinds switched on (Settings › Idle screen › Shows), the idle screen changes between them after a time you set, for example between the news and the Bible verse every five minutes.
+| Tile | What you get |
+|---|---|
+| News | RSS and Atom feeds as a list of the newest articles |
+| Weather | current weather, a four-day forecast, official warnings |
+| Calendar | the coming dates of calendars kept elsewhere, read from their iCal address (Google, Apple, waste collection, school holidays) |
+| Gallery | slide show of a folder; pictures can be added and deleted in the interface, also from a phone |
+| Smart home | switches that call an address when tapped (a webhook of Home Assistant, a Shelly plug) and values that show what an address answers |
+| Alarm, Timer | wake with a station or a sound; kitchen timer and stopwatch |
+| Notes, Reminders | short notes; reminders for a day that stay up until acknowledged |
 
-### Importing the Herrnhuter Losungen
+**Radio hobby** (with `--ham`)
 
-The Losungen are not part of RadioKiosk: they are free of charge for non-commercial use, but not free content. You download the year file yourself and import it. This has to be repeated every year; without the file the curated list is shown.
+| Tile | What you get |
+|---|---|
+| Aircraft, Ships | live maps from ADS-B and AIS |
+| Sensors | wireless thermometers and weather stations nearby on 433 MHz |
+| APRS | positions radio amateurs send on 144.800 MHz, on a map |
+| Propagation | solar figures, band conditions and the MUF of the nearest ionosonde |
+| On the air | DX cluster and Parks on the Air; a tap tunes the receiver there |
+| Satellites | passes of the ISS and other satellites worth hearing |
+| QSO log | logbook with ADIF and CSV export |
+| Radio survey | watches a range for a chosen time and reports what was on the air |
+| SDR++ | the full SDR program for everything else |
 
-1. Download the year file in XML format (a ZIP file) from <https://www.losungen.de/digital/>. You accept the terms of use there.
-2. Import it, whichever way suits:
-   - **With the phone or laptop the file is on (the easiest):** on the RadioKiosk, switch on remote control under Settings › Device and network. Then open the address shown there (such as `http://radio.local:8080`) in the phone's browser, go to Settings › Content › Bible verse and tap *Import a file from this device*. The phone has to be in the same network.
-   - **From a USB stick or a folder:** copy the file onto a stick, plug it in and choose the folder under Settings › Content › Bible verse, *Import from a folder of this computer*. RadioKiosk takes every ZIP or XML file with "Losung" in its name.
-   - **With the Bible Verse Widget:** where the widget has already imported the Losungen on the same computer, RadioKiosk reads its file; there is nothing else to do.
-3. Set the source to *Herrnhuter Losungen* under Settings › Content › Bible verse, and switch the Bible verse on under Idle screen › Shows.
+Settings and switching off are two small buttons at the end of the favourites row. Every station can get a star, whatever its source; favourites start with one tap from the start screen. The interface is English by default and can be switched to German.
 
-Without an internet connection everything that needs none keeps working (FM, DAB+, receiver, gallery, timer, QSO log, radio survey); the other tiles say that their source cannot be reached.
+### Picture frame and idle screen
 
-Official weather warnings of the German weather service and the warnings of civil protection (NINA: floods, fires, drinking water, bomb disposal; read from warnung.bund.de) for the set location appear as a bar below the header and in full in the weather tile. A warning stays until somebody marks it as read; on the idle screen it shows as a line, and one of the two highest levels comes up once over the whole idle screen (at night only the highest). A sound for warnings of the highest level can be switched on (data through brightsky.dev, for places in Germany only; can be switched off in the settings).
+After a while without a touch the idle screen takes over. It shows the clock on black with the display dimmed, or one or several of these in turn: the gallery behind the clock, the newest news, the DX cluster, a Bible verse for the day. Clock, date, weather and what is playing stay in view.
 
-Moon phase and propagation can be switched on in the settings; they then appear on the idle screen and in the weather tile. Both are off by default.
+As a picture frame the gallery shows any folder the computer can read. A picture that does not fill the screen gets a blurred copy of itself behind it instead of black bars, or it is cropped and pans slowly across; the change between pictures fades, wipes, turns the page or zooms. Until you choose a folder, sample pictures are shown (public domain, see [demo-pictures/CREDITS.md](demo-pictures/CREDITS.md)).
 
-The radio survey measures coarsely: over the whole range from 24 to 1766 MHz one sweep takes about 25 seconds on a Raspberry Pi 3, and the stick is not equally sensitive everywhere. Whether somebody is on the air on a band shows most reliably when you choose only that band (2 m: about one sweep per second). Every second sweep is tuned differently; what only one of the two tunings shows is produced by the stick itself and left out. "Everything" reaches as far as the connected stick tunes, from 0.5 MHz with a Blog V4.
+At night the idle screen can be dimmed, reduced to the dimmed clock, or the display switched off (**Settings › Idle screen**). So that a forgotten radio does not play for days, playback stops by itself after eight hours without a touch (**Settings › Playback**).
 
-The podcast search can use three directories (Settings › Podcast directory). fyyd is the default and, like Apple Podcasts, needs no key; for the Podcast Index, enter the key and secret you get for free at podcastindex.org.
+### Warnings
 
-Until you choose a folder of your own, the gallery shows the demo pictures that come with RadioKiosk (public domain, see [demo-pictures/CREDITS.md](demo-pictures/CREDITS.md)). The gallery shows any folder this computer can read. For a USB stick or a network folder (SMB, NFS), mount it yourself, for example with the file manager or in `/etc/fstab`; it can then be chosen in the settings under *Gallery*. Photos are scaled down to screen size once and cached.
+For the set location in Germany, RadioKiosk shows the warnings of the weather service (through brightsky.dev) and of civil protection (NINA, from warnung.bund.de) as a line below the header. A warning stays until somebody marks it as read. On the idle screen it is a line; one of the two highest levels comes up once over the whole idle screen. A sound for the highest level can be switched on.
 
-Every station can get a star, whatever its source. Favorites appear as a row on the start screen and start with one tap; remove single ones or all of them under the star at the end of that row, for example after moving to another place.
+### Bible verse and Herrnhuter Losungen
 
-The interface is English by default and can be switched to German under Settings.
+The verse comes from the curated list of the [Bible Verse Widget](https://github.com/TechnikWeber/bible-verse-widget) (public domain translations) and is the same on the same day in both.
 
-With remote control switched on under Settings, phones and computers in the same network can open the interface in a browser. A home automation or a script can control RadioKiosk the same way: see [docs/api.md](docs/api.md). There is no login, so use it only in a network you trust.
+The Losungen are not part of RadioKiosk: they are free of charge for non-commercial use, but not free content. Download the year file (XML, a ZIP) yourself from <https://www.losungen.de/digital/> and import it under **Settings › Content › Bible verse**, from a phone by remote control or from a folder or USB stick. This has to be repeated every year.
 
-The header shows the newest headline of the news reader or the weather in the room between title and clock, both in turn where both are set up (can be switched off under Settings › Display). Podcasts, music and online media pause and go on with the button that stops radio; held for a second, it stops them for good. The bottom bar has a mute button beside the volume; the alarm lifts the muting so that it still wakes. The record button in the bottom bar, switched on under Settings → *Record button*, saves what is playing to `Music/RadioKiosk`. With remote control on, other devices in the network can also listen along at `http://<address>:8080/live.mp3`.
+### Remote control and other programs
 
-RadioKiosk warns when a Raspberry Pi reports too little voltage, and it restarts an SDR stick that has hung on the USB bus instead of asking you to replug it.
+With remote control switched on under Settings, phones and computers in the same network can open the interface in a browser; other devices can also listen along at `http://<address>:8080/live.mp3`. A home automation or a script can control RadioKiosk the same way, see [docs/api.md](docs/api.md). There is no login, so use it only in a network you trust.
 
-Only one receiver can use the stick at a time, so the service stops the running one before starting the next. Tiles whose program or hardware is missing are disabled.
+### Good to know
 
-FM and the free receiver use RadioKiosk's own receiver, written in Python with NumPy: it demodulates, decodes RDS, draws a waterfall and retunes without restarting the stick. The waterfall is off by default and can be switched on separately in the FM and the Receiver view. Without it the receiver only takes in the station itself, which needs about a third of the processing; with it, it watches 1.5 MHz at once. Under Settings you can switch each of the two to the classic `rtl_fm` program instead (mono, no waterfall, lighter on the processor) and compare.
-
-The tuner gain adjusts itself while listening, because the stick's own automatic gain overdrives on a good antenna. The values are remembered per band; reset them under Settings after changing the antenna.
-
-The alarm clock wakes with a fixed station or with the one heard last; if that does not start, it falls back to a tone. The computer has to be running for it.
-
-After a while without a touch, an idle screen shows the time, date, weather and what is playing. The interface brings its own on-screen keyboard for the station search, because system keyboards differ from desktop to desktop; it appears on touch screens and can be switched off under Settings.
-
-Listening to radio services that are not meant for the public is restricted in many countries. The band plan therefore only contains broadcast, amateur radio and licence-free bands.
-
-So that a forgotten radio does not play for days, playback stops by itself when nobody has operated the device for eight hours (**Settings › Playback**; 2 to 24 hours or never, and a fixed hour of the day if wanted). At night the idle screen can be dimmed, also while it shows pictures or news, replaced by the dimmed clock, or the display switched off altogether (**Settings › Idle screen**, by default only the dimmed clock from 23 to 6 o'clock); a touch brings it back.
-
-Under **Settings › Device › Date and time** the computer's time zone, date and time can be set, and setting them from the internet switched on and off. The installer sets up the permission for that.
+- Only one receiver can use the stick at a time; the service stops the running one before starting the next. A stick that has hung on the USB bus is restarted.
+- FM and the free receiver use RadioKiosk's own receiver, written in Python with NumPy. The waterfall is off by default; under Settings each of the two can be switched to the lighter `rtl_fm` instead.
+- Podcasts, music and online media pause with the button that stops radio; held for a second it stops them for good. A record button can be switched on under Settings; it saves to `Music/RadioKiosk`.
+- yt-dlp is not part of RadioKiosk. The installer or the tile fetches it from its project; a fetched copy is renewed once a week.
+- Listening to radio services not meant for the public is restricted in many countries. The band plan only contains broadcast, amateur radio and licence-free bands.
 
 ## Updating
 
-Under **Settings › Device**, “Look for updates” asks GitHub for a newer release; once a day RadioKiosk also looks by itself and says so next to the version number on the home screen. “Update to …” installs it. With “Update by itself at night” it also happens unasked, between 3 and 5 o'clock and only while nothing is playing; this is switched on and can be switched off there.
+Under **Settings › Device**, "Look for updates" asks GitHub for a newer release; RadioKiosk also looks once a day and, unless switched off, installs a new release at night while nothing is playing.
 
-An update does not leave the device dark:
-
-1. The new version is fetched into a folder of its own next to the running one.
-2. It is loaded there as a trial. If something is missing, a package for instance, the update stops here and nothing changes.
-3. Only then the switch is made and the service restarted.
-4. If the new version does not answer within two and a half minutes, a guard switches back to the one before. The device page says so the next time it is opened.
-
-Only releases are installed, never work in progress. The update does not install packages of the operating system; a version that needs a new one says so, and the installer is run once more.
+The new version is fetched into a folder of its own and tried first. Only then the switch is made, and if the new version does not answer within two and a half minutes, a guard switches back. Only releases are installed. Packages of the operating system are not touched; a version that needs a new one says so, and the installer is run once more.
 
 ## Run from source
 
@@ -185,35 +144,24 @@ cd RadioKiosk
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m radiokiosk
+.venv/bin/python -m unittest     # the tests need no SDR stick
 ```
 
-This needs the same programs the installer sets up, and the kernel's DVB driver must not claim the stick:
+This needs the programs the installer sets up. With a stick, the kernel's TV driver must not claim it:
 
 ```sh
 echo 'blacklist dvb_usb_rtl28xxu' | sudo tee /etc/modprobe.d/blacklist-rtlsdr.conf
 ```
 
-## Tests
+## Settings file
 
-```sh
-.venv/bin/python -m unittest
-```
-
-The tests feed synthetic radio signals through the demodulators and the RDS decoder; they need no SDR stick.
-
-## Settings
-
-Optional file `~/.config/radiokiosk/config.json`:
+Nearly everything is set in the interface. A few things live only in the optional file `~/.config/radiokiosk/config.json`:
 
 | Key | Default | Meaning |
 |---|---|---|
-| `remote` | `false` | let phones and PCs in the local network control RadioKiosk (no login); also a switch under Settings |
-| `host` | `0.0.0.0` | set to `127.0.0.1` to never listen on the network at all |
+| `host` | `0.0.0.0` | set to `127.0.0.1` to never listen on the network |
 | `port` | `8080` | port of the web interface |
-| `country` | `DE` | country code for the list of popular web radio stations |
-| `location` | not set | `[latitude, longitude]` for the aircraft map and the weather; easier to set under Settings |
-| `fm_backend`, `tuner_backend` | `auto` | receiver for the FM and Receiver tiles: `engine` (built-in), `rtl_fm`, or `auto`, which takes the built-in one where the processor is fast enough; also under Settings |
-| `fm_stereo` | `auto` | FM sound: `auto` (stereo only on a strong signal), `stereo` or `mono`; also a button in the FM view |
+| `country` | `DE` | country for the list of popular web radio stations |
 | `gain` | `auto` | tuner gain: `auto` adjusts it while listening, a number in dB forces it |
 | `apps` | SDR++, SDRangel | external programs shown as tiles |
 
