@@ -152,6 +152,8 @@ Nach einer Weile ohne Berührung zeigt ein Ruhebildschirm Uhrzeit, Datum, Wetter
 
 Das Abhören von Funkdiensten, die nicht für die Allgemeinheit bestimmt sind, ist in vielen Ländern eingeschränkt. Der Bandplan enthält deshalb nur Rundfunk, Amateurfunk und anmeldefreie Bänder.
 
+Damit ein vergessenes Radio nicht tagelang läuft, stoppt die Wiedergabe von selbst, wenn acht Stunden lang niemand das Gerät bedient hat (**Einstellungen › Wiedergabe**; 2 bis 24 Stunden oder nie, dazu auf Wunsch eine feste Uhrzeit). Nachts zeigt der Ruhebildschirm statt Bildern oder Nachrichten die abgedunkelte Uhr oder schaltet das Display ganz aus (**Einstellungen › Ruhebildschirm**, Standard 23 bis 6 Uhr abgedunkelt); eine Berührung holt es zurück.
+
 Unter **Einstellungen › Gerät › Datum und Uhrzeit** lassen sich Zeitzone, Datum und Uhrzeit des Rechners stellen und das Stellen aus dem Internet ein- und ausschalten. Das Recht dazu richtet der Installer ein.
 
 ## Aktualisieren

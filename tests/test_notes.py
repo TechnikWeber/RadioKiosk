@@ -56,10 +56,10 @@ class RemindersTest(InOwnFolder):
         self.assertEqual(self.list.due(at(14, 9, 1)), [])
         self.assertTrue(self.list.items[0]["done"])
 
-    def test_without_a_time_it_is_due_as_the_day_begins(self):
+    def test_without_a_time_it_is_due_in_the_morning(self):
         self.list.save({"text": "birthday", "date": "2026-10-12"})
-        self.assertEqual(self.list.due(datetime.datetime(2026, 10, 11, 23, 59)), [])
-        self.assertEqual(len(self.list.due(datetime.datetime(2026, 10, 12, 0, 0))), 1)
+        self.assertEqual(self.list.due(datetime.datetime(2026, 10, 12, 6, 59)), [])
+        self.assertEqual(len(self.list.due(datetime.datetime(2026, 10, 12, 7, 0))), 1)
 
     def test_a_repeating_one_moves_on_past_today(self):
         r = self.list.save({"text": "water plants", "date": "2026-10-01", "repeat": "week"})

@@ -51,6 +51,8 @@ class Core:
         }
         self.last_reset = 0
         self.sleep_task = None
+        self.touched = time.time()   # when an interface was last operated
+        self.health, self.notices = [], set()
         self.players = {}     # kind -> coroutine function that plays a remembered station
         self.last = load_json("last.json", None)
 
@@ -136,9 +138,37 @@ class Core:
 
     async def watch_health(self):
         while True:
-            warnings = ["undervoltage"] if health.undervoltage() else []
-            self.update(warnings=warnings)
+            self.health = ["undervoltage"] if health.undervoltage() else []
+            self.update(warnings=self.health + sorted(self.notices))
             await asyncio.sleep(60)
+
+    def touch(self):
+        """Somebody operated an interface: the count towards stopping by itself starts again."""
+        self.touched = time.time()
+        if self.notices:
+            self.notices.clear()
+            self.update(warnings=self.health)
+
+    async def watch_playing(self):
+        """Stop what nobody is listening to any more, so a forgotten radio does not play for days:
+        after so many hours without anybody operating it, and optionally every day at a set hour."""
+        playing, since, stopped_on = None, time.time(), None
+        while True:
+            await asyncio.sleep(30)
+            now, source = time.time(), self.state["source"]
+            if (source, self.state["title"]) != playing:      # something else plays: somebody chose it
+                playing, since = (source, self.state["title"]), now
+            if source is None:
+                continue
+            hours, at = self.cfg["autostop_hours"], self.cfg["autostop_at"]
+            today = time.strftime("%Y-%m-%d")
+            idle_too_long = hours and now - max(self.touched, since) > hours * 3600
+            the_hour = at is not None and time.localtime().tm_hour == at and time.localtime().tm_min < 2 and stopped_on != today
+            if idle_too_long or the_hour:
+                stopped_on = today if the_hour else stopped_on
+                await self.stop()
+                self.notices.add("autostop")
+                self.update(warnings=self.health + sorted(self.notices))
 
     async def take(self, source):
         """Make `source` the active one, stopping the previous owner first."""

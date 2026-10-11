@@ -20,6 +20,7 @@ REPEATS = ("", "day", "week", "month", "year")
 SNOOZES = (10, 60, 1440)          # minutes a reminder can be put off
 KEEP_DONE = 30 * 86400            # an acknowledged reminder stays in the list this long
 LOOK_EVERY = 20
+MORNING = 7                       # hour at which a reminder without a time of day comes up
 TONE_FOR = 4   # seconds; the tone lies over what is playing, like the timer's
 
 
@@ -75,9 +76,10 @@ def step(day, repeat):
 
 
 def moment(reminder):
-    """When a reminder comes up, as local time: at its time of day, or as the day begins."""
+    """When a reminder comes up, as local time: at its time of day, or in the morning of its day.
+    Midnight would be the start of the day, but nobody wants a tone and a bright display then."""
     day = datetime.date.fromisoformat(reminder["date"])
-    hour, minute = (int(part) for part in reminder["time"].split(":")) if reminder.get("time") else (0, 0)
+    hour, minute = (int(part) for part in reminder["time"].split(":")) if reminder.get("time") else (MORNING, 0)
     return datetime.datetime(day.year, day.month, day.day, hour, minute)
 
 

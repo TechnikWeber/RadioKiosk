@@ -190,6 +190,12 @@ if [ -n "$ROTATE" ]; then
     printf '%s\n' "# RadioKiosk: the screen is turned by $ROTATE degrees, turn the touch input with it" \
       "ENV{ID_INPUT_TOUCHSCREEN}==\"1\", ENV{LIBINPUT_CALIBRATION_MATRIX}=\"$MATRIX\"" |
       sudo tee /etc/udev/rules.d/99-radiokiosk-touch.rules >/dev/null
+    # The mouse pointer is drawn by the graphics chip, on a layer that does not turn with the
+    # panel: on a turned screen it stands on its head. Drawn by the desktop instead, it is right.
+    LABWC_ENV="$HOME/.config/labwc/environment"
+    if [ -d "$HOME/.config/labwc" ] && ! grep -q "^WLR_NO_HARDWARE_CURSORS=" "$LABWC_ENV" 2>/dev/null; then
+      echo "WLR_NO_HARDWARE_CURSORS=1" >> "$LABWC_ENV"
+    fi
     # A transform in the desktop's own layout would add to the kernel's.
     KANSHI="$HOME/.config/kanshi/config"
     if [ -f "$KANSHI" ] && grep -q "transform" "$KANSHI"; then

@@ -54,6 +54,13 @@ def set_brightness(percent):
     return percent
 
 
+def backlight_off():
+    """Switch the backlight off altogether. The touch screen keeps working, and a touch brings it back."""
+    device = _backlight()
+    if device is not None:
+        (device / "brightness").write_text("0")
+
+
 # --- power ----------------------------------------------------------------
 
 async def can_power_off():

@@ -38,6 +38,8 @@ const STRINGS = {
     picturesAdded: n => `${n} added`, picturesFailed: n => `${n} could not be added`, deleteChosen: n => n === 1 ? "Delete the chosen picture" : `Delete the ${n} chosen`,
     manageHint: "Tap pictures to choose them for deleting. Adding works from this device's files, so most easily from a phone or computer through the remote control.",
     manageDemo: "These sample pictures belong to RadioKiosk. With your first own picture a folder of your own is started, and from then on only your pictures are shown.",
+    nightMode: "At night", nightModes: { none: "as by day", dim: "dimmed clock", off: "display off" }, nightFrom: "Night from", nightTo: "until",
+    oclock: h => `${h}:00`, autostopAfter: "Stops by itself after", autostopHours: h => `${h} h without a touch`, autostopAt: "Stops every day at", never: "never",
     notesSub: "Short notes", noteNew: "New note", noteNone: "No notes yet.", noteEdit: "Edit", notePin: "Pin to the top", notePinned: "Pinned",
     noteExport: "Save all as a text file", noteText: "Note",
     reminders: "Reminders", remindersSub: "For a day, until acknowledged", remNew: "New reminder", remNone: "No reminders yet.",
@@ -54,7 +56,8 @@ const STRINGS = {
     broadcastGroups: { german: "In German", english: "In English for Europe", others: "Other languages for Europe" },
     broadcastsHint: "From the current EiBi schedule, your local time. Stations on the air right now come first; whether they can be heard depends on antenna and conditions.",
     record: "Record", recordingTo: "Recording to Music/RadioKiosk",
-    warn: { undervoltage: "The power supply is too weak: reception suffers and the SDR stick may hang." },
+    warn: { undervoltage: "The power supply is too weak: reception suffers and the SDR stick may hang.",
+      autostop: "Playback was stopped because nobody had operated the radio for a long time (see Settings)." },
     adsb: "Aircraft", adsbSub: "Live map (ADS-B)", aircraftSeen: "aircraft received", withPosition: "with position",
     weather: "Weather", wind: "Wind", rain: "Rain", today: "Today",
     needLocation: "Set your location first: Settings → Location.",
@@ -190,6 +193,8 @@ const STRINGS = {
     picturesAdded: n => `${n} hinzugefügt`, picturesFailed: n => `${n} ließen sich nicht hinzufügen`, deleteChosen: n => n === 1 ? "Das gewählte Bild löschen" : `Die ${n} gewählten löschen`,
     manageHint: "Tippe Bilder an, um sie zum Löschen auszuwählen. Hinzufügen geht aus den Dateien dieses Geräts, also am einfachsten vom Handy oder PC über die Fernbedienung.",
     manageDemo: "Diese Beispielbilder gehören zu RadioKiosk. Mit deinem ersten eigenen Bild wird ein eigener Ordner angelegt, und ab dann werden nur noch deine Bilder gezeigt.",
+    nightMode: "Nachts", nightModes: { none: "wie am Tag", dim: "abgedunkelte Uhr", off: "Display aus" }, nightFrom: "Nacht ab", nightTo: "bis",
+    oclock: h => `${h} Uhr`, autostopAfter: "Stoppt von selbst nach", autostopHours: h => `${h} h ohne Bedienung`, autostopAt: "Stoppt jeden Tag um", never: "nie",
     notesSub: "Kurze Notizen", noteNew: "Neue Notiz", noteNone: "Noch keine Notizen.", noteEdit: "Bearbeiten", notePin: "Oben anheften", notePinned: "Angeheftet",
     noteExport: "Alle als Textdatei sichern", noteText: "Notiz",
     reminders: "Erinnerungen", remindersSub: "Für einen Tag, bis quittiert", remNew: "Neue Erinnerung", remNone: "Noch keine Erinnerungen.",
@@ -206,7 +211,8 @@ const STRINGS = {
     broadcastGroups: { german: "Auf Deutsch", english: "Auf Englisch für Europa", others: "Andere Sprachen für Europa" },
     broadcastsHint: "Aus dem aktuellen EiBi-Sendeplan, in deiner Ortszeit. Sender, die gerade senden, stehen oben; ob man sie hört, hängt von Antenne und Ausbreitung ab.",
     record: "Aufnehmen", recordingTo: "Aufnahme läuft nach Musik/RadioKiosk",
-    warn: { undervoltage: "Das Netzteil ist zu schwach: Der Empfang leidet und der SDR-Stick kann sich aufhängen." },
+    warn: { undervoltage: "Das Netzteil ist zu schwach: Der Empfang leidet und der SDR-Stick kann sich aufhängen.",
+      autostop: "Die Wiedergabe wurde gestoppt, weil das Radio lange nicht bedient wurde (siehe Einstellungen)." },
     adsb: "Flugzeuge", adsbSub: "Live-Karte (ADS-B)", aircraftSeen: "Flugzeuge empfangen", withPosition: "mit Position",
     weather: "Wetter", wind: "Wind", rain: "Regen", today: "Heute",
     needLocation: "Lege zuerst deinen Standort fest: Einstellungen → Standort.",
@@ -3122,6 +3128,23 @@ const settings = {
             await api("/api/sleep", { minutes: left ? SLEEP[(current + 1) % SLEEP.length] : SLEEP[1] });
             setTimeout(() => this.render(), 150);
           },
+        }),
+        // so a forgotten radio does not play for days
+        h("button", {
+          textContent: `${t.autostopAfter}: ${receivers.autostop_hours ? t.autostopHours(receivers.autostop_hours) : t.never}`,
+          onclick: async () => {
+            const hours = [0, 2, 4, 8, 12, 24];
+            await api("/api/settings", { key: "autostop_hours", value: hours[(hours.indexOf(receivers.autostop_hours) + 1) % hours.length] });
+            this.render();
+          },
+        }),
+        h("button", {
+          textContent: `${t.autostopAt}: ${receivers.autostop_at == null ? t.never : t.oclock(receivers.autostop_at)}`,
+          onclick: async () => {
+            const at = [null, 22, 23, 0, 1, 2, 3];
+            await api("/api/settings", { key: "autostop_at", value: at[(at.indexOf(receivers.autostop_at) + 1) % at.length] });
+            this.render();
+          },
         })),
       h("p", { className: "label", textContent: t.output }),
       ...sinks.map(s => stationRow({
@@ -3151,6 +3174,9 @@ const settings = {
           textContent: `${t.idleContent}: ${(state.idle_contents || ["clock"]).map(k => t.idleContents[k]).join(", ")}`,
           onclick: () => show(idleContentsView),
         }),
+        cycle(t.nightMode, "night", "dim", t.nightModes, () => { if (!idle.hidden) showIdle(); }),
+        cycle(t.nightFrom, "night_from", "23", Object.fromEntries([20, 21, 22, 23, 0, 1].map(h => [h, t.oclock(h)]))),
+        cycle(t.nightTo, "night_to", "6", Object.fromEntries([5, 6, 7, 8, 9].map(h => [h, t.oclock(h)]))),
         cycle(t.showMoon, "show_moon", "off", { off: t.off, on: t.on }),
         cycle(t.showSpace, "show_space", "off", { off: t.off, on: t.on })),
       h("p", { className: "label", textContent: t.extrasHint }),
@@ -3192,7 +3218,13 @@ const settings = {
 
 const IDLE_CHOICES = [0, 1, 2, 5, 15];   // minutes without a touch; 0 switches it off
 const idle = $("idle");
-let lastTouch = Date.now();
+let lastTouch = Date.now(), lastTold = 0;
+// The service stops a radio nobody has operated for hours; so it hears of touches, now and then.
+function tellActive() {
+  if (Date.now() - lastTold < 5 * 60e3) return;
+  lastTold = Date.now();
+  api("/api/active", {}).catch(() => { lastTold = 0; });
+}
 let idleWeather = null, idleWeatherAt = 0;
 
 // Some stations carry their slogan in the name. On the idle screen a long name is cut where
@@ -3326,12 +3358,25 @@ async function idleReminders() {
 let idleKind = null, idleSince = 0, idleTurn = 0;
 // Bring one kind onto the idle screen. One that has nothing to show (no feed chosen, no
 // connection) leaves the plain clock in its place.
+// At night the idle screen is the plain clock, dimmed, or the display is switched off: a picture
+// frame that runs all day needs far less power while everybody sleeps. A setting of this display.
+function nightNow() {
+  const from = Number(pref("night_from", "23")), to = Number(pref("night_to", "6")), hour = new Date().getHours();
+  if (pref("night", "dim") === "none") return false;
+  return from > to ? hour >= from || hour < to : hour >= from && hour < to;
+}
+let idleNight = false;
 async function showIdleKind(kind) {
   idleKind = kind;
   idleSince = Date.now();
   idle.classList.remove("pictures", "news");
   idleSlides.stop();
   drawIdle();
+  idleNight = nightNow();
+  if (idleNight && kind !== "reminder") {
+    dim(pref("night", "dim") === "off" ? "off" : true);
+    return;
+  }
   if (kind === "gallery") {
     await loadGallery();
     if (idle.hidden || idleKind !== kind) return;
@@ -3372,6 +3417,7 @@ function hideIdle() {
 let waking = false;
 addEventListener("pointerdown", () => {
   lastTouch = Date.now();
+  tellActive();
   waking = !idle.hidden;
   if (waking) dim(false);
 }, true);
@@ -3399,7 +3445,8 @@ setInterval(() => {
     drawIdle();
     // stays the newest article, the newest spots
     const kinds = state.idle_contents || ["clock"];
-    if (idleKind === "reminder") { /* stays until acknowledged */ }
+    if (nightNow() !== idleNight) showIdle();   // night begins or ends
+    else if (idleNight || idleKind === "reminder") { /* stays: no turns at night, and a reminder until acknowledged */ }
     else if (kinds.length > 1 && Date.now() - idleSince > state.idle_rotate * 60e3) {   // on to the next kind
       idleTurn = (idleTurn + 1) % kinds.length;
       showIdleKind(kinds[idleTurn]);
@@ -3497,6 +3544,8 @@ function connect() {
     const { version, build, tone, tones } = await api("/api/settings");
     toneNow = tone;
     toneAll = tones || [];
+    // a page that starts afresh knows nothing of a display switched off or dimmed before: set it right
+    dimming = dimming.then(() => api("/api/device/dim", { on: dimmed })).catch(() => {});
     if (loadedVersion && build !== loadedVersion) location.reload();
     loadedVersion = build;
     ownVersion = version;

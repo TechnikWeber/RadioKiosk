@@ -163,6 +163,12 @@ def build(cfg):
         await core.refresh_volume()
         return ok()
 
+    @routes.post("/api/active")
+    async def active(request):
+        """An interface tells that somebody is operating it; see Core.watch_playing."""
+        core.touch()
+        return ok()
+
     @routes.post("/api/sleep")
     async def sleep(request):
         core.sleep_in(max(0, min(600, float((await request.json())["minutes"]))))
@@ -206,11 +212,16 @@ def build(cfg):
         if action == "dim":
             # The idle screen dims the display. The brightness to return to is stored before
             # dimming, so a reloaded page or a restart can never mistake the dimmed value for it.
-            if device.brightness() is None:
-                return ok()
-            if not cfg["brightness"]:
+            # "on" is false for bright, true for dimmed, "off" for the backlight switched off at night.
+            client = ipaddress.ip_address(request.remote or "127.0.0.1")
+            if device.brightness() is None or not (getattr(client, "ipv4_mapped", None) or client).is_loopback:
+                return ok()      # no backlight to set, or a phone whose own idle screen is none of this display's business
+            if not cfg["brightness"] and device.brightness():
                 save_setting(cfg, "brightness", device.brightness())
-            device.set_brightness(round(cfg["brightness"] * 0.3) if body["on"] else cfg["brightness"])
+            if body["on"] == "off":
+                device.backlight_off()
+            else:
+                device.set_brightness(round((cfg["brightness"] or 100) * 0.3) if body["on"] else cfg["brightness"] or 100)
             return ok()
         if action == "wifi_powersave":
             await device.set_wifi_powersave(bool(body["on"]))
@@ -320,7 +331,8 @@ def build(cfg):
                                   "podcast_key": cfg["podcast_key"], "podcast_secret": cfg["podcast_secret"],
                                   "callsign": cfg["callsign"], "swl": cfg["swl"], "alerts": cfg["alerts"],
                                   "music_folder": str(music.root()),
-                                  "version": __version__, "build": BUILD, "tone": cfg["tone"], "tones": list(tones.TONES), "stream": network_audio.can_stream(),
+                                  "version": __version__, "build": BUILD, "tone": cfg["tone"], "tones": list(tones.TONES),
+                                  "autostop_hours": cfg["autostop_hours"], "autostop_at": cfg["autostop_at"], "stream": network_audio.can_stream(),
                                   "backends": available_backends(),
                                   "engine_load": engine_load(), "engine_load_limit": ENGINE_LOAD_LIMIT})
 
@@ -346,6 +358,12 @@ def build(cfg):
             if body["value"] and not Path(body["value"]).expanduser().is_dir():
                 raise ValueError("this folder cannot be opened")
             save_setting(cfg, "music_folder", str(Path(body["value"]).expanduser()) if body["value"] else None)
+            return ok()
+        if body["key"] == "autostop_hours" and body["value"] in (0, 2, 4, 8, 12, 24):
+            save_setting(cfg, "autostop_hours", body["value"])
+            return ok()
+        if body["key"] == "autostop_at" and (body["value"] is None or body["value"] in range(24)):
+            save_setting(cfg, "autostop_at", body["value"])
             return ok()
         if body["key"] == "tone" and body["value"] in tones.TONES:
             save_setting(cfg, "tone", body["value"])
@@ -826,6 +844,7 @@ def build(cfg):
         app["audio_watch"] = asyncio.create_task(audio.watch(core.refresh_volume))
         app["alarm"] = asyncio.create_task(alarm.run())
         app["health"] = asyncio.create_task(core.watch_health())
+        app["playing"] = asyncio.create_task(core.watch_playing())
         app["alerts"] = asyncio.create_task(alerts.run())
         app["updater"] = asyncio.create_task(updater.run())
         app["reminders"] = asyncio.create_task(reminders.run())
@@ -836,6 +855,7 @@ def build(cfg):
         app["audio_watch"].cancel()
         app["alarm"].cancel()
         app["health"].cancel()
+        app["playing"].cancel()
         app["alerts"].cancel()
         app["updater"].cancel()
         app["reminders"].cancel()

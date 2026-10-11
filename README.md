@@ -152,6 +152,8 @@ After a while without a touch, an idle screen shows the time, date, weather and 
 
 Listening to radio services that are not meant for the public is restricted in many countries. The band plan therefore only contains broadcast, amateur radio and licence-free bands.
 
+So that a forgotten radio does not play for days, playback stops by itself when nobody has operated the device for eight hours (**Settings › Playback**; 2 to 24 hours or never, and a fixed hour of the day if wanted). At night the idle screen shows the dimmed clock instead of pictures or news, or switches the display off altogether (**Settings › Idle screen**, by default dimmed from 23 to 6 o'clock); a touch brings it back.
+
 Under **Settings › Device › Date and time** the computer's time zone, date and time can be set, and setting them from the internet switched on and off. The installer sets up the permission for that.
 
 ## Updating
