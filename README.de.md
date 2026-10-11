@@ -94,6 +94,8 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Funk-Analyse | durchläuft einen Bereich über eine gewählte Zeit und berichtet, was zeitweise sendet, was dauernd da ist und was nach Störung aussieht; Bericht zum Speichern | `rtl_power`, NumPy |
 | Wecker | weckt mit einem festen Sender oder dem zuletzt gehörten, ersatzweise mit einem Ton; die Weckzeit steht auch im Ruhebildschirm | `mpv` |
 | Timer | Kurzzeitwecker, der auch über dem laufenden Sender klingelt, und Stoppuhr | `mpv` |
+| Notizen | kurze Notizen schreiben, anheften, ändern und löschen; alle zusammen lassen sich als Textdatei sichern | – |
+| Erinnerungen | Erinnerung für einen Tag, auf Wunsch mit Uhrzeit und Wiederholung (täglich bis jährlich); sie bleibt als Leiste auf jedem Bildschirm und im Ruhebildschirm stehen, bis sie quittiert oder verschoben wird | `mpv` für den Hinweiston |
 | Galerie | Diashow aus einem Ordner, pur über die Kachel oder im Ruhebildschirm hinter der Uhr; mit oder ohne Unterordner, Bilder ganz, leicht gezoomt oder bildschirmfüllend | Pillow |
 | SDR++ | das vollwertige SDR-Programm für alles Weitere | startet als normales Programm |
 | Einstellungen | Sprache, helles oder dunkles Design, Tonausgabe, Sleep-Timer, Ruhebildschirm, Größe der unteren Leiste, Bildschirmtastatur, Standort, Fernbedienung, Empfangsart | PipeWire oder PulseAudio |
@@ -149,6 +151,8 @@ Der Wecker weckt mit einem festen Sender oder mit dem zuletzt gehörten; startet
 Nach einer Weile ohne Berührung zeigt ein Ruhebildschirm Uhrzeit, Datum, Wetter und den laufenden Sender. Für die Sendersuche bringt die Oberfläche eine eigene Bildschirmtastatur mit, weil Systemtastaturen je nach Desktop verschieden sind; sie erscheint auf Touchscreens und lässt sich in den Einstellungen abschalten.
 
 Das Abhören von Funkdiensten, die nicht für die Allgemeinheit bestimmt sind, ist in vielen Ländern eingeschränkt. Der Bandplan enthält deshalb nur Rundfunk, Amateurfunk und anmeldefreie Bänder.
+
+Unter **Einstellungen › Gerät › Datum und Uhrzeit** lassen sich Zeitzone, Datum und Uhrzeit des Rechners stellen und das Stellen aus dem Internet ein- und ausschalten. Das Recht dazu richtet der Installer ein.
 
 ## Aktualisieren
 

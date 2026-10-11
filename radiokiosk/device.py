@@ -7,6 +7,7 @@ actually supports.
 import asyncio
 import os
 import shutil
+import time
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -130,3 +131,57 @@ async def set_wifi_powersave(on):
         raise RuntimeError("this computer does not let RadioKiosk change that setting")
     # the adapter takes the setting when it connects; the interface is back within seconds
     await run("nmcli", "connection", "up", name, timeout=45)
+
+
+# --- date, time and time zone -----------------------------------------------
+
+# Setting the clock is the system's business. timedatectl asks polkit, and the installer
+# leaves a rule there that lets the user of the service do it; where that rule is missing,
+# sudo without a password is tried, and otherwise the interface says why nothing changed.
+
+def has_clock():
+    return shutil.which("timedatectl") is not None
+
+
+async def clock():
+    """Time zone and whether the clock is set from the network, as timedatectl reports them."""
+    code, out = await run("timedatectl", "show")
+    shown = dict(line.split("=", 1) for line in out.splitlines() if "=" in line) if not code else {}
+    return {"zone": shown.get("Timezone", ""), "auto": shown.get("NTP") == "yes", "can_auto": shown.get("CanNTP") == "yes",
+            "synced": shown.get("NTPSynchronized") == "yes", "now": time.time(),
+            "offset": time.localtime().tm_gmtoff // 60}
+
+
+async def zones():
+    code, out = await run("timedatectl", "list-timezones", "--no-pager")
+    return out.split() if not code else []
+
+
+async def _timedatectl(*args):
+    code, out = await run("timedatectl", "--no-ask-password", *args)
+    if code and shutil.which("sudo"):
+        code, out = await run("sudo", "-n", "timedatectl", *args)
+    if code:
+        if "synchronization" in out or "NTP" in out:
+            raise RuntimeError("the clock is set from the network; switch that off to set it by hand")
+        raise RuntimeError("this user may not set the system clock; run the installer again to allow it")
+    time.tzset()   # this process shows times too: follow a new zone at once
+
+
+async def set_zone(zone):
+    if zone not in await zones():
+        raise RuntimeError("unknown time zone")
+    await _timedatectl("set-timezone", zone)
+
+
+async def set_auto(on):
+    await _timedatectl("set-ntp", "true" if on else "false")
+
+
+async def set_time(moment):
+    """Set date and time, given as local time 'YYYY-MM-DD HH:MM'."""
+    try:
+        parsed = time.strptime(moment, "%Y-%m-%d %H:%M")
+    except (TypeError, ValueError):
+        raise RuntimeError("this is not a date and time")
+    await _timedatectl("set-time", time.strftime("%Y-%m-%d %H:%M:00", parsed))

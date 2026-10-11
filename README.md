@@ -94,6 +94,8 @@ A small Python service controls the receivers and serves a web interface that a 
 | Radio survey | sweeps a range for a chosen time and reports what transmits now and then, what is always there and what looks like interference; the report can be saved | `rtl_power`, NumPy |
 | Alarm | wakes with a fixed station or the one heard last, with a tone if that fails; the alarm time is also shown on the idle screen | `mpv` |
 | Timer | kitchen timer that also rings over the station that is playing, and a stopwatch | `mpv` |
+| Notes | write short notes, pin, change and delete them; all of them can be saved as one text file | – |
+| Reminders | a reminder for a day, with a time of day and a repeat (daily to yearly) if wanted; it stays as a bar on every screen and on the idle screen until it is acknowledged or put off | `mpv` for the tone |
 | Gallery | slide show from a folder, on its own through the tile or behind the clock on the idle screen; with or without subfolders, pictures whole, slightly zoomed or filling the screen | Pillow |
 | SDR++ | the full SDR program for everything else | started as a normal program |
 | Settings | language, light or dark design, audio output, sleep timer, idle screen, size of the bottom bar, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
@@ -149,6 +151,8 @@ The alarm clock wakes with a fixed station or with the one heard last; if that d
 After a while without a touch, an idle screen shows the time, date, weather and what is playing. The interface brings its own on-screen keyboard for the station search, because system keyboards differ from desktop to desktop; it appears on touch screens and can be switched off under Settings.
 
 Listening to radio services that are not meant for the public is restricted in many countries. The band plan therefore only contains broadcast, amateur radio and licence-free bands.
+
+Under **Settings › Device › Date and time** the computer's time zone, date and time can be set, and setting them from the internet switched on and off. The installer sets up the permission for that.
 
 ## Updating
 

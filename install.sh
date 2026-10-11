@@ -126,6 +126,20 @@ systemctl --user daemon-reload
 systemctl --user enable radiokiosk.service
 systemctl --user restart radiokiosk.service
 
+# Date, time and time zone can be corrected in the settings. The system asks polkit before it
+# lets anybody touch the clock; this rule answers yes for the user the service runs as.
+if [ -d /etc/polkit-1/rules.d ]; then
+  say "Letting RadioKiosk set date, time and time zone"
+  sudo tee /etc/polkit-1/rules.d/49-radiokiosk-clock.rules >/dev/null <<RULE
+// RadioKiosk: its settings can correct date, time and time zone of this computer.
+polkit.addRule(function(action, subject) {
+  if (action.id.indexOf("org.freedesktop.timedate1.") === 0 && subject.user === "$USER") {
+    return polkit.Result.YES;
+  }
+});
+RULE
+fi
+
 cat > "$HOME/.local/share/applications/radiokiosk.desktop" <<ENTRY
 [Desktop Entry]
 Type=Application

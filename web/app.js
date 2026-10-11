@@ -32,7 +32,17 @@ const STRINGS = {
     connecting: "Connecting…", connected: "connected", update: "Update RadioKiosk", updating: "Updating…", checkUpdates: "Look for updates", checking: "Looking…",
     available: "available", updateTo: "Update to", autoUpdate: "Update by itself at night", software: "Software",
     updateFailed: v => `The update to ${v} did not start and was turned back. The version before it is running.`,
-    notInstalled: "This copy was not set up by the installer and does not update itself.",
+    noSelfUpdate: "This copy was not set up by the installer and does not update itself.",
+    notesSub: "Short notes", noteNew: "New note", noteNone: "No notes yet.", noteEdit: "Edit", notePin: "Pin to the top", notePinned: "Pinned",
+    noteExport: "Save all as a text file", noteText: "Note",
+    reminders: "Reminders", remindersSub: "For a day, until acknowledged", remNew: "New reminder", remNone: "No reminders yet.",
+    remText: "What to remember", remDay: "Day", remTime: "Time of day", remAllDay: "all day", remRepeat: "Repeats",
+    remRepeats: { "": "once", day: "daily", week: "weekly", month: "monthly", year: "yearly" },
+    remDone: "Done", remLater: m => m < 60 ? `In ${m} min` : m < 1440 ? `In ${m / 60} h` : "Tomorrow", remDue: "Due now", remComing: "Coming up",
+    remPast: "Acknowledged", remBanner: "Reminder", remMore: n => `and ${n} more`, remSince: "since",
+    clockTitle: "Date and time", clockZone: "Time zone", clockAuto: "Set from the internet", clockSynced: "in step with the internet",
+    clockNotSynced: "not in step yet", clockSet: "Set", clockRegion: "Region", clockManualHint: "With the clock set from the internet, date and time cannot be set by hand. Switch that off first.",
+    clockBrowserHint: "A new time zone shows in this window after the next restart of the device.",
     upToDate: "Already up to date", updated: "Fetched and checked – restarting with the new version", restart: "Restart", shutDown: "Shut down",
     sure: "Tap again to confirm", liveStream: "Listen along on other devices (remote control must be on):",
     scanChannels: "Scan", stopScan: "Stop scan", onAir: "Scheduled to be on the air now, within ±250 kHz (EiBi list)", onNow: "on now", daily: "daily",
@@ -67,7 +77,7 @@ const STRINGS = {
     directoryHint: "Where the search looks for podcasts. fyyd and Apple work without a key; the Podcast Index is free as well, but needs a key and a secret from podcastindex.org.",
     apiKey: "Key", apiSecret: "Secret", notSet: "not set", isSet: "set",
     news: "News", newsSub: "RSS reader", manageFeeds: "News feeds", addFeed: "Add feed", feedAddress: "Address of the feed (RSS or Atom)",
-    noArticles: "No articles yet.", noFeeds: "No feed chosen yet. Pick one under News feeds.", remove: "Remove",
+    noArticles: "No articles yet.", noFeeds: "No feed chosen yet. Pick one under News feeds.",
     sensors: "Sensors", sensorsSub: "433 MHz", sensorsWaiting: "Listening for wireless sensors … many only report every few minutes.",
     sensorWords: { humidity: "humidity", battery: "battery low", wind: "wind", rain: "rain", ago: "ago", channel: "channel" },
     ais: "Ships", aisSub: "Live map (AIS)", shipsSeen: "ships received",
@@ -145,7 +155,7 @@ const STRINGS = {
     wmo: { 0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Overcast", 45: "Fog", 51: "Drizzle", 61: "Rain",
            66: "Freezing rain", 71: "Snow", 80: "Showers", 85: "Snow showers", 95: "Thunderstorm" },
     fmScanning: "Scanning the band…", fmFound: "Found", fmSaved: "Saved",
-    enterFrequency: "Up to 1750: MHz · from 2000: kHz", cancel: "Cancel",
+    enterFrequency: "Up to 1750: MHz · from 2000: kHz",
     relevel: "Reset remembered gain",
     relevelHint: "The tuner gain adjusts itself and is remembered per band. Reset it after changing the antenna or location.",
     kinds: { analog: "Headphone jack / built-in", usb: "USB", bluetooth: "Bluetooth", hdmi: "HDMI" },
@@ -169,7 +179,17 @@ const STRINGS = {
     connecting: "Verbinde…", connected: "verbunden", update: "RadioKiosk aktualisieren", updating: "Aktualisiere…", checkUpdates: "Nach Updates suchen", checking: "Suche…",
     available: "verfügbar", updateTo: "Aktualisieren auf", autoUpdate: "Nachts von selbst aktualisieren", software: "Software",
     updateFailed: v => `Das Update auf ${v} ist nicht gestartet und wurde zurückgenommen. Die Version davor läuft weiter.`,
-    notInstalled: "Diese Kopie wurde nicht vom Installer eingerichtet und aktualisiert sich nicht selbst.",
+    noSelfUpdate: "Diese Kopie wurde nicht vom Installer eingerichtet und aktualisiert sich nicht selbst.",
+    notesSub: "Kurze Notizen", noteNew: "Neue Notiz", noteNone: "Noch keine Notizen.", noteEdit: "Bearbeiten", notePin: "Oben anheften", notePinned: "Angeheftet",
+    noteExport: "Alle als Textdatei sichern", noteText: "Notiz",
+    reminders: "Erinnerungen", remindersSub: "Für einen Tag, bis quittiert", remNew: "Neue Erinnerung", remNone: "Noch keine Erinnerungen.",
+    remText: "Woran erinnern", remDay: "Tag", remTime: "Uhrzeit", remAllDay: "ganztägig", remRepeat: "Wiederholung",
+    remRepeats: { "": "einmalig", day: "täglich", week: "wöchentlich", month: "monatlich", year: "jährlich" },
+    remDone: "Erledigt", remLater: m => m < 60 ? `In ${m} min` : m < 1440 ? `In ${m / 60} h` : "Morgen", remDue: "Jetzt fällig", remComing: "Demnächst",
+    remPast: "Quittiert", remBanner: "Erinnerung", remMore: n => `und ${n} weitere`, remSince: "seit",
+    clockTitle: "Datum und Uhrzeit", clockZone: "Zeitzone", clockAuto: "Aus dem Internet stellen", clockSynced: "im Takt mit dem Internet",
+    clockNotSynced: "noch nicht im Takt", clockSet: "Stellen", clockRegion: "Region", clockManualHint: "Solange die Uhr aus dem Internet gestellt wird, lassen sich Datum und Uhrzeit nicht von Hand stellen. Schalte das zuerst aus.",
+    clockBrowserHint: "Eine neue Zeitzone zeigt dieses Fenster nach dem nächsten Neustart des Geräts.",
     upToDate: "Bereits aktuell", updated: "Geladen und geprüft – starte mit der neuen Version neu", restart: "Neu starten", shutDown: "Ausschalten",
     sure: "Zum Bestätigen noch einmal tippen", liveStream: "Auf anderen Geräten mithören (Fernbedienung muss an sein):",
     scanChannels: "Suchlauf", stopScan: "Suchlauf stoppen", onAir: "Laut Sendeplan jetzt auf Sendung, im Umkreis von ±250 kHz (EiBi-Liste)", onNow: "jetzt", daily: "täglich",
@@ -204,7 +224,7 @@ const STRINGS = {
     directoryHint: "Wo die Suche nach Podcasts schaut. fyyd und Apple gehen ohne Schlüssel; der Podcast Index ist ebenfalls kostenlos, braucht aber Schlüssel und Geheimnis von podcastindex.org.",
     apiKey: "Schlüssel", apiSecret: "Geheimnis", notSet: "nicht eingetragen", isSet: "eingetragen",
     news: "Nachrichten", newsSub: "RSS-Reader", manageFeeds: "Nachrichten-Feeds", addFeed: "Feed hinzufügen", feedAddress: "Adresse des Feeds (RSS oder Atom)",
-    noArticles: "Noch keine Artikel.", noFeeds: "Noch kein Feed gewählt. Unter Nachrichten-Feeds suchst du dir welche aus.", remove: "Entfernen",
+    noArticles: "Noch keine Artikel.", noFeeds: "Noch kein Feed gewählt. Unter Nachrichten-Feeds suchst du dir welche aus.",
     sensors: "Funksensoren", sensorsSub: "433 MHz", sensorsWaiting: "Lausche auf Funksensoren … viele melden sich nur alle paar Minuten.",
     sensorWords: { humidity: "Feuchte", battery: "Batterie schwach", wind: "Wind", rain: "Regen", ago: "vor", channel: "Kanal" },
     ais: "Schiffe", aisSub: "Live-Karte (AIS)", shipsSeen: "Schiffe empfangen",
@@ -282,7 +302,7 @@ const STRINGS = {
     wmo: { 0: "Klar", 1: "Überwiegend klar", 2: "Teils bewölkt", 3: "Bedeckt", 45: "Nebel", 51: "Nieselregen", 61: "Regen",
            66: "Gefrierender Regen", 71: "Schnee", 80: "Schauer", 85: "Schneeschauer", 95: "Gewitter" },
     fmScanning: "Suche Sender im Band…", fmFound: "Gefunden", fmSaved: "Gespeichert",
-    enterFrequency: "Bis 1750: MHz · ab 2000: kHz", cancel: "Abbrechen",
+    enterFrequency: "Bis 1750: MHz · ab 2000: kHz",
     relevel: "Gemerkte Verstärkung zurücksetzen",
     relevelHint: "Die Verstärkung regelt sich selbst und wird je Band gemerkt. Nach Antennen- oder Standortwechsel zurücksetzen.",
     kinds: { analog: "Klinke / eingebaut", usb: "USB", bluetooth: "Bluetooth", hdmi: "HDMI" },
@@ -303,6 +323,14 @@ const MESSAGES_DE = [
   [/^update failed: the new version does not start on this computer$/, "Aktualisierung abgebrochen: Die neue Version startet auf diesem Rechner nicht. Die bisherige läuft weiter"],
   [/^update failed: the new version could not be unpacked$/, "Aktualisierung abgebrochen: Die neue Version ließ sich nicht entpacken"],
   [/^update failed: an update is already running$/, "Es läuft bereits eine Aktualisierung"],
+  [/^a note needs some text$/, "Eine Notiz braucht etwas Text"],
+  [/^a reminder needs some text$/, "Eine Erinnerung braucht etwas Text"],
+  [/^this is not a date$/, "Das ist kein Datum"],
+  [/^this is not a time of day$/, "Das ist keine Uhrzeit"],
+  [/^this is not a date and time$/, "Das ist kein Datum mit Uhrzeit"],
+  [/^unknown time zone$/, "Unbekannte Zeitzone"],
+  [/^the clock is set from the network.*$/, "Die Uhr wird aus dem Internet gestellt; schalte das aus, um sie von Hand zu stellen"],
+  [/^this user may not set the system clock.*$/, "Dieser Benutzer darf die Systemuhr nicht stellen – bitte den Installer noch einmal ausführen, der erlaubt es"],
   [/^update failed: files of this copy were changed by hand$/, "Aktualisierung abgebrochen: Dateien dieser Kopie wurden von Hand geändert"],
   [/^update failed: this is not an installed copy$/, "Diese Kopie wurde nicht vom Installer eingerichtet und aktualisiert sich nicht selbst"],
   [/^update failed: GitHub does not answer right now$/, "GitHub antwortet gerade nicht – später noch einmal versuchen"],
@@ -387,6 +415,8 @@ const ICONS = {
   news: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/>',
   sensors: '<path d="M10 14V5a2 2 0 014 0v9a4 4 0 11-4 0z"/><path d="M12 17v-6"/>',
   ais: '<path d="M3 17l2 4h14l2-4M5 17v-6h14v6M9 11V6h6v5M12 6V3"/>',
+  notes: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h5"/>',
+  reminders: '<path d="M6 17V11a6 6 0 0112 0v6l2 2H4z"/><path d="M10 21h4"/>',
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6"/>',
   alarm: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2.500 2M5 4L2.500 6.500M19 4l2.500 2.500M7 19l-2 2M17 19l2 2"/>',
   spots: '<path d="M12 20V10M12 10l-5 10M12 10l5 10M8.5 6.5a5 5 0 017 0M6 4a8.5 8.5 0 0112 0"/><circle cx="12" cy="9" r="1"/>',
@@ -680,6 +710,9 @@ const home = {
       tile("gallery", t.gallery, null, () => show(galleryView), t.gallerySub),
       tile("alarm", t.alarm, null, () => show(alarm), state.alarm || t.off),
       tile("timer", t.timer, null, () => show(timerView), t.timerSub),
+      tile("notes", t.notes, null, () => show(notesView), t.notesSub),
+      tile("reminders", t.reminders, null, () => show(remindersView),
+        (state.reminders || []).length ? `${state.reminders.length} × ${t.remDue.toLowerCase()}` : t.remindersSub),
       tile("propagation", t.propagation, null, () => show(propagationView), t.propagationSub),
       tile("spots", t.spots, null, () => show(spotsView), t.spotsSub),
       tile("satellites", t.satellites, null, () => show(satellitesView), t.satellitesSub),
@@ -1410,6 +1443,7 @@ const deviceView = {
         h("div", { className: "steps" }, bright(-25), bright(-5), bright(5), bright(25))]),
       h("div", { className: "toolbar wrap" },
         d.wifi ? h("button", { textContent: t.wifi, onclick: () => show(wifiView) }) : null,
+        d.clock ? h("button", { textContent: t.clockTitle, onclick: () => show(clockView) }) : null,
         // off keeps streams and the remote control from stalling on adapters that sleep too deeply
         d.wifi_powersave == null ? null : h("button", {
           className: d.wifi_powersave ? "on" : "", textContent: `${t.wifiSaving}: ${d.wifi_powersave ? t.on : t.off}`,
@@ -1444,7 +1478,7 @@ const deviceView = {
           className: r.auto ? "on" : "", textContent: `${t.autoUpdate}: ${r.auto ? t.on : t.off}`,
           onclick: async () => { await api("/api/settings", { key: "auto_update", value: !r.auto }); this.render(); },
         }) : null),
-      ...(this.note ? [hint(this.note)] : r.can ? [] : [hint(t.notInstalled)]),
+      ...(this.note ? [hint(this.note)] : r.can ? [] : [hint(t.noSelfUpdate)]),
       // release notes are written in Markdown; shown as plain text they read well enough without its marks
       ...(r.available ? [h("p", { className: "notes", textContent: r.available.notes.replace(/^#+ */gm, "").replace(/\*\*/g, "") })] : []));
   },
@@ -2345,6 +2379,226 @@ const qsoForm = {
   back() { show(qsoLog); return true; },
 };
 
+/* ---------- notes ---------- */
+
+// Short notes: a line or a few. The newest stands first, pinned ones above it.
+const notesView = {
+  title: t.notes,
+  list: [],
+  note: "",
+  async render() {
+    this.list = await api("/api/notes");
+    const write = () => textPrompt.ask({ title: t.noteNew, label: t.noteText, origin: this, done: text => api("/api/notes", { text }) });
+    const top = view.scrollTop;
+    view.replaceChildren(
+      h("div", { className: "toolbar wrap" },
+        h("button", { className: "primary", textContent: t.noteNew, onclick: write }),
+        h("button", { textContent: t.noteExport, disabled: !this.list.length, onclick: async () => {
+          try { this.note = `${t.savedTo} ${(await api("/api/notes/export", {})).path}`; } catch (e) { this.note = say(e.message); }
+          this.render();
+        } })),
+      ...(this.note ? [h("p", { className: "label", textContent: this.note })] : []),
+      ...(this.list.length ? this.list.map(n => {
+        const row = stationRow({ title: n.text, info: [n.pinned ? t.notePinned : "", timeOf(n.changed)].filter(Boolean).join(" · "),
+          onPlay: () => noteView.open(n) });
+        row.classList.add("tall", "text");
+        return row;
+      }) : [hint(t.noteNone)]));
+    view.scrollTop = top;
+  },
+};
+
+// One note in full, with what can be done to it.
+const noteView = {
+  title: t.noteText,
+  entry: null,
+  confirm: false,
+  open(entry) { this.entry = entry; this.confirm = false; show(this); },
+  render() {
+    const n = this.entry;
+    const save = async change => { this.entry = await api("/api/notes", { ...n, ...change }); this.render(); };
+    view.replaceChildren(
+      h("p", { className: "sheet", textContent: n.text }),
+      h("p", { className: "label", textContent: timeOf(n.changed) }),
+      h("div", { className: "toolbar wrap" },
+        h("button", { className: "primary", textContent: t.noteEdit, onclick: () => textPrompt.ask({
+          title: t.noteEdit, label: t.noteText, value: n.text, origin: this, done: text => save({ text }) }) }),
+        h("button", { className: n.pinned ? "on" : "", textContent: `${t.notePin}: ${n.pinned ? t.on : t.off}`, onclick: () => save({ pinned: !n.pinned }) }),
+        // deleting takes two taps
+        h("button", { className: this.confirm ? "primary" : "", textContent: this.confirm ? t.sure : t.deleteEntry, onclick: async () => {
+          if (!this.confirm) { this.confirm = true; return this.render(); }
+          await api("/api/notes/delete", { id: n.id });
+          show(notesView);
+        } })));
+  },
+  back() { show(notesView); return true; },
+};
+
+/* ---------- reminders ---------- */
+
+const isoDay = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+const dayWords = iso => new Date(`${iso}T12:00`).toLocaleDateString(lang, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+const reminderWhen = r => [dayWords(r.date), r.time || t.remAllDay, r.repeat ? t.remRepeats[r.repeat] : ""].filter(Boolean).join(" · ");
+
+// What is due stands first with its two answers: done, or later. Then what is to come.
+const remindersView = {
+  title: t.reminders,
+  data: { entries: [], snoozes: [] },
+  async render() {
+    this.data = await api("/api/reminders");
+    this.draw();
+  },
+  draw() {
+    const { entries, snoozes } = this.data;
+    const act = (action, body) => async () => { await api(`/api/reminders/${action}`, body); this.render(); };
+    const section = (label, list, make) => list.length ? [h("p", { className: "label", textContent: label }), ...list.map(make)] : [];
+    const plain = r => {
+      const row = stationRow({ title: r.text, info: reminderWhen(r), onPlay: () => reminderForm.open(r) });
+      row.classList.add("tall", "text");
+      return row;
+    };
+    const top = view.scrollTop;
+    view.replaceChildren(
+      h("div", { className: "toolbar wrap" }, h("button", { className: "primary", textContent: t.remNew, onclick: () => reminderForm.open(null) })),
+      ...section(t.remDue, entries.filter(r => r.due), r => h("div", { className: "due" },
+        h("b", { textContent: r.text }), h("small", { textContent: reminderWhen(r) }),
+        h("div", { className: "toolbar wrap" },
+          h("button", { className: "primary", textContent: t.remDone, onclick: act("acknowledge", { id: r.id }) }),
+          ...snoozes.map(minutes => h("button", { textContent: t.remLater(minutes), onclick: act("snooze", { id: r.id, minutes }) }))))),
+      ...section(t.remComing, entries.filter(r => !r.due && !r.done), plain),
+      ...section(t.remPast, entries.filter(r => r.done), plain),
+      ...(entries.length ? [] : [hint(t.remNone)]));
+    view.scrollTop = top;
+  },
+  onState() { if (current === this) this.render(); },   // one came up or was answered on another screen
+};
+
+// One reminder: the text is typed, day and time are stepped, the repeat is tapped.
+const reminderForm = {
+  title: t.remNew,
+  entry: null,
+  confirm: false,
+  open(entry) {
+    this.entry = entry ? { ...entry } : { text: "", date: isoDay(new Date()), time: "", repeat: "" };
+    this.confirm = false;
+    show(this);
+  },
+  render() {
+    const e = this.entry, note = h("p", { className: "label" });
+    const days = count => () => {
+      const day = new Date(`${e.date}T12:00`);
+      day.setDate(day.getDate() + count);
+      e.date = isoDay(day);
+      this.render();
+    };
+    const minutes = count => () => {
+      const [hh, mm] = (e.time || "09:00").split(":").map(Number), total = (hh * 60 + mm + (e.time ? count : 0) + 1440) % 1440;
+      e.time = `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+      this.render();
+    };
+    const button = (textContent, onclick, className = "") => h("button", { textContent, onclick, className });
+    const top = view.scrollTop;
+    view.replaceChildren(
+      h("div", { className: "toolbar wrap" }, button(`${t.remText}: ${e.text || "–"}`, () => textPrompt.ask({
+        title: t.remText, label: t.remText, value: e.text, origin: this, done: value => { e.text = value; } }))),
+      h("p", { className: "label", textContent: `${t.remDay}: ${dayWords(e.date)}` }),
+      h("div", { className: "steps" }, button("− 1", days(-1)), button("+ 1", days(1)), button("+ 7", days(7)), button("+ 30", days(30))),
+      h("p", { className: "label", textContent: `${t.remTime}: ${e.time || t.remAllDay}` }),
+      h("div", { className: "steps" }, button("− 1 h", minutes(-60)), button("− 5 min", minutes(-5)), button("+ 5 min", minutes(5)), button("+ 1 h", minutes(60))),
+      h("div", { className: "toolbar wrap" }, button(t.remAllDay, () => { e.time = ""; this.render(); }, e.time ? "" : "on")),
+      h("p", { className: "label", textContent: t.remRepeat }),
+      h("div", { className: "toolbar wrap" }, ...Object.keys(t.remRepeats).map(repeat =>
+        button(t.remRepeats[repeat], () => { e.repeat = repeat; this.render(); }, e.repeat === repeat ? "on" : ""))),
+      note,
+      h("div", { className: "toolbar wrap" },
+        button(t.saveEntry, async () => {
+          try { await api("/api/reminders", e); } catch (error) { note.textContent = say(error.message); return; }
+          show(remindersView);
+        }, "primary"),
+        ...(e.id ? [button(this.confirm ? t.sure : t.deleteEntry, async () => {
+          if (!this.confirm) { this.confirm = true; return this.render(); }
+          await api("/api/reminders/delete", { id: e.id });
+          show(remindersView);
+        }, this.confirm ? "primary" : "")] : [])));
+    view.scrollTop = top;
+  },
+  back() { show(remindersView); return true; },
+};
+
+/* ---------- date, time and time zone of the computer ---------- */
+
+// The system clock, for the case that it is wrong: no network to set it from, or the wrong zone.
+const clockView = {
+  title: t.clockTitle,
+  info: null,
+  wanted: null,   // date and time being set by hand
+  note: "",
+  async render() {
+    this.info = await api("/api/device/clock");
+    this.draw();
+  },
+  draw() {
+    const c = this.info, now = new Date();
+    const change = async body => {
+      try { this.info = await api("/api/device/clock", body); this.note = body.zone ? t.clockBrowserHint : ""; this.wanted = null; }
+      catch (error) { this.note = say(error.message); }
+      this.draw();
+    };
+    const w = this.wanted || new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes());
+    const move = minutes => h("button", {
+      textContent: (minutes < 0 ? "− " : "+ ") + (Math.abs(minutes) >= 1440 ? `${Math.abs(minutes) / 1440} d` : Math.abs(minutes) >= 60 ? `${Math.abs(minutes) / 60} h` : `${Math.abs(minutes)} min`),
+      disabled: c.auto, onclick: () => { this.wanted = new Date(w.getTime() + minutes * 60e3); this.draw(); },
+    });
+    const shown = w.toLocaleString(lang, { weekday: "short", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    view.replaceChildren(
+      h("div", { className: "dial small", textContent: shown }),
+      h("div", { className: "toolbar wrap" },
+        h("button", { textContent: `${t.clockZone}: ${c.zone || "–"}`, onclick: () => zoneView.open() }),
+        c.can_auto ? h("button", { className: c.auto ? "on" : "", textContent: `${t.clockAuto}: ${c.auto ? t.on : t.off}`,
+          onclick: () => change({ auto: !c.auto }) }) : null),
+      ...(c.auto ? [hint(`${c.synced ? t.clockSynced : t.clockNotSynced}. ${t.clockManualHint}`)] : [
+        h("div", { className: "steps" }, move(-1440), move(-60), move(-1), move(1), move(60), move(1440)),
+        h("div", { className: "toolbar wrap" }, h("button", {
+          className: "primary", textContent: t.clockSet, disabled: !this.wanted,
+          onclick: () => change({ time: `${isoDay(w)} ${String(w.getHours()).padStart(2, "0")}:${String(w.getMinutes()).padStart(2, "0")}` }),
+        }))]),
+      ...(this.note ? [hint(this.note)] : []));
+  },
+  back() { show(deviceView); return true; },
+};
+
+// Time zones are named region/place; first the region is tapped, then the place.
+const zoneView = {
+  title: t.clockZone,
+  zones: [],
+  region: null,
+  async open() {
+    this.zones = await api("/api/device/zones");
+    this.region = (clockView.info.zone || "").split("/")[0] || null;
+    show(this);
+  },
+  render() {
+    const regions = [...new Set(this.zones.filter(z => z.includes("/")).map(z => z.split("/")[0]))];
+    const places = this.zones.filter(z => z.startsWith(`${this.region}/`));
+    const pick = async zone => {
+      try { clockView.info = await api("/api/device/clock", { zone }); clockView.note = t.clockBrowserHint; }
+      catch (error) { clockView.note = say(error.message); }
+      show(clockView);
+    };
+    view.replaceChildren(
+      h("p", { className: "label", textContent: t.clockRegion }),
+      h("div", { className: "toolbar wrap" },
+        ...regions.map(region => h("button", { className: region === this.region ? "on" : "", textContent: region,
+          onclick: () => { this.region = region; this.render(); view.scrollTop = 0; } })),
+        h("button", { className: clockView.info.zone === "UTC" ? "on" : "", textContent: "UTC", onclick: () => pick("UTC") })),
+      h("p", { className: "label", textContent: this.region || "" }),
+      h("div", { className: "toolbar wrap" }, ...places.map(zone => h("button", {
+        className: zone === clockView.info.zone ? "on" : "", textContent: zone.slice(this.region.length + 1).replace(/_/g, " "),
+        onclick: () => pick(zone) }))));
+  },
+  back() { show(clockView); return true; },
+};
+
 /* ---------- radio survey ---------- */
 
 // The service names what it found in English; these are the German names.
@@ -2492,7 +2746,7 @@ const tilesView = {
     const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner], ["adsb", t.adsb],
       ...c.apps.map(a => [a.id, a.name]), ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
       ["podcast", t.podcasts], ["music", t.music], ["audiobooks", t.audiobooks], ["news", t.news], ["sensors", t.sensors], ["ais", t.ais], ["weather", t.weather],
-      ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["aprs", t.aprs], ["qso", t.qso], ["survey", t.survey]];
+      ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders], ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["aprs", t.aprs], ["qso", t.qso], ["survey", t.survey]];
     const top = view.scrollTop;
     view.replaceChildren(h("p", { className: "explain", textContent: t.tilesHint }),
       h("div", { className: "toolbar wrap" }, ...all.map(([id, name]) => h("button", {
@@ -2954,6 +3208,20 @@ async function idleVerse() {
     return true;
   } catch (e) { return $("idle-news").children.length > 0; }
 }
+// Reminders that are due, set like the verse: large while short, smaller until all of it fits.
+async function idleReminders() {
+  idleNewsAt = Date.now();
+  const due = state.reminders || [], box = $("idle-news");
+  box.style.bottom = `${$("idle-box").offsetHeight + 26}px`;
+  box.classList.remove("tight");
+  box.replaceChildren(h("div", { className: "verse" }, ...due.flatMap(r => [h("p", { textContent: r.text }),
+    h("small", { textContent: `${t.remBanner} · ${reminderWhen(r)}` })])));
+  for (let size = 40; size >= 14; size -= 2) {
+    box.style.setProperty("--verse", `${size}px`);
+    if (box.scrollHeight <= box.clientHeight) break;
+  }
+  return due.length > 0;
+}
 // Five kinds, a setting: the classic clock on black with the display dimmed, the gallery
 // behind the clock, or the newest article. The last two keep the display bright.
 let idleKind = null, idleSince = 0, idleTurn = 0;
@@ -2974,10 +3242,10 @@ async function showIdleKind(kind) {
       dim(false);
       return;
     }
-  } else if (kind === "feed" || kind === "spots" || kind === "verse") {
+  } else if (kind === "feed" || kind === "spots" || kind === "verse" || kind === "reminder") {
     idle.classList.add("news");   // shown first: fitting the entries needs their real sizes
     $("idle-news").replaceChildren();
-    const found = await ({ spots: idleSpots, verse: idleVerse }[kind] || idleNews)();
+    const found = await ({ spots: idleSpots, verse: idleVerse, reminder: idleReminders }[kind] || idleNews)();
     if (idle.hidden || idleKind !== kind) return;
     if (found) {
       dim(false);
@@ -2991,7 +3259,8 @@ function showIdle() {
   idle.hidden = false;
   const kinds = state.idle_contents || ["clock"];
   idleTurn %= kinds.length;
-  return showIdleKind(kinds[idleTurn]);
+  // a reminder that is due stays on the idle screen until it is acknowledged
+  return showIdleKind((state.reminders || []).length ? "reminder" : kinds[idleTurn]);
 }
 function hideIdle() {
   idle.hidden = true;
@@ -3031,7 +3300,8 @@ setInterval(() => {
     drawIdle();
     // stays the newest article, the newest spots
     const kinds = state.idle_contents || ["clock"];
-    if (kinds.length > 1 && Date.now() - idleSince > state.idle_rotate * 60e3) {   // on to the next kind
+    if (idleKind === "reminder") { /* stays until acknowledged */ }
+    else if (kinds.length > 1 && Date.now() - idleSince > state.idle_rotate * 60e3) {   // on to the next kind
       idleTurn = (idleTurn + 1) % kinds.length;
       showIdleKind(kinds[idleTurn]);
     } else if (idle.classList.contains("news") && Date.now() - idleNewsAt > 60e3) ({ spots: idleSpots, verse: idleVerse }[idleKind] || idleNews)();
@@ -3050,7 +3320,17 @@ const tick = () => {
 
 function applyState(next) {
   const rang = state.timer && state.timer.ringing;
+  const known = state.reminders && new Set(state.reminders.map(r => r.id));   // undefined before the first state
   state = next;
+  const due = state.reminders || [];
+  if (known && due.some(r => !known.has(r.id))) {   // a reminder came up: wake the display and show it
+    dim(false);
+    hideIdle();
+    if (current !== remindersView) show(remindersView);
+  } else if (!idle.hidden && (idleKind === "reminder") !== (due.length > 0)) showIdle();   // answered elsewhere, or due while idle
+  $("remind").hidden = !due.length;
+  $("remind").textContent = due.length ? `${t.remBanner}: ${due[0].text}` + (due.length > 1 ? ` · ${t.remMore(due.length - 1)}` : "") : "";
+  $("remind").onclick = () => show(remindersView);
   if (state.timer && state.timer.ringing && !rang) {   // the timer is up: wake the display and say so
     dim(false);
     hideIdle();
@@ -3083,7 +3363,7 @@ async function openLink() {
   const [name, band] = location.hash.slice(1).split("/");
   if (name === "idle") showIdle();
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
-    wifi: wifiView, receiver: receiverView,
+    wifi: wifiView, receiver: receiverView, notes: notesView, reminders: remindersView, clock: clockView,
     gallery: galleryView, gallerysettings: gallerySettings, podcasts, news, sensors, ais: ships, timer: timerView,
     podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList, propagation: propagationView, qso: qsoLog,
     survey: surveyView, spots: spotsView, verse: verseSettings, music: musicView, audiobooks: audiobooksView, satellites: satellitesView,

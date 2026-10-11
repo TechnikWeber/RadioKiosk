@@ -36,6 +36,7 @@ from .sources import podcasts as podcast_directory
 from .sources.ais import Ais
 from .sources.podcasts import PROVIDERS, Podcasts
 from .sources.sensors import Sensors
+from .notes import SNOOZES, Notes, Reminders
 from .timer import Timer
 from .update import Updater
 from .weather import Weather, place_name
@@ -104,6 +105,7 @@ def build(cfg):
     podcasts, sensors, ais = Podcasts(core), Sensors(core), Ais(core)
     alarm = Alarm(core)
     timer = Timer(core)
+    notes, reminders = Notes(), Reminders(core)
     schedule = Schedule()
     receivers = network_audio.Receivers(cfg)
     bt = bluetooth.Bluetooth()
@@ -183,8 +185,17 @@ def build(cfg):
             "power": await device.can_power_off(),
             "wifi": device.has_wifi(), "wifi_powersave": await device.wifi_powersave(),
             "update": updater.installed(), "release": updater.info(), "version": __version__,
+            "clock": device.has_clock(),
             "receivers": receivers.list(),
         })
+
+    @routes.get("/api/device/clock")
+    async def device_clock(request):
+        return web.json_response(await device.clock())
+
+    @routes.get("/api/device/zones")
+    async def device_zones(request):
+        return web.json_response(await device.zones())
 
     @routes.post("/api/device/{action}")
     async def device_do(request):
@@ -208,6 +219,15 @@ def build(cfg):
             await core.stop()
             await device.power(body["action"])
             return ok()
+        if action == "clock":
+            if "zone" in body:
+                await device.set_zone(str(body["zone"]))
+            if "auto" in body:
+                await device.set_auto(bool(body["auto"]))
+            if "time" in body:
+                await device.set_time(body["time"])
+            reminders.store()      # what is due depends on the clock
+            return web.json_response(await device.clock())
         if action == "check":
             await updater.check()
             return web.json_response(updater.info())
@@ -655,6 +675,45 @@ def build(cfg):
     async def spots_get(request):
         return web.json_response(await spots.get(request.query.get("kind", "dx")))
 
+    @routes.get("/api/notes")
+    async def notes_get(request):
+        return web.json_response(notes.list())
+
+    @routes.post("/api/notes")
+    async def notes_save(request):
+        return web.json_response(notes.save(await request.json()))
+
+    @routes.post("/api/notes/{action}")
+    async def notes_do(request):
+        action, body = request.match_info["action"], await request.json()
+        if action == "delete":
+            notes.delete(body["id"])
+            return ok()
+        if action == "export":
+            return ok(path=str(notes.export()))
+        raise web.HTTPNotFound()
+
+    @routes.get("/api/reminders")
+    async def reminders_get(request):
+        return web.json_response({"entries": reminders.list(), "snoozes": SNOOZES})
+
+    @routes.post("/api/reminders")
+    async def reminders_save(request):
+        return web.json_response(reminders.save(await request.json()))
+
+    @routes.post("/api/reminders/{action}")
+    async def reminders_do(request):
+        action, body = request.match_info["action"], await request.json()
+        if action == "delete":
+            reminders.delete(body["id"])
+        elif action == "acknowledge":
+            reminders.acknowledge(body["id"])
+        elif action == "snooze":
+            reminders.snooze(body["id"], body["minutes"])
+        else:
+            raise web.HTTPNotFound()
+        return ok()
+
     @routes.get("/api/qso")
     async def qso_get(request):
         return web.json_response({"entries": log.list(), "callsign": cfg["callsign"], "swl": cfg["swl"],
@@ -739,6 +798,7 @@ def build(cfg):
         app["health"] = asyncio.create_task(core.watch_health())
         app["alerts"] = asyncio.create_task(alerts.run())
         app["updater"] = asyncio.create_task(updater.run())
+        app["reminders"] = asyncio.create_task(reminders.run())
         await receivers.start_enabled()
         core.update(alarm=alarm.data["time"] if alarm.data["enabled"] else None)
 
@@ -748,6 +808,7 @@ def build(cfg):
         app["health"].cancel()
         app["alerts"].cancel()
         app["updater"].cancel()
+        app["reminders"].cancel()
         await receivers.close()
         if bt.pairing:
             await bt.set_visible(False)

@@ -126,6 +126,12 @@ footer button.icon svg { width: calc(var(--bar-touch) * .5); height: calc(var(--
 .row b { font-weight: 600; }
 .row small { color: var(--muted); font-size: 14px; }
 .row.tall small { white-space: normal; }
+.row.text b { white-space: pre-wrap; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; font-weight: 500; }
+.sheet { white-space: pre-wrap; font-size: 22px; line-height: 1.35; padding: 8px 12px; margin: 0; overflow-wrap: anywhere; }
+.due { border: 2px solid var(--accent); border-radius: 14px; padding: 12px; margin: 0 0 10px; display: flex; flex-direction: column; gap: 6px; }
+.due b { font-size: 22px; overflow-wrap: anywhere; }
+.due small { color: var(--muted); }
+.dial.small { font-size: 30px; }
 .row.onair b::before { content: "● "; color: var(--accent); }
 .row.current > button:first-child { border-color: var(--accent); }
 .star.on { color: var(--accent); }
@@ -235,7 +241,7 @@ main.flush { padding: 0; overflow: hidden; position: relative; }
 /* on-screen keyboard */
 .keys { display: flex; flex-direction: column; gap: 6px; }
 /* while something is typed the keyboard needs the room of the bar and the warning */
-body:has(.keys) footer, body:has(.keys) #warn { display: none; }
+body:has(.keys) footer, body:has(.keys) #warn, body:has(.keys) #remind { display: none; }
 #rec svg circle { fill: var(--danger); stroke: none; }
 .key-row { display: flex; gap: 6px; }
 .key-row button { flex: 1; min-width: 0; min-height: 48px; padding: 0; }
@@ -297,7 +303,7 @@ a.button { display: inline-flex; align-items: center; min-height: var(--touch); 
 .article h2 { margin: 6px 0 12px; font-size: 26px; line-height: 1.2; }
 .article p { font-size: 20px; line-height: 1.45; }
 .article small { color: var(--muted); word-break: break-all; }
-body.immersive header, body.immersive footer, body.immersive #warn { display: none; }
+body.immersive header, body.immersive footer, body.immersive #warn, body.immersive #remind { display: none; }
 .toolbar.center { justify-content: center; }
 #idle-box { max-width: 92%; transition: transform 2s; }
 #idle-time { font-size: min(34vh, 26vw); font-weight: 200; line-height: 1; font-variant-numeric: tabular-nums; color: #fff; }
@@ -323,5 +329,8 @@ body.immersive header, body.immersive footer, body.immersive #warn { display: no
 /* warnings and recording */
 #warn { padding: 6px 12px; background: var(--warn-bg); color: var(--warn-ink); font-size: 15px; }
 #warn[hidden] { display: none; }
+#remind { padding: 8px 12px; background: var(--accent); color: var(--accent-ink); font-size: 16px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+#remind[hidden] { display: none; }
 #rec.on { color: var(--danger); border-color: var(--danger); }
 #rec.on svg { fill: currentColor; }
