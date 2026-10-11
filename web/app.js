@@ -3272,9 +3272,17 @@ function shortName(name) {
   if (name.length <= NAME_LENGTH) return name;
   const cut = name.search(/\s+(--|-|–|—|\||::|~)\s+|:\s|\s[([{]|,\s/);
   if (cut >= 4 && cut <= NAME_LENGTH) return name.slice(0, cut);
-  const words = name.slice(0, NAME_LENGTH + 1);
+  return clipped(name);
+}
+// A text cut after the last word that fits. A song is cut this way only: its dash stands
+// between artist and title, and cutting there would leave half of what was asked for.
+function clipped(text) {
+  text = (text || "").trim();
+  if (text.length <= NAME_LENGTH) return text;
+  const words = text.slice(0, NAME_LENGTH + 1);
   return words.slice(0, Math.max(words.lastIndexOf(" "), 12)).replace(/[\s\-–—|:,.]+$/, "") + "…";
 }
+const TITLE_TURN = 8;   // seconds the idle screen shows the station, then the song, in turn
 
 function drawIdle() {
   const now = new Date();
@@ -3288,8 +3296,11 @@ function drawIdle() {
   ].filter(Boolean).join("  ·  ");
   if (showSpace()) loadSpaceWeather();   // asks the service at most every ten minutes
   const playing = state.source && state.status !== "error";
-  $("idle-title").textContent = playing ? shortName(state.title) : "";
-  $("idle-text").textContent = playing ? say(state.text) : "";
+  // one line for what is playing: the station, and in turn with it the song where the station names one
+  const song = playing ? say(state.text) || "" : "";
+  const songsTurn = song && Math.floor(Date.now() / 1000 / TITLE_TURN) % 2 === 1;
+  $("idle-title").textContent = !playing ? "" : songsTurn ? clipped(song) : shortName(state.title);
+  $("idle-text").textContent = "";
   // shift a little every minute so nothing burns into the display
   const minute = now.getMinutes();
   $("idle-box").style.transform = `translate(${(minute % 5 - 2) * 14}px, ${(minute % 3 - 1) * 10}px)`;
