@@ -1425,10 +1425,7 @@ const deviceView = {
         twice("poweroff", t.shutDown, () => api("/api/device/power", { action: "poweroff" })))] : []),
       h("p", { className: "label", textContent: `${t.software}: RadioKiosk ${d.version}` }),
       ...(r.failed ? [hint(t.updateFailed(r.failed))] : []),
-      ...(r.available ? [
-        h("p", { className: "label", textContent: `${t.version} ${r.available.version} ${t.available}` }),
-        // release notes are written in Markdown; shown as plain text they read well enough without its marks
-        h("p", { className: "notes", textContent: r.available.notes.replace(/^#+ */gm, "").replace(/\*\*/g, "") })] : []),
+      ...(r.available ? [h("p", { className: "label", textContent: `${t.version} ${r.available.version} ${t.available}` })] : []),
       h("div", { className: "toolbar wrap" },
         r.available && r.can ? h("button", {
           className: "primary", textContent: `${t.updateTo} ${r.available.version}`, onclick: () => work(t.updating, async () => {
@@ -1443,7 +1440,9 @@ const deviceView = {
           className: r.auto ? "on" : "", textContent: `${t.autoUpdate}: ${r.auto ? t.on : t.off}`,
           onclick: async () => { await api("/api/settings", { key: "auto_update", value: !r.auto }); this.render(); },
         }) : null),
-      ...(this.note ? [hint(this.note)] : r.can ? [] : [hint(t.notInstalled)]));
+      ...(this.note ? [hint(this.note)] : r.can ? [] : [hint(t.notInstalled)]),
+      // release notes are written in Markdown; shown as plain text they read well enough without its marks
+      ...(r.available ? [h("p", { className: "notes", textContent: r.available.notes.replace(/^#+ */gm, "").replace(/\*\*/g, "") })] : []));
   },
   back() { show(settings); return true; },
 };
