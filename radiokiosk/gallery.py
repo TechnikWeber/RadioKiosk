@@ -9,7 +9,10 @@ Nothing here knows about radio; the module stands on its own.
 """
 
 import hashlib
+import io
 import os
+import re
+import subprocess
 import time
 from pathlib import Path
 
@@ -28,7 +31,8 @@ DEMO = WEB_DIR.parent / "demo-pictures"   # shown until a folder is chosen
 SECONDS = (5, 10, 15, 30, 60, 300)
 LIMIT = 5000              # pictures taken from one folder
 RESCAN_AFTER = 120        # seconds a list of pictures is trusted
-SIZES = (960, 1600, 2560)  # longest edge a picture is scaled to; the smallest that fills the screen is used
+SIZES = (320, 960, 1600, 2560)  # longest edge a picture is scaled to; the smallest that fills the screen (or a thumbnail) is used
+MAX_UPLOAD = 40 * 1024 * 1024   # bytes one uploaded picture may have
 SCALED = CACHE_DIR / "gallery"
 
 
@@ -91,6 +95,23 @@ def subfolders(path):
             "pictures": sum(1 for e in entries if is_picture(e) and e.is_file())}
 
 
+def own_folder():
+    """Where pictures uploaded through the interface go while no folder was chosen: Pictures/RadioKiosk."""
+    try:
+        out = subprocess.run(["xdg-user-dir", "PICTURES"], capture_output=True, text=True, timeout=3).stdout.strip()
+    except (OSError, subprocess.TimeoutExpired):
+        out = ""
+    return Path(out if out and out != str(Path.home()) else Path.home() / "Pictures") / "RadioKiosk"
+
+
+def safe_name(name):
+    """A file name from another device, made harmless: no folders in it, no odd characters."""
+    name = re.sub(r"[^\w.\- ]", "_", Path(str(name).replace("\\", "/")).name).strip(" .")
+    if not name or not is_picture(Path(name)):
+        raise ValueError("this is not a picture")
+    return name[-120:]
+
+
 def places():
     """Where a folder picker starts: the home folder and where sticks and shares usually appear."""
     user = os.environ.get("USER", "")
@@ -133,6 +154,46 @@ class Gallery:
         if key == "fit" and value in FITS:
             return value
         raise ValueError("unknown setting")
+
+    def listing(self):
+        """Every picture with its number in the slide show and its path below the folder."""
+        self.refresh(True)
+        folder = Path(self.settings["folder"] or DEMO)
+        return [{"index": i, "name": str(p.relative_to(folder))} for i, p in enumerate(self.pictures)]
+
+    def add(self, name, data):
+        """Keep an uploaded picture. Returns the folder it went to, which is a new one of the user's
+        own while the demo pictures were still showing."""
+        name = safe_name(name)
+        if len(data) > MAX_UPLOAD:
+            raise ValueError("this picture is too large")
+        if Image is not None:
+            try:
+                with Image.open(io.BytesIO(data)) as picture:
+                    picture.verify()
+            except Exception:   # Pillow raises many kinds for what is no picture
+                raise ValueError("this is not a picture")
+        folder = Path(self.settings["folder"] or own_folder())
+        folder.mkdir(parents=True, exist_ok=True)
+        target, count = folder / name, 1
+        while target.exists():   # never over a picture that is there already
+            count += 1
+            target = folder / f"{Path(name).stem}-{count}{Path(name).suffix}"
+        partial = target.with_name(target.name + ".part")
+        partial.write_bytes(data)
+        partial.replace(target)
+        return str(folder)
+
+    def remove(self, name):
+        """Delete one picture of the chosen folder, named by its path below it."""
+        if not self.settings["folder"]:
+            raise ValueError("the demo pictures belong to RadioKiosk and stay")
+        folder = Path(self.settings["folder"]).resolve()
+        target = (folder / str(name)).resolve()
+        if folder not in target.parents or not is_picture(target) or not target.is_file():
+            raise ValueError("this is not a picture of the gallery")
+        target.unlink()
+        self.refresh(True)
 
     def picture(self, index, width, height):
         """File to send for picture number `index`; the numbers wrap around."""

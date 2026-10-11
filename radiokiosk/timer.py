@@ -5,13 +5,12 @@ playing, instead of replacing it.
 """
 
 import asyncio
-import shutil
 import time
 
-from .util import kill, spawn
+from . import tones
+from .util import kill
 
 RING_FOR = 60   # seconds, unless somebody stops it earlier
-TONE = "av://lavfi:sine=frequency=880:beep_factor=2:duration=%d" % RING_FOR
 
 
 class Timer:
@@ -35,9 +34,7 @@ class Timer:
     async def _run(self, seconds):
         await asyncio.sleep(seconds)
         self.core.update(timer={"until": None, "ringing": True})
-        if shutil.which("mpv"):
-            self.player = await spawn("mpv", "--no-video", "--no-terminal", "--no-config", TONE,
-                                      stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
+        self.player = await tones.play(self.core.cfg["tone"], RING_FOR)
         await asyncio.sleep(RING_FOR)
         self.task = None
         await self.set(0)

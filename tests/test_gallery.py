@@ -37,3 +37,50 @@ class GalleryTest(unittest.TestCase):
         gallery = Gallery({"gallery": {"folder": "/no/such/folder"}})
         self.assertEqual((gallery.info()["count"], gallery.info()["missing"]), (0, True))
         self.assertIsNone(gallery.picture(0, 800, 480))
+
+
+class ManagingPictures(unittest.TestCase):
+    """Pictures added and deleted through the interface."""
+
+    def setUp(self):
+        import io
+        import tempfile
+        from pathlib import Path
+        from radiokiosk import gallery
+        self.gallery_module = gallery
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.folder = Path(folder.name)
+        self.gallery = gallery.Gallery({"gallery": {"folder": str(self.folder)}})
+        picture = io.BytesIO()
+        gallery.Image.new("RGB", (8, 6), "red").save(picture, "JPEG")
+        self.jpeg = picture.getvalue()
+
+    def test_added_pictures_never_replace_each_other(self):
+        self.gallery.add("holiday.jpg", self.jpeg)
+        self.gallery.add("../../holiday.jpg", self.jpeg)          # a path from outside counts as a name only
+        self.assertEqual(sorted(p.name for p in self.folder.iterdir()), ["holiday-2.jpg", "holiday.jpg"])
+        self.assertEqual([p["name"] for p in self.gallery.listing()], ["holiday-2.jpg", "holiday.jpg"])
+
+    def test_what_is_no_picture_is_refused(self):
+        for name, data in (("notes.txt", self.jpeg), ("fake.jpg", b"not a picture at all"), ("", self.jpeg)):
+            with self.assertRaises(ValueError):
+                self.gallery.add(name, data)
+        self.assertEqual(list(self.folder.iterdir()), [])
+
+    def test_only_pictures_of_the_folder_can_be_deleted(self):
+        self.gallery.add("a.jpg", self.jpeg)
+        outside = self.folder.parent / "outside-of-gallery.jpg"
+        outside.write_bytes(self.jpeg)
+        self.addCleanup(outside.unlink)
+        (self.folder / "list.txt").write_text("keep")
+        for name in ("../outside-of-gallery.jpg", str(outside), "list.txt", "missing.jpg"):
+            with self.assertRaises(ValueError):
+                self.gallery.remove(name)
+        self.gallery.remove("a.jpg")
+        self.assertEqual(sorted(p.name for p in self.folder.iterdir()), ["list.txt"])
+
+    def test_the_demo_pictures_cannot_be_deleted(self):
+        demo = self.gallery_module.Gallery({"gallery": {}})
+        with self.assertRaises(ValueError):
+            demo.remove(demo.listing()[0]["name"])

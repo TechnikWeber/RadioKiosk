@@ -7,13 +7,12 @@ radio; the module stands on its own.
 import asyncio
 import calendar
 import datetime
-import shutil
 import time
 import uuid
 
 from .config import load_json, save_json
 from .qsolog import documents_dir
-from .util import spawn
+from . import tones
 
 NOTE_LENGTH = 2000
 REMINDER_LENGTH = 300
@@ -21,7 +20,7 @@ REPEATS = ("", "day", "week", "month", "year")
 SNOOZES = (10, 60, 1440)          # minutes a reminder can be put off
 KEEP_DONE = 30 * 86400            # an acknowledged reminder stays in the list this long
 LOOK_EVERY = 20
-TONE = "av://lavfi:sine=frequency=660:beep_factor=2:duration=3"   # lies over what is playing, like the timer's
+TONE_FOR = 4   # seconds; the tone lies over what is playing, like the timer's
 
 
 class Notes:
@@ -176,10 +175,6 @@ class Reminders:
             shown = self.core.state.get("reminders") or []
             if due != shown:
                 self.core.update(reminders=due)
-                if {r["id"] for r in due} - {r["id"] for r in shown} and shutil.which("mpv"):
-                    try:
-                        await spawn("mpv", "--no-video", "--no-terminal", "--no-config", TONE,
-                                    stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
-                    except OSError:
-                        pass   # no tone, but the reminder is on the screen
+                if {r["id"] for r in due} - {r["id"] for r in shown}:
+                    await tones.play(self.core.cfg["tone"], TONE_FOR)
             await asyncio.sleep(LOOK_EVERY)

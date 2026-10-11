@@ -59,6 +59,7 @@ DEFAULTS = {
     "verse": None,
     # official weather warnings for the location (Germany only)
     "alerts": True,
+    "tone": "tick",           # the sound of alarm, timer and reminders; see tones.py
     "auto_update": True,      # install new releases at night without being asked
     "callsign": "",
     "swl": False,

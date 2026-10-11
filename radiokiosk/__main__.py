@@ -9,7 +9,7 @@ from pathlib import Path
 import aiohttp
 from aiohttp import web
 
-from . import __version__, audio, bluetooth, device, network_audio
+from . import __version__, audio, bluetooth, device, network_audio, tones
 from .alarm import Alarm
 from .config import WEB_DIR, load_config, save_setting
 from .core import Core
@@ -22,7 +22,7 @@ from .sources.tuner import BANDS, Tuner
 from .sources.webradio import Webradio
 from .schedule import Schedule
 from .feeds import Feeds
-from .gallery import Gallery, subfolders
+from .gallery import MAX_UPLOAD, Gallery, subfolders
 from .qsolog import BANDS as LOG_BANDS, MODES as LOG_MODES, QsoLog
 from .sources.survey import RANGES, Survey, as_text
 from .spaceweather import SpaceWeather
@@ -320,7 +320,7 @@ def build(cfg):
                                   "podcast_key": cfg["podcast_key"], "podcast_secret": cfg["podcast_secret"],
                                   "callsign": cfg["callsign"], "swl": cfg["swl"], "alerts": cfg["alerts"],
                                   "music_folder": str(music.root()),
-                                  "version": __version__, "build": BUILD, "stream": network_audio.can_stream(),
+                                  "version": __version__, "build": BUILD, "tone": cfg["tone"], "tones": list(tones.TONES), "stream": network_audio.can_stream(),
                                   "backends": available_backends(),
                                   "engine_load": engine_load(), "engine_load_limit": ENGINE_LOAD_LIMIT})
 
@@ -346,6 +346,10 @@ def build(cfg):
             if body["value"] and not Path(body["value"]).expanduser().is_dir():
                 raise ValueError("this folder cannot be opened")
             save_setting(cfg, "music_folder", str(Path(body["value"]).expanduser()) if body["value"] else None)
+            return ok()
+        if body["key"] == "tone" and body["value"] in tones.TONES:
+            save_setting(cfg, "tone", body["value"])
+            await tones.play(body["value"], 3)     # so the choice is heard at once
             return ok()
         if body["key"] == "auto_update" and isinstance(body["value"], bool):
             save_setting(cfg, "auto_update", body["value"])
@@ -398,6 +402,32 @@ def build(cfg):
         body = await request.json()
         save_setting(cfg, "gallery", {**gallery.settings, body["key"]: gallery.check(body["key"], body["value"])})
         await asyncio.to_thread(gallery.refresh, True)
+        return ok()
+
+    @routes.get("/api/gallery/pictures")
+    async def gallery_pictures(request):
+        return web.json_response(await asyncio.to_thread(gallery.listing))
+
+    @routes.post("/api/gallery/upload")
+    async def gallery_upload(request):
+        """One picture from a browser, which is how they come from a phone or another computer."""
+        part = await (await request.multipart()).next()
+        if part is None or not part.filename:
+            raise ValueError("this is not a picture")
+        data = bytearray()
+        while chunk := await part.read_chunk(256 * 1024):
+            data += chunk
+            if len(data) > MAX_UPLOAD:   # stop reading: a wrong file must not fill the memory
+                raise ValueError("this picture is too large")
+        folder = await asyncio.to_thread(gallery.add, part.filename, bytes(data))
+        if not gallery.settings["folder"]:   # the first picture of one's own ends the demo
+            save_setting(cfg, "gallery", {**gallery.settings, "folder": folder})
+        await asyncio.to_thread(gallery.refresh, True)
+        return ok(folder=folder)
+
+    @routes.post("/api/gallery/delete")
+    async def gallery_delete(request):
+        await asyncio.to_thread(gallery.remove, (await request.json())["name"])
         return ok()
 
     @routes.get("/api/gallery/folders")

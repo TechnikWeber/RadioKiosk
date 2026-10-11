@@ -4,11 +4,12 @@ import asyncio
 import re
 import time
 
+from . import tones
 from .config import load_json, save_json
 
 # if the station does not come up (no internet, no reception), wake with a tone instead
 FALLBACK_AFTER = 25
-FALLBACK_TONE = "av://lavfi:sine=frequency=880:beep_factor=2:duration=120"
+FALLBACK_FOR = 120
 
 
 class Alarm:
@@ -46,4 +47,4 @@ class Alarm:
             pass
         await self.core.stop()
         self.core.update(source="alarm", status="playing", title="Alarm", text="", error=None, detail={})
-        await self.core.mpv.play(FALLBACK_TONE)
+        await self.core.mpv.play(tones.source(self.core.cfg["tone"], FALLBACK_FOR))

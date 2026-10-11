@@ -33,6 +33,11 @@ const STRINGS = {
     available: "available", updateTo: "Update to", autoUpdate: "Update by itself at night", software: "Software",
     updateFailed: v => `The update to ${v} did not start and was turned back. The version before it is running.`,
     noSelfUpdate: "This copy was not set up by the installer and does not update itself.",
+    toneLabel: "Sound", toneNames: { tick: "Ticking", knock: "Knocking", bell: "Bell", beeps: "Beeps" },
+    managePictures: "Manage pictures", addPictures: "Add pictures", uploading: (n, of) => `Sending picture ${n} of ${of}…`,
+    picturesAdded: n => `${n} added`, picturesFailed: n => `${n} could not be added`, deleteChosen: n => n === 1 ? "Delete the chosen picture" : `Delete the ${n} chosen`,
+    manageHint: "Tap pictures to choose them for deleting. Adding works from this device's files, so most easily from a phone or computer through the remote control.",
+    manageDemo: "These sample pictures belong to RadioKiosk. With your first own picture a folder of your own is started, and from then on only your pictures are shown.",
     notesSub: "Short notes", noteNew: "New note", noteNone: "No notes yet.", noteEdit: "Edit", notePin: "Pin to the top", notePinned: "Pinned",
     noteExport: "Save all as a text file", noteText: "Note",
     reminders: "Reminders", remindersSub: "For a day, until acknowledged", remNew: "New reminder", remNone: "No reminders yet.",
@@ -180,6 +185,11 @@ const STRINGS = {
     available: "verfügbar", updateTo: "Aktualisieren auf", autoUpdate: "Nachts von selbst aktualisieren", software: "Software",
     updateFailed: v => `Das Update auf ${v} ist nicht gestartet und wurde zurückgenommen. Die Version davor läuft weiter.`,
     noSelfUpdate: "Diese Kopie wurde nicht vom Installer eingerichtet und aktualisiert sich nicht selbst.",
+    toneLabel: "Ton", toneNames: { tick: "Ticken", knock: "Klopfen", bell: "Glocke", beeps: "Piepen" },
+    managePictures: "Bilder verwalten", addPictures: "Bilder hinzufügen", uploading: (n, of) => `Sende Bild ${n} von ${of}…`,
+    picturesAdded: n => `${n} hinzugefügt`, picturesFailed: n => `${n} ließen sich nicht hinzufügen`, deleteChosen: n => n === 1 ? "Das gewählte Bild löschen" : `Die ${n} gewählten löschen`,
+    manageHint: "Tippe Bilder an, um sie zum Löschen auszuwählen. Hinzufügen geht aus den Dateien dieses Geräts, also am einfachsten vom Handy oder PC über die Fernbedienung.",
+    manageDemo: "Diese Beispielbilder gehören zu RadioKiosk. Mit deinem ersten eigenen Bild wird ein eigener Ordner angelegt, und ab dann werden nur noch deine Bilder gezeigt.",
     notesSub: "Kurze Notizen", noteNew: "Neue Notiz", noteNone: "Noch keine Notizen.", noteEdit: "Bearbeiten", notePin: "Oben anheften", notePinned: "Angeheftet",
     noteExport: "Alle als Textdatei sichern", noteText: "Notiz",
     reminders: "Erinnerungen", remindersSub: "Für einen Tag, bis quittiert", remNew: "Neue Erinnerung", remNone: "Noch keine Erinnerungen.",
@@ -324,6 +334,10 @@ const MESSAGES_DE = [
   [/^update failed: the new version could not be unpacked$/, "Aktualisierung abgebrochen: Die neue Version ließ sich nicht entpacken"],
   [/^update failed: an update is already running$/, "Es läuft bereits eine Aktualisierung"],
   [/^a note needs some text$/, "Eine Notiz braucht etwas Text"],
+  [/^this is not a picture$/, "Das ist kein Bild"],
+  [/^this picture is too large$/, "Dieses Bild ist zu groß (mehr als 40 MB)"],
+  [/^this is not a picture of the gallery$/, "Das ist kein Bild der Galerie"],
+  [/^the demo pictures belong to RadioKiosk and stay$/, "Die Beispielbilder gehören zu RadioKiosk und bleiben"],
   [/^a reminder needs some text$/, "Eine Erinnerung braucht etwas Text"],
   [/^this is not a date$/, "Das ist kein Datum"],
   [/^this is not a time of day$/, "Das ist keine Uhrzeit"],
@@ -1309,6 +1323,17 @@ const locationPicker = {
 
 /* ---------- alarm clock ---------- */
 
+// One sound for alarm, timer and reminders. A tap moves on to the next and plays it for a moment.
+let toneNow = "", toneAll = [];
+const toneButton = redraw => h("button", {
+  textContent: `${t.toneLabel}: ${t.toneNames[toneNow] || toneNow}`,
+  onclick: async () => {
+    toneNow = toneAll[(toneAll.indexOf(toneNow) + 1) % toneAll.length];
+    redraw();
+    await api("/api/settings", { key: "tone", value: toneNow });
+  },
+});
+
 const alarm = {
   title: t.alarm,
   data: { enabled: false, time: "07:00" },
@@ -1333,7 +1358,7 @@ const alarm = {
       h("div", { className: "toolbar" }, h("button", {
         className: this.data.enabled ? "primary" : "", textContent: this.data.enabled ? t.alarmOn : t.alarmOff,
         onclick: () => this.change(0, !this.data.enabled),
-      })),
+      }), toneButton(() => this.draw())),
       h("p", { className: "label", textContent: t.wakesWith }),
       ...(this.data.last || this.data.fixed ? [
         stationRow({
@@ -1946,7 +1971,8 @@ const timerView = {
     if (this.shown !== key || !view.querySelector(".big")) {
       this.shown = key;
       const presets = key === "set" ? [h("div", { className: "toolbar wrap center" }, ...[1, 3, 5, 10, 15, 20, 30, 45, 60].map(m =>
-        h("button", { textContent: `${m} ${t.minutes}`, onclick: () => api("/api/timer", { seconds: m * 60 }) })))] : [];
+        h("button", { textContent: `${m} ${t.minutes}`, onclick: () => api("/api/timer", { seconds: m * 60 }) })),
+        toneButton(() => { this.shown = null; this.draw(); }))] : [];
       view.replaceChildren(tabs, h("div", { className: "big" }), h("div", { className: "toolbar wrap center" }, ...buttons()), ...presets);
     }
     view.querySelector(".big").classList.toggle("words", key === "ringing");
@@ -2377,6 +2403,66 @@ const qsoForm = {
     view.scrollTop = top;
   },
   back() { show(qsoLog); return true; },
+};
+
+/* ---------- the gallery's pictures ---------- */
+
+// Add and delete pictures through the interface, so it also works from a phone or another
+// computer by remote control. Pictures are sent one at a time: a phone's photo has several
+// megabytes, and one that fails should not take the others with it.
+const galleryManage = {
+  title: t.managePictures,
+  list: [],
+  chosen: new Set(),
+  confirm: false,
+  note: "",
+  async render() {
+    const g = await loadGallery(true);
+    this.list = await api("/api/gallery/pictures");
+    this.chosen = new Set([...this.chosen].filter(name => this.list.some(p => p.name === name)));
+    this.draw(g);
+  },
+  draw(g = galleryInfo) {
+    const demo = !g || !g.folder;
+    const file = h("input", { type: "file", accept: "image/*", multiple: true, hidden: true, onchange: async () => {
+      const files = [...file.files];
+      let added = 0;
+      for (const [i, picture] of files.entries()) {
+        this.note = t.uploading(i + 1, files.length);
+        this.draw();
+        const form = new FormData();
+        form.append("file", picture, picture.name);
+        try {
+          const reply = await fetch("/api/gallery/upload", { method: "POST", body: form });
+          if (reply.ok) added++;
+        } catch (e) { /* counted below */ }
+      }
+      this.note = [t.picturesAdded(added), added < files.length ? t.picturesFailed(files.length - added) : ""].filter(Boolean).join(" · ");
+      this.render();
+    } });
+    const top = view.scrollTop;
+    view.replaceChildren(
+      h("p", { className: "label", textContent: demo ? t.demoPictures : `${g.folder} · ${this.list.length} ${t.pictures}` }),
+      h("div", { className: "toolbar wrap" }, file,
+        h("button", { className: "primary", textContent: t.addPictures, onclick: () => file.click() }),
+        ...(this.chosen.size ? [h("button", { className: this.confirm ? "primary" : "", textContent: this.confirm ? t.sure : t.deleteChosen(this.chosen.size),
+          onclick: async () => {
+            if (!this.confirm) { this.confirm = true; return this.draw(); }
+            this.confirm = false;
+            for (const name of this.chosen) await api("/api/gallery/delete", { name }).catch(() => {});
+            this.chosen.clear();
+            this.note = "";
+            this.render();
+          } })] : [])),
+      ...(this.note ? [h("p", { className: "label", textContent: this.note })] : []),
+      h("p", { className: "explain", textContent: demo ? t.manageDemo : t.manageHint }),
+      h("div", { className: "thumbs" }, ...this.list.map(p => h("button", {
+        className: this.chosen.has(p.name) ? "on" : "", title: p.name, disabled: demo,
+        onclick: () => { this.chosen[this.chosen.has(p.name) ? "delete" : "add"](p.name); this.confirm = false; this.draw(); },
+      }, h("img", { src: `/api/gallery/picture/${p.index}?w=240&h=240&v=${encodeURIComponent(p.name)}`, loading: "lazy", alt: p.name })))));
+    view.scrollTop = top;
+  },
+  back() { show(gallerySettings); return true; },
 };
 
 /* ---------- notes ---------- */
@@ -2927,6 +3013,7 @@ const gallerySettings = {
       h("p", { className: "label", textContent: !g.folder ? t.demoPictures
         : g.missing ? `${g.folder} · ${t.folderMissing}` : `${g.folder} · ${g.count} ${t.pictures}` }),
       h("div", { className: "toolbar wrap" },
+        h("button", { textContent: t.managePictures, onclick: () => show(galleryManage) }),
         h("button", { className: g.folder ? "" : "primary", textContent: t.chooseFolder, onclick: () => folderPicker.open(g.start, {
           origin: this, pictures: true, pick: path => api("/api/gallery", { key: "folder", value: path }) }) }),
         h("button", { textContent: `${t.slideTime}: ${every}`,
@@ -3108,6 +3195,18 @@ const idle = $("idle");
 let lastTouch = Date.now();
 let idleWeather = null, idleWeatherAt = 0;
 
+// Some stations carry their slogan in the name. On the idle screen a long name is cut where
+// the slogan starts, or after a few words; a short one stays, also with a dash in it.
+const NAME_LENGTH = 28;
+function shortName(name) {
+  name = (name || "").trim();
+  if (name.length <= NAME_LENGTH) return name;
+  const cut = name.search(/\s+(--|-|–|—|\||::|~)\s+|:\s|\s[([{]|,\s/);
+  if (cut >= 4 && cut <= NAME_LENGTH) return name.slice(0, cut);
+  const words = name.slice(0, NAME_LENGTH + 1);
+  return words.slice(0, Math.max(words.lastIndexOf(" "), 12)).replace(/[\s\-–—|:,.]+$/, "") + "…";
+}
+
 function drawIdle() {
   const now = new Date();
   $("idle-time").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -3120,7 +3219,7 @@ function drawIdle() {
   ].filter(Boolean).join("  ·  ");
   if (showSpace()) loadSpaceWeather();   // asks the service at most every ten minutes
   const playing = state.source && state.status !== "error";
-  $("idle-title").textContent = playing ? state.title : "";
+  $("idle-title").textContent = playing ? shortName(state.title) : "";
   $("idle-text").textContent = playing ? say(state.text) : "";
   // shift a little every minute so nothing burns into the display
   const minute = now.getMinutes();
@@ -3363,7 +3462,7 @@ async function openLink() {
   const [name, band] = location.hash.slice(1).split("/");
   if (name === "idle") showIdle();
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
-    wifi: wifiView, receiver: receiverView, notes: notesView, reminders: remindersView, clock: clockView,
+    wifi: wifiView, receiver: receiverView, gallerymanage: galleryManage, notes: notesView, reminders: remindersView, clock: clockView,
     gallery: galleryView, gallerysettings: gallerySettings, podcasts, news, sensors, ais: ships, timer: timerView,
     podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList, propagation: propagationView, qso: qsoLog,
     survey: surveyView, spots: spotsView, verse: verseSettings, music: musicView, audiobooks: audiobooksView, satellites: satellitesView,
@@ -3395,7 +3494,9 @@ function connect() {
   };
   // after an update the service comes back with new files: load them
   ws.onopen = async () => {
-    const { version, build } = await api("/api/settings");
+    const { version, build, tone, tones } = await api("/api/settings");
+    toneNow = tone;
+    toneAll = tones || [];
     if (loadedVersion && build !== loadedVersion) location.reload();
     loadedVersion = build;
     ownVersion = version;

@@ -92,11 +92,11 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | APRS | Positionsmeldungen von Funkamateuren auf 144,800 MHz auf der Karte | `rtl_fm`, `direwolf`, Leaflet |
 | QSO-Log | Logbuch für Funkverbindungen und für reine Hörer (SWL), mit Bändern und Betriebsarten zum Antippen; Export als ADIF und CSV nach `Dokumente/RadioKiosk` | – |
 | Funk-Analyse | durchläuft einen Bereich über eine gewählte Zeit und berichtet, was zeitweise sendet, was dauernd da ist und was nach Störung aussieht; Bericht zum Speichern | `rtl_power`, NumPy |
-| Wecker | weckt mit einem festen Sender oder dem zuletzt gehörten, ersatzweise mit einem Ton; die Weckzeit steht auch im Ruhebildschirm | `mpv` |
+| Wecker | weckt mit einem festen Sender oder dem zuletzt gehörten, ersatzweise mit einem Ton (wählbar: Ticken, Klopfen, Glocke, Piepen; gilt auch für Timer und Erinnerungen); die Weckzeit steht auch im Ruhebildschirm | `mpv` |
 | Timer | Kurzzeitwecker, der auch über dem laufenden Sender klingelt, und Stoppuhr | `mpv` |
 | Notizen | kurze Notizen schreiben, anheften, ändern und löschen; alle zusammen lassen sich als Textdatei sichern | – |
 | Erinnerungen | Erinnerung für einen Tag, auf Wunsch mit Uhrzeit und Wiederholung (täglich bis jährlich); sie bleibt als Leiste auf jedem Bildschirm und im Ruhebildschirm stehen, bis sie quittiert oder verschoben wird | `mpv` für den Hinweiston |
-| Galerie | Diashow aus einem Ordner, pur über die Kachel oder im Ruhebildschirm hinter der Uhr; mit oder ohne Unterordner, Bilder ganz, leicht gezoomt oder bildschirmfüllend | Pillow |
+| Galerie | Diashow aus einem Ordner, pur über die Kachel oder im Ruhebildschirm hinter der Uhr; mit oder ohne Unterordner, Bilder ganz, leicht gezoomt oder bildschirmfüllend; Bilder lassen sich in der Oberfläche hinzufügen und löschen, auch vom Handy oder PC über die Fernbedienung | Pillow |
 | SDR++ | das vollwertige SDR-Programm für alles Weitere | startet als normales Programm |
 | Einstellungen | Sprache, helles oder dunkles Design, Tonausgabe, Sleep-Timer, Ruhebildschirm, Größe der unteren Leiste, Bildschirmtastatur, Standort, Fernbedienung, Empfangsart | PipeWire oder PulseAudio |
 | Gerät | Bildschirmhelligkeit, WLAN, WLAN-Stromsparen ein/aus, Aktualisieren, Neustart und Ausschalten, AirPlay- und Spotify-Connect-Empfänger | NetworkManager, systemd, `shairport-sync`, `librespot` |
