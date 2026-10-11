@@ -126,6 +126,8 @@ def build(cfg):
     async def ws(request):
         socket = web.WebSocketResponse(heartbeat=20)
         await socket.prepare(request)
+        client = ipaddress.ip_address(request.remote or "127.0.0.1")
+        socket.local = (getattr(client, "ipv4_mapped", None) or client).is_loopback
         core.clients.add(socket)
         await socket.send_json(core.snapshot())
         try:
@@ -137,8 +139,10 @@ def build(cfg):
 
     @routes.get("/api/clients")
     async def clients(request):
-        """How many interfaces are connected; the kiosk start uses it to see whether the browser came up."""
-        return web.json_response({"count": len(core.clients)})
+        """How many interfaces are connected, and how many of them on this computer: the kiosk start watches
+        the second number to see whether its browser window still shows the interface."""
+        return web.json_response({"count": len(core.clients),
+                                  "local": sum(1 for socket in core.clients if getattr(socket, "local", False))})
 
     @routes.get("/api/state")
     async def state(request):
