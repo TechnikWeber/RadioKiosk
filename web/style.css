@@ -279,7 +279,7 @@ body:has(.keys) footer, body:has(.keys) #warn, body:has(.keys) #remind { display
   left: 28px; right: 28px; top: 14px; bottom: 40vh; overflow: hidden; text-align: left; color: #fff; }
 #idle-news div { flex: none; padding-bottom: min(1vh, 5px); }
 /* fewer than three articles stand together at the top; spread out, two would leave a hole in the middle */
-#idle-news.few { justify-content: flex-start; gap: min(4vh, 22px); }
+#idle.news #idle-news.few { justify-content: flex-start; gap: min(4vh, 22px); }
 /* beside the clock the line for what is playing stays one line, or the clock's box grows and takes room from the articles */
 #idle.pictures #idle-title, #idle.news #idle-title { font-size: 21px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #idle-news p { margin: 2px 0; font-size: min(3.6vh, 19px); line-height: 1.3; color: #c9d1da; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
