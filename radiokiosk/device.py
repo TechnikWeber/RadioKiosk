@@ -130,24 +130,3 @@ async def set_wifi_powersave(on):
         raise RuntimeError("this computer does not let RadioKiosk change that setting")
     # the adapter takes the setting when it connects; the interface is back within seconds
     await run("nmcli", "connection", "up", name, timeout=45)
-
-
-# --- update ---------------------------------------------------------------
-
-def can_update():
-    """Only an installation made by the installer (a git checkout run as a service) updates itself."""
-    # INVOCATION_ID is set by systemd: a copy started by hand for development is left alone
-    return (PROJECT_DIR / ".git").exists() and shutil.which("git") is not None and "INVOCATION_ID" in os.environ
-
-
-async def update():
-    code, out = await run("git", "-C", str(PROJECT_DIR), "pull", "--ff-only", timeout=120)
-    if code:
-        raise RuntimeError("update failed – is there an internet connection?")
-    changed = "Already up to date" not in out and "Bereits aktuell" not in out
-    if changed:
-        # restart in a moment, so this request can still be answered
-        await asyncio.create_subprocess_exec(
-            "systemd-run", "--user", "--on-active=2", "--timer-property=AccuracySec=100ms", "systemctl", "--user", "restart", "radiokiosk.service",
-            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
-    return changed

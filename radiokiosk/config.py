@@ -59,6 +59,7 @@ DEFAULTS = {
     "verse": None,
     # official weather warnings for the location (Germany only)
     "alerts": True,
+    "auto_update": False,     # install new releases at night without being asked
     "callsign": "",
     "swl": False,
     "apps": [

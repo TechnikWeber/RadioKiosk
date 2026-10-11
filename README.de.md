@@ -150,6 +150,19 @@ Nach einer Weile ohne Berührung zeigt ein Ruhebildschirm Uhrzeit, Datum, Wetter
 
 Das Abhören von Funkdiensten, die nicht für die Allgemeinheit bestimmt sind, ist in vielen Ländern eingeschränkt. Der Bandplan enthält deshalb nur Rundfunk, Amateurfunk und anmeldefreie Bänder.
 
+## Aktualisieren
+
+Unter **Einstellungen › Gerät** sucht „Nach Updates suchen“ bei GitHub nach einem neueren Release; einmal am Tag sieht RadioKiosk auch von selbst nach und zeigt auf der Startseite neben der Versionsnummer, wenn eines bereitsteht. „Aktualisieren auf …“ installiert es. Wer möchte, schaltet „Nachts von selbst aktualisieren“ ein: Dann geschieht das zwischen 3 und 5 Uhr, solange nichts läuft.
+
+Ein Update lässt das Gerät nicht dunkel zurück:
+
+1. Die neue Version wird in einen eigenen Ordner neben der laufenden geladen.
+2. Sie wird dort probeweise geladen. Fehlt ihr etwas, etwa ein Paket, bricht das Update hier ab und nichts ändert sich.
+3. Erst dann wird umgeschaltet und der Dienst neu gestartet.
+4. Meldet sich die neue Version nicht innerhalb von zweieinhalb Minuten, schaltet ein Wächter auf die vorherige zurück. Die Geräteseite sagt das beim nächsten Öffnen.
+
+Installiert werden nur Releases, nie ein Zwischenstand. Pakete des Betriebssystems installiert das Update nicht; braucht eine Version ein neues, sagt sie es, und der Installer wird noch einmal ausgeführt.
+
 ## Aus dem Quelltext starten
 
 ```sh

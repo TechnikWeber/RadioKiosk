@@ -92,11 +92,20 @@ sudo modprobe -r dvb_usb_rtl28xxu 2>/dev/null || true
 
 say "Fetching RadioKiosk into $DIR"
 if [ -d "$DIR/.git" ]; then
-  git -C "$DIR" pull --ff-only
+  # an installation on a release is brought up to date by its own update button
+  if git -C "$DIR" symbolic-ref -q HEAD >/dev/null; then
+    git -C "$DIR" pull --ff-only
+  fi
 else
   mkdir -p "$(dirname "$DIR")"
-  git clone --depth 1 "$REPO" "$DIR"
+  # the newest release rather than whatever is being worked on; without any release, the branch
+  LATEST="$(git ls-remote --tags --refs --sort=-v:refname "$REPO" 'v*' 2>/dev/null | head -n 1 | sed 's|.*refs/tags/||')"
+  git clone --depth 1 ${LATEST:+--branch "$LATEST"} "$REPO" "$DIR"
 fi
+# The service starts from a link, not from the folder itself: an update fetches the new
+# version into a folder of its own and turns the link, and back if the version does not start.
+CURRENT="$DIR-current"
+[ -e "$CURRENT" ] || ln -s "$DIR" "$CURRENT"
 
 say "Setting up the background service"
 mkdir -p "$HOME/.config/systemd/user" "$HOME/.local/share/applications"
@@ -106,7 +115,7 @@ Description=RadioKiosk
 After=pipewire-pulse.service pulseaudio.service
 
 [Service]
-WorkingDirectory=$DIR
+WorkingDirectory=$CURRENT
 ExecStart=/usr/bin/python3 -m radiokiosk
 Restart=on-failure
 
@@ -122,7 +131,7 @@ cat > "$HOME/.local/share/applications/radiokiosk.desktop" <<ENTRY
 Type=Application
 Name=RadioKiosk
 Comment=World receiver: web radio, DAB+, FM, shortwave and more
-Exec=$DIR/radiokiosk-ui
+Exec=$CURRENT/radiokiosk-ui
 Icon=audio-radio
 Categories=AudioVideo;Audio;
 ENTRY

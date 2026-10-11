@@ -37,6 +37,7 @@ from .sources.ais import Ais
 from .sources.podcasts import PROVIDERS, Podcasts
 from .sources.sensors import Sensors
 from .timer import Timer
+from .update import Updater
 from .weather import Weather, place_name
 
 
@@ -93,6 +94,7 @@ def build(cfg):
 
     webradio, dab, fm, tuner, apps = Webradio(core), Dab(core), Fm(core), Tuner(core), Apps(core)
     adsb = Adsb(core)
+    updater = Updater(core, cfg)
     weather = Weather()
     gallery = Gallery(cfg)
     feeds = Feeds(cfg)
@@ -180,7 +182,7 @@ def build(cfg):
             "brightness": cfg["brightness"] if device.brightness() is not None and cfg["brightness"] else device.brightness(),
             "power": await device.can_power_off(),
             "wifi": device.has_wifi(), "wifi_powersave": await device.wifi_powersave(),
-            "update": device.can_update(), "version": __version__,
+            "update": updater.installed(), "release": updater.info(), "version": __version__,
             "receivers": receivers.list(),
         })
 
@@ -206,8 +208,16 @@ def build(cfg):
             await core.stop()
             await device.power(body["action"])
             return ok()
+        if action == "check":
+            await updater.check()
+            return web.json_response(updater.info())
         if action == "update":
-            return ok(changed=await device.update())
+            if body.get("branch"):          # for development: the branch's newest commit, not a release
+                return ok(changed=await updater.pull())
+            if body.get("tag"):             # a release by name, also an older one
+                return ok(changed=await updater.apply(str(body["tag"])))
+            await updater.check()
+            return ok(changed=await updater.apply())
         if action == "receiver":
             await receivers.set(body["id"], bool(body["on"]))
             save_setting(cfg, "receivers_on", [r["id"] for r in receivers.list() if r["on"]])
@@ -316,6 +326,9 @@ def build(cfg):
             if body["value"] and not Path(body["value"]).expanduser().is_dir():
                 raise ValueError("this folder cannot be opened")
             save_setting(cfg, "music_folder", str(Path(body["value"]).expanduser()) if body["value"] else None)
+            return ok()
+        if body["key"] == "auto_update" and isinstance(body["value"], bool):
+            save_setting(cfg, "auto_update", body["value"])
             return ok()
         if body["key"] == "alerts" and isinstance(body["value"], bool):
             save_setting(cfg, "alerts", body["value"])
@@ -725,6 +738,7 @@ def build(cfg):
         app["alarm"] = asyncio.create_task(alarm.run())
         app["health"] = asyncio.create_task(core.watch_health())
         app["alerts"] = asyncio.create_task(alerts.run())
+        app["updater"] = asyncio.create_task(updater.run())
         await receivers.start_enabled()
         core.update(alarm=alarm.data["time"] if alarm.data["enabled"] else None)
 
@@ -733,6 +747,7 @@ def build(cfg):
         app["alarm"].cancel()
         app["health"].cancel()
         app["alerts"].cancel()
+        app["updater"].cancel()
         await receivers.close()
         if bt.pairing:
             await bt.set_visible(False)

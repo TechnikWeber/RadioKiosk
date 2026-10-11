@@ -150,6 +150,19 @@ After a while without a touch, an idle screen shows the time, date, weather and 
 
 Listening to radio services that are not meant for the public is restricted in many countries. The band plan therefore only contains broadcast, amateur radio and licence-free bands.
 
+## Updating
+
+Under **Settings › Device**, “Look for updates” asks GitHub for a newer release; once a day RadioKiosk also looks by itself and says so next to the version number on the home screen. “Update to …” installs it. If you like, switch on “Update by itself at night”: it then happens between 3 and 5 o'clock while nothing is playing.
+
+An update does not leave the device dark:
+
+1. The new version is fetched into a folder of its own next to the running one.
+2. It is loaded there as a trial. If something is missing, a package for instance, the update stops here and nothing changes.
+3. Only then the switch is made and the service restarted.
+4. If the new version does not answer within two and a half minutes, a guard switches back to the one before. The device page says so the next time it is opened.
+
+Only releases are installed, never work in progress. The update does not install packages of the operating system; a version that needs a new one says so, and the installer is run once more.
+
 ## Run from source
 
 ```sh

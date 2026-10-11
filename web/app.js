@@ -29,8 +29,11 @@ const STRINGS = {
     waterfall: "Waterfall", on: "on", tooSmall: "needs more memory",
     wifiSaving: "Wi-Fi power saving",
     device: "Device", brightness: "Brightness", wifi: "Wi-Fi", wifiPassword: "Password for", connect: "Connect",
-    connecting: "Connecting…", connected: "connected", update: "Update RadioKiosk", updating: "Updating…",
-    upToDate: "Already up to date", updated: "Updated – restarting", restart: "Restart", shutDown: "Shut down",
+    connecting: "Connecting…", connected: "connected", update: "Update RadioKiosk", updating: "Updating…", checkUpdates: "Look for updates", checking: "Looking…",
+    available: "available", updateTo: "Update to", autoUpdate: "Update by itself at night", software: "Software",
+    updateFailed: v => `The update to ${v} did not start and was turned back. The version before it is running.`,
+    notInstalled: "This copy was not set up by the installer and does not update itself.",
+    upToDate: "Already up to date", updated: "Fetched and checked – restarting with the new version", restart: "Restart", shutDown: "Shut down",
     sure: "Tap again to confirm", liveStream: "Listen along on other devices (remote control must be on):",
     scanChannels: "Scan", stopScan: "Stop scan", onAir: "Scheduled to be on the air now, within ±250 kHz (EiBi list)", onNow: "on now", daily: "daily",
     broadcastGroups: { german: "In German", english: "In English for Europe", others: "Other languages for Europe" },
@@ -163,8 +166,11 @@ const STRINGS = {
     waterfall: "Wasserfall", on: "an", tooSmall: "braucht mehr Arbeitsspeicher",
     wifiSaving: "WLAN-Stromsparen",
     device: "Gerät", brightness: "Helligkeit", wifi: "WLAN", wifiPassword: "Passwort für", connect: "Verbinden",
-    connecting: "Verbinde…", connected: "verbunden", update: "RadioKiosk aktualisieren", updating: "Aktualisiere…",
-    upToDate: "Bereits aktuell", updated: "Aktualisiert – starte neu", restart: "Neu starten", shutDown: "Ausschalten",
+    connecting: "Verbinde…", connected: "verbunden", update: "RadioKiosk aktualisieren", updating: "Aktualisiere…", checkUpdates: "Nach Updates suchen", checking: "Suche…",
+    available: "verfügbar", updateTo: "Aktualisieren auf", autoUpdate: "Nachts von selbst aktualisieren", software: "Software",
+    updateFailed: v => `Das Update auf ${v} ist nicht gestartet und wurde zurückgenommen. Die Version davor läuft weiter.`,
+    notInstalled: "Diese Kopie wurde nicht vom Installer eingerichtet und aktualisiert sich nicht selbst.",
+    upToDate: "Bereits aktuell", updated: "Geladen und geprüft – starte mit der neuen Version neu", restart: "Neu starten", shutDown: "Ausschalten",
     sure: "Zum Bestätigen noch einmal tippen", liveStream: "Auf anderen Geräten mithören (Fernbedienung muss an sein):",
     scanChannels: "Suchlauf", stopScan: "Suchlauf stoppen", onAir: "Laut Sendeplan jetzt auf Sendung, im Umkreis von ±250 kHz (EiBi-Liste)", onNow: "jetzt", daily: "täglich",
     broadcastGroups: { german: "Auf Deutsch", english: "Auf Englisch für Europa", others: "Andere Sprachen für Europa" },
@@ -293,6 +299,12 @@ const MESSAGES_DE = [
   [/^nothing is playing$/, "Es läuft gerade nichts"],
   [/^the scan needs the own receiver$/, "Der Suchlauf braucht den eigenen Empfänger"],
   [/^could not connect to this network.*$/, "Verbindung mit diesem Netz fehlgeschlagen – falsches Passwort?"],
+  [/^update failed: the new version needs the package (.+), run the installer again$/, "Aktualisierung abgebrochen: Der neuen Version fehlt das Paket $1 – bitte den Installer noch einmal ausführen"],
+  [/^update failed: the new version does not start on this computer$/, "Aktualisierung abgebrochen: Die neue Version startet auf diesem Rechner nicht. Die bisherige läuft weiter"],
+  [/^update failed: the new version could not be unpacked$/, "Aktualisierung abgebrochen: Die neue Version ließ sich nicht entpacken"],
+  [/^update failed: an update is already running$/, "Es läuft bereits eine Aktualisierung"],
+  [/^update failed: this is not an installed copy$/, "Diese Kopie wurde nicht vom Installer eingerichtet und aktualisiert sich nicht selbst"],
+  [/^update failed: GitHub does not answer right now$/, "GitHub antwortet gerade nicht – später noch einmal versuchen"],
   [/^update failed.*$/, "Aktualisierung fehlgeschlagen – besteht eine Internetverbindung?"],
   [/^this computer has too little memory for that program$/, "Dieser Rechner hat zu wenig Arbeitsspeicher für dieses Programm"],
   [/^no data from the SDR stick.*$/, "Der SDR-Stick liefert keine Daten – falls das anhält, neu einstecken"],
@@ -1368,7 +1380,13 @@ const deviceView = {
     this.draw();
   },
   draw() {
-    const d = this.info;
+    const d = this.info, r = d.release;
+    const work = async (label, job) => {   // a note while something slow runs, then its outcome or its error
+      this.note = label;
+      this.draw();
+      try { await job(); } catch (error) { this.note = say(error.message); }
+      this.draw();
+    };
     // switching the computer off takes two taps
     const twice = (id, label, action) => h("button", {
       className: this.confirm === id ? "primary" : "", textContent: this.confirm === id ? t.sure : label,
@@ -1401,21 +1419,31 @@ const deviceView = {
         ...d.receivers.map(r => h("button", {
           className: r.on ? "on" : "", textContent: `${r.name}: ${r.on ? t.on : t.off}`,
           onclick: async () => { await api("/api/device/receiver", { id: r.id, on: !r.on }); this.render(); },
-        })),
-        d.update ? h("button", { textContent: t.update, onclick: async e => {
-          e.target.disabled = true;
-          this.note = t.updating;
-          this.draw();
-          try {
-            this.note = (await api("/api/device/update", {})).changed ? t.updated : t.upToDate;
-          } catch (error) { this.note = say(error.message); }
-          this.draw();
-        } }) : null),
-      ...(this.note ? [hint(this.note)] : []),
+        }))),
       ...(d.power ? [h("div", { className: "toolbar wrap" },
         twice("reboot", t.restart, () => api("/api/device/power", { action: "reboot" })),
         twice("poweroff", t.shutDown, () => api("/api/device/power", { action: "poweroff" })))] : []),
-      h("p", { className: "label meter", textContent: `RadioKiosk ${d.version}` }));
+      h("p", { className: "label", textContent: `${t.software}: RadioKiosk ${d.version}` }),
+      ...(r.failed ? [hint(t.updateFailed(r.failed))] : []),
+      ...(r.available ? [
+        h("p", { className: "label", textContent: `${t.version} ${r.available.version} ${t.available}` }),
+        // release notes are written in Markdown; shown as plain text they read well enough without its marks
+        h("p", { className: "notes", textContent: r.available.notes.replace(/^#+ */gm, "").replace(/\*\*/g, "") })] : []),
+      h("div", { className: "toolbar wrap" },
+        r.available && r.can ? h("button", {
+          className: "primary", textContent: `${t.updateTo} ${r.available.version}`, onclick: () => work(t.updating, async () => {
+            this.note = (await api("/api/device/update", {})).changed ? t.updated : t.upToDate;
+          }),
+        }) : null,
+        h("button", { textContent: t.checkUpdates, onclick: () => work(t.checking, async () => {
+          d.release = await api("/api/device/check", {});
+          this.note = d.release.available ? "" : t.upToDate;
+        }) }),
+        r.can ? h("button", {
+          className: r.auto ? "on" : "", textContent: `${t.autoUpdate}: ${r.auto ? t.on : t.off}`,
+          onclick: async () => { await api("/api/settings", { key: "auto_update", value: !r.auto }); this.render(); },
+        }) : null),
+      ...(this.note ? [hint(this.note)] : r.can ? [] : [hint(t.notInstalled)]));
   },
   back() { show(settings); return true; },
 };
@@ -3026,6 +3054,7 @@ function applyState(next) {
     timerView.tab = "timer";
     if (current !== timerView) show(timerView);
   }
+  if (ownVersion) $("version").textContent = versionLine();
   const failed = state.status === "error";
   $("now").classList.toggle("error", failed);
   $("now-title").textContent = state.title || "";
@@ -3067,7 +3096,8 @@ async function openLink() {
 
 document.documentElement.dataset.theme = pref("theme", "dark");
 document.body.dataset.bar = pref("bar", BAR_DEFAULT);
-let loadedVersion = null;
+let loadedVersion = null, ownVersion = "";
+const versionLine = () => `${t.version} ${ownVersion}` + (state.update ? ` · ${state.update} ${t.available}` : "");
 function connect() {
   const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
   ws.binaryType = "arraybuffer";
@@ -3085,7 +3115,8 @@ function connect() {
     const { version, build } = await api("/api/settings");
     if (loadedVersion && build !== loadedVersion) location.reload();
     loadedVersion = build;
-    $("version").textContent = `${t.version} ${version}`;
+    ownVersion = version;
+    $("version").textContent = versionLine();
     $("version").hidden = current !== home;
   };
   ws.onclose = () => setTimeout(connect, 1500);

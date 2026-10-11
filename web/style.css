@@ -175,6 +175,7 @@ footer button.icon svg { width: calc(var(--bar-touch) * .5); height: calc(var(--
 .load i { display: block; height: 100%; background: var(--accent); }
 .load u { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--text); }
 .hint { color: var(--muted); text-align: center; padding: 24px 12px; }
+.notes { white-space: pre-wrap; color: var(--muted); font-size: 15px; padding: 0 12px 8px; margin: 0; }
 
 /* FM */
 .dial { text-align: center; font-size: 56px; font-weight: 300; font-variant-numeric: tabular-nums; margin: 4px 0 12px; }
