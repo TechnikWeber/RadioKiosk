@@ -85,6 +85,7 @@ A small Python service controls the receivers and serves a web interface that a 
 | Bluetooth | connect a Bluetooth speaker, or let a phone play through this device | `bluetoothctl`, PipeWire |
 | Weather | current weather and a four-day forecast | Open-Meteo |
 | Calendar | the coming dates of calendars kept elsewhere, read from their iCal address (Google, Apple, waste collection, school holidays); the next date of today and tomorrow also stands on the idle screen | – |
+| Smart home | switches that call an address when tapped (a webhook of Home Assistant, ioBroker or Node-RED, a Shelly or Tasmota plug) and values that show what an address answers, a temperature for instance | – |
 | Podcasts | search, subscriptions, episode list, skipping back and forth; remembers how far an episode has been heard | fyyd, Apple Podcasts or Podcast Index, `mpv` |
 | Music | your own collection from a folder, USB stick or mounted network folder: browse folders, play everything or shuffled | `mpv` |
 | Audiobooks | public domain audiobooks from LibriVox, with a search; a book continues where it stopped | Internet Archive, `mpv` |
@@ -141,7 +142,7 @@ Every station can get a star, whatever its source. Favorites appear as a row on 
 
 The interface is English by default and can be switched to German under Settings.
 
-With remote control switched on under Settings, phones and computers in the same network can open the interface in a browser. There is no login, so use it only in a network you trust.
+With remote control switched on under Settings, phones and computers in the same network can open the interface in a browser. A home automation or a script can control RadioKiosk the same way: see [docs/api.md](docs/api.md). There is no login, so use it only in a network you trust.
 
 Podcasts, music and online media pause and go on with the button that stops radio; held for a second, it stops them for good. The bottom bar has a mute button beside the volume; the alarm lifts the muting so that it still wakes. The record button in the bottom bar, switched on under Settings → *Record button*, saves what is playing to `Music/RadioKiosk`. With remote control on, other devices in the network can also listen along at `http://<address>:8080/live.mp3`.
 

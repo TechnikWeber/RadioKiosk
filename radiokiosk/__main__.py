@@ -30,6 +30,7 @@ from .spots import Spots
 from . import audiobooks, satellites as satellite_passes
 from .agenda import Agenda
 from .alerts import Alerts
+from .smarthome import SmartHome
 from .verses import Verses
 from .sources.aprs import Aprs
 from .sources.music import Music
@@ -108,6 +109,7 @@ def build(cfg):
     podcasts, sensors, ais = Podcasts(core), Sensors(core), Ais(core)
     media = Media(core)
     agenda = Agenda(core)
+    home = SmartHome()
     alarm = Alarm(core)
     timer = Timer(core)
     notes, reminders = Notes(), Reminders(core)
@@ -631,6 +633,24 @@ def build(cfg):
     @routes.get("/api/ais/ships")
     async def ais_ships(request):
         return web.json_response({"ships": ais.list(), "location": cfg.get("location")})
+
+    @routes.get("/api/smarthome")
+    async def smarthome_get(request):
+        return web.json_response(await home.listing())
+
+    @routes.post("/api/smarthome/{action}")
+    async def smarthome_do(request):
+        body = await request.json()
+        action = request.match_info["action"]
+        if action == "save":
+            home.save(body)
+        elif action == "remove":
+            home.remove(body["id"])
+        elif action == "press":
+            await home.press(body["id"])
+        else:
+            raise web.HTTPNotFound()
+        return web.json_response(await home.listing())
 
     @routes.get("/api/calendar")
     async def calendar_get(request):

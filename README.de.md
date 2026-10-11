@@ -85,6 +85,7 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Bluetooth | Bluetooth-Lautsprecher verbinden oder ein Handy über dieses Gerät abspielen lassen | `bluetoothctl`, PipeWire |
 | Wetter | aktuelles Wetter und Vorhersage für vier Tage | Open-Meteo |
 | Kalender | die nächsten Termine von Kalendern, die woanders geführt werden, gelesen über ihre iCal-Adresse (Google, Apple, Abfallkalender, Schulferien); der nächste Termin von heute und morgen steht auch im Ruhebildschirm | – |
+| Smart Home | Schalter, die beim Antippen eine Adresse aufrufen (ein Webhook von Home Assistant, ioBroker oder Node-RED, eine Shelly- oder Tasmota-Steckdose), und Werte, die zeigen, was eine Adresse antwortet, zum Beispiel eine Temperatur | – |
 | Podcasts | Suche, Abos, Folgenliste, Vor- und Zurückspringen; merkt sich, wie weit eine Folge gehört ist | fyyd, Apple Podcasts oder Podcast Index, `mpv` |
 | Musik | die eigene Sammlung aus einem Ordner, USB-Stick oder eingebundenen Netzwerkordner: Ordner durchblättern, alles oder zufällig abspielen | `mpv` |
 | Hörbücher | gemeinfreie Hörbücher von LibriVox, mit Suche; ein Buch geht dort weiter, wo es aufgehört hat | Internet Archive, `mpv` |
@@ -141,7 +142,7 @@ Jeder Sender kann einen Stern bekommen, egal aus welcher Quelle. Favoriten ersch
 
 Die Oberfläche ist standardmäßig englisch und lässt sich in den Einstellungen auf Deutsch umstellen.
 
-Ist in den Einstellungen die Fernbedienung eingeschaltet, können Handys und Rechner im selben Netz die Oberfläche im Browser öffnen. Es gibt keine Anmeldung, nutze das also nur in einem Netz, dem du vertraust.
+Ist in den Einstellungen die Fernbedienung eingeschaltet, können Handys und Rechner im selben Netz die Oberfläche im Browser öffnen. Eine Hausautomation oder ein Skript kann RadioKiosk auf demselben Weg steuern: siehe [docs/api.de.md](docs/api.de.md). Es gibt keine Anmeldung, nutze das also nur in einem Netz, dem du vertraust.
 
 Podcasts, Musik und Online-Medien pausieren und laufen weiter mit dem Knopf, der Radio stoppt; eine Sekunde gehalten, stoppt er sie ganz. Die untere Leiste hat neben der Lautstärke einen Stumm-Knopf; der Wecker hebt die Stummschaltung auf, damit er trotzdem weckt. Der Aufnahmeknopf in der unteren Leiste, einzuschalten unter Einstellungen → *Aufnahmeknopf*, speichert, was gerade läuft, nach `Musik/RadioKiosk`. Bei eingeschalteter Fernbedienung können andere Geräte im Netz außerdem unter `http://<Adresse>:8080/live.mp3` mithören.
 

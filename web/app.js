@@ -160,6 +160,13 @@ const STRINGS = {
     calendarEmpty: "Nothing in the coming weeks.",
     calendarIntro: "Shows the dates of calendars kept elsewhere: a Google or Apple calendar, the waste collection dates of your town, school holidays, a club. Each of them offers an address for subscribing (iCal). The calendars are only read, never changed.",
     calendarHint: "The address is long: typing it is easiest from a phone or computer by remote control. The star removes a calendar.",
+    smart: "Smart home", smartSub: "Switches and values", smartKinds: { switch: "Switch", field: "Value" }, smartDone: "done", smartDo: "Do it",
+    smartAddSwitch: "Add a switch", smartAddField: "Add a value", smartEdit: "Change", smartDoneEditing: "Finished", smartEditHint: "Tap an entry to change or delete it.",
+    smartName: "Name", smartAddress: "Address (http://…)", smartMethod: "Called with", smartBody: "Sent along (text or JSON)", smartAsk: "Ask before", smartPath: "Value in the answer (e.g. state)",
+    smartUnit: "Unit", smartToken: "Access token",
+    smartIntro: "For what is reachable in your network: a switch calls an address when you tap it (a webhook of Home Assistant, ioBroker or Node-RED, a Shelly or Tasmota plug); a value shows what an address answers, a temperature for instance.",
+    smartSwitchHint: "A switch calls its address when tapped. For a Home Assistant webhook: http://homeassistant.local:8123/api/webhook/NAME, called with POST. \"Ask before\" suits a garage door.",
+    smartFieldHint: "A value shows the answer of its address, asked for again every half minute. Where the answer is JSON, name the value in it, with dots for what lies deeper (state, attributes.temperature). An access token is sent as \"Authorization: Bearer …\", as Home Assistant wants it.",
     hamTiles: "Radio hobby", hamHint: "Aircraft, ships, radio sensors, APRS, propagation, DX cluster, satellites, QSO log, radio survey and the expert receivers. A tile whose program is not installed stays away.",
     mediaSearches: "Kept searches", mediaTitles: "Kept titles", paused: "Paused", mediaKeepSearch: "Keep this search", mediaDating: "date loading …",
     tileSize: "Tiles", bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
@@ -333,6 +340,13 @@ const STRINGS = {
     calendarEmpty: "Nichts in den nächsten Wochen.",
     calendarIntro: "Zeigt die Termine von Kalendern, die woanders geführt werden: ein Google- oder Apple-Kalender, der Abfallkalender der Gemeinde, Schulferien, ein Verein. Jeder davon bietet eine Adresse zum Abonnieren an (iCal). Die Kalender werden nur gelesen, nie verändert.",
     calendarHint: "Die Adresse ist lang: Am einfachsten gibst du sie vom Handy oder PC über die Fernbedienung ein. Der Stern entfernt einen Kalender.",
+    smart: "Smart Home", smartSub: "Schalter und Werte", smartKinds: { switch: "Schalter", field: "Wert" }, smartDone: "ausgeführt", smartDo: "Ausführen",
+    smartAddSwitch: "Schalter hinzufügen", smartAddField: "Wert hinzufügen", smartEdit: "Ändern", smartDoneEditing: "Fertig", smartEditHint: "Tippe einen Eintrag an, um ihn zu ändern oder zu löschen.",
+    smartName: "Name", smartAddress: "Adresse (http://…)", smartMethod: "Aufruf mit", smartBody: "Mitgeschickt (Text oder JSON)", smartAsk: "Vorher nachfragen", smartPath: "Wert in der Antwort (z. B. state)",
+    smartUnit: "Einheit", smartToken: "Zugangs-Token",
+    smartIntro: "Für alles, was in deinem Netz erreichbar ist: Ein Schalter ruft beim Antippen eine Adresse auf (ein Webhook von Home Assistant, ioBroker oder Node-RED, eine Shelly- oder Tasmota-Steckdose); ein Wert zeigt, was eine Adresse antwortet, zum Beispiel eine Temperatur.",
+    smartSwitchHint: "Ein Schalter ruft beim Antippen seine Adresse auf. Für einen Webhook von Home Assistant: http://homeassistant.local:8123/api/webhook/NAME, Aufruf mit POST. „Vorher nachfragen“ passt zu einem Garagentor.",
+    smartFieldHint: "Ein Wert zeigt die Antwort seiner Adresse und wird jede halbe Minute neu geholt. Ist die Antwort JSON, nenne den Wert darin, mit Punkten für Tieferliegendes (state, attributes.temperature). Ein Zugangs-Token wird als „Authorization: Bearer …“ mitgeschickt, wie Home Assistant es verlangt.",
     hamTiles: "Funk-Hobby", hamHint: "Flugzeuge, Schiffe, Funksensoren, APRS, Funkwetter, DX-Cluster, Satelliten, QSO-Log, Funk-Analyse und die Experten-Empfänger. Eine Kachel, deren Programm nicht installiert ist, bleibt weg.",
     mediaSearches: "Gemerkte Suchen", mediaTitles: "Gemerkte Titel", paused: "Pausiert", mediaKeepSearch: "Suche merken", mediaDating: "Datum lädt …",
     tileSize: "Kacheln", bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
@@ -445,6 +459,11 @@ const MESSAGES_DE = [
   [/^scan timed out$/, "Der Suchlauf hat zu lange gedauert"],
   [/^mpv is not installed$/, "mpv ist nicht installiert"],
   [/^the calendar cannot be reached$/, "Der Kalender ist nicht erreichbar"],
+  [/^the device did not answer$/, "Das Gerät hat nicht geantwortet"],
+  [/^the device answered with error (\d+)$/, "Das Gerät hat mit Fehler $1 geantwortet"],
+  [/^the answer does not have this value$/, "Die Antwort enthält diesen Wert nicht"],
+  [/^a name is needed$/, "Ein Name fehlt"],
+  [/^there are too many entries already$/, "Es sind schon zu viele Einträge"],
   [/^this address does not lead to a calendar$/, "Unter dieser Adresse liegt kein Kalender"],
   [/^this is not an address$/, "Das ist keine Adresse"],
   [/^there are too many calendars already$/, "Es sind schon zu viele Kalender"],
@@ -482,6 +501,7 @@ const ICONS = {
   ais: '<path d="M3 17l2 4h14l2-4M5 17v-6h14v6M9 11V6h6v5M12 6V3"/>',
   notes: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h5"/>',
   calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>',
+  smarthome: '<path d="M4 11l8-7 8 7v9H4z"/><path d="M12 12v3"/><path d="M9.6 13.4a3.4 3.4 0 104.8 0"/>',
   reminders: '<path d="M6 17V11a6 6 0 0112 0v6l2 2H4z"/><path d="M10 21h4"/>',
   power: '<path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1011.4 0"/>',
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6"/>',
@@ -785,6 +805,7 @@ const home = {
       tile("calendar", t.calendar, null, () => show(agendaView),
         (state.agenda || []).length ? agendaLine() : t.calendarSub),
       tile("gallery", t.gallery, null, () => show(galleryView), t.gallerySub),
+      tile("smarthome", t.smart, null, () => show(smartView), t.smartSub),
       tile("alarm", t.alarm, null, () => show(alarm), state.alarm || t.off),
       tile("timer", t.timer, null, () => show(timerView), t.timerSub),
       tile("notes", t.notes, null, () => show(notesView), t.notesSub),
@@ -3103,7 +3124,7 @@ const tilesView = {
     // in the order of the start screen
     const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner],
       ["podcast", t.podcasts], ["music", t.music], ["audiobooks", t.audiobooks], ["media", t.media], ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
-      ["news", t.news], ["weather", t.weather], ["calendar", t.calendar], ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders],
+      ["news", t.news], ["weather", t.weather], ["calendar", t.calendar], ["gallery", t.gallery], ["smarthome", t.smart], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders],
       ...(state.ham === false ? [] : [["adsb", t.adsb], ["ais", t.ais], ["sensors", t.sensors], ["aprs", t.aprs], ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["qso", t.qso], ["survey", t.survey],
         ...c.apps.map(a => [a.id, a.name])])];
     const top = view.scrollTop;
@@ -3258,6 +3279,101 @@ const agendaCalendars = {
       h("p", { className: "label", textContent: t.calendarHint }));
   },
   back() { show(agendaView); return true; },
+};
+
+/* ---------- smart home ---------- */
+
+// Fields that show what an address answers, and switches that call one. What stands behind the
+// addresses (Home Assistant, a Shelly, anything that speaks HTTP) is none of RadioKiosk's business.
+const smartView = {
+  title: t.smart,
+  items: null,
+  note: "",
+  editing: false,
+  timer: null,
+  async render() {
+    this.draw();
+    await this.load();
+    clearInterval(this.timer);   // the values are asked for again while the tile is open
+    this.timer = setInterval(() => { if (!this.editing) this.load(); }, 30000);
+  },
+  async load() {
+    try { this.items = await api("/api/smarthome"); } catch (e) { this.items = this.items || []; }
+    if (current === this) this.draw();
+  },
+  async press(item) {
+    this.note = "";
+    try { this.items = await api("/api/smarthome/press", { id: item.id }); this.note = `${item.name}: ${t.smartDone}`; }
+    catch (e) { this.note = `${item.name}: ${say(e.message)}`; }
+    if (current === this) this.draw();
+  },
+  draw() {
+    if (!this.items) { view.replaceChildren(hint(t.loading)); return; }
+    const fields = this.items.filter(i => i.kind === "field"), switches = this.items.filter(i => i.kind === "switch");
+    const parts = [];
+    if (!this.items.length) parts.push(h("p", { className: "explain", textContent: t.smartIntro }));
+    if (this.editing) {
+      parts.push(h("p", { className: "label", textContent: t.smartEditHint }),
+        ...this.items.map(i => stationRow({ title: i.name, info: `${t.smartKinds[i.kind]} · ${i.url.replace(/^https?:\/\//, "").slice(0, 50)}`,
+          onPlay: () => smartForm.open(i) })));
+    } else {
+      if (fields.length) parts.push(h("div", { className: "smart-fields" }, ...fields.map(f => h("div", { className: f.problem ? "off" : "" },
+        h("small", { textContent: f.name }), h("b", { textContent: f.problem ? "–" : `${f.value}${f.unit ? " " + f.unit : ""}` }),
+        ...(f.problem ? [h("small", { textContent: say(f.problem) })] : [])))));
+      if (switches.length) parts.push(h("div", { className: "smart-switches" }, ...switches.map(s => h("button", { textContent: s.name,
+        onclick: () => s.confirm ? ask(`${s.name}?`, [[t.smartDo, () => this.press(s), "primary"], [t.cancel]]) : this.press(s) }))));
+      if (this.note) parts.push(hint(this.note));
+    }
+    parts.push(h("div", { className: "toolbar wrap" },
+      ...(this.editing || !this.items.length ? [
+        h("button", { className: "primary", textContent: t.smartAddSwitch, onclick: () => smartForm.open({ kind: "switch" }) }),
+        h("button", { className: "primary", textContent: t.smartAddField, onclick: () => smartForm.open({ kind: "field" }) })] : []),
+      ...(this.items.length ? [h("button", { className: this.editing ? "on" : "", textContent: this.editing ? t.smartDoneEditing : t.smartEdit,
+        onclick: () => { this.editing = !this.editing; this.note = ""; this.draw(); } })] : [])));
+    const top = view.scrollTop;
+    view.replaceChildren(...parts);
+    view.scrollTop = top;
+  },
+  leave() { this.note = ""; clearInterval(this.timer); },
+};
+
+// One switch or field: each line is a button that asks for its value.
+const smartForm = {
+  title: t.smart,
+  entry: null,
+  open(entry) {
+    this.entry = { method: "POST", body: "", confirm: false, path: "", unit: "", name: "", url: "", ...entry };
+    this.title = t.smartKinds[this.entry.kind];
+    show(this);
+  },
+  render() {
+    const e = this.entry, note = h("p", { className: "label" });
+    const line = (key, label, shown) => h("button", { textContent: `${label}: ${shown === undefined ? e[key] || "–" : shown}`,
+      onclick: () => textPrompt.ask({ title: label, label, value: key === "token" ? "" : e[key], origin: this, done: value => { e[key] = value; } }) });
+    const flip = (label, on, onclick) => h("button", { className: on ? "on" : "", textContent: label, onclick: () => { onclick(); this.render(); } });
+    view.replaceChildren(
+      h("p", { className: "explain", textContent: e.kind === "switch" ? t.smartSwitchHint : t.smartFieldHint }),
+      h("div", { className: "toolbar wrap" }, line("name", t.smartName), line("url", t.smartAddress),
+        ...(e.kind === "switch" ? [
+          flip(`${t.smartMethod}: ${e.method}`, false, () => { e.method = e.method === "POST" ? "GET" : "POST"; }),
+          ...(e.method === "POST" ? [line("body", t.smartBody)] : []),
+          flip(`${t.smartAsk}: ${e.confirm ? t.on : t.off}`, e.confirm, () => { e.confirm = !e.confirm; })]
+        : [line("path", t.smartPath), line("unit", t.smartUnit)]),
+        line("token", t.smartToken, e.token ? t.isSet : e.has_token ? t.isSet : t.notSet)),
+      note,
+      h("div", { className: "toolbar wrap" },
+        h("button", { className: "primary", textContent: t.saveEntry, onclick: async () => {
+          const sent = { ...e };
+          if (sent.token === undefined) sent.token = sent.id ? null : "";   // unchanged: the service keeps what it has
+          try { await api("/api/smarthome/save", sent); } catch (error) { note.textContent = say(error.message); return; }
+          show(smartView);
+        } }),
+        ...(e.id ? [h("button", { textContent: t.deleteEntry, onclick: () => ask(`${t.deleteEntry}: ${e.name}?`, [[t.deleteEntry, async () => {
+          await api("/api/smarthome/remove", { id: e.id });
+          show(smartView);
+        }, "primary"], [t.cancel]]) })] : [])));
+  },
+  back() { show(smartView); return true; },
 };
 
 /* ---------- gallery ---------- */
@@ -3935,7 +4051,7 @@ async function openLink() {
   if (name === "idle") showIdle();
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
     wifi: wifiView, receiver: receiverView, gallerymanage: galleryManage, notes: notesView, reminders: remindersView, clock: clockView,
-    gallery: galleryView, gallerysettings: gallerySettings, calendar: agendaView, calendars: agendaCalendars, media: mediaView, mediasettings: mediaSettings, podcasts, news, sensors, ais: ships, timer: timerView,
+    gallery: galleryView, gallerysettings: gallerySettings, calendar: agendaView, calendars: agendaCalendars, smarthome: smartView, media: mediaView, mediasettings: mediaSettings, podcasts, news, sensors, ais: ships, timer: timerView,
     podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList, propagation: propagationView, qso: qsoLog,
     survey: surveyView, spots: spotsView, verse: verseSettings, music: musicView, audiobooks: audiobooksView, satellites: satellitesView,
     aprs: aprsView }[name] || home;
