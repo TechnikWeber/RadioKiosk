@@ -4,7 +4,7 @@ import asyncio
 import re
 import time
 
-from . import tones
+from . import audio, tones
 from .config import load_json, save_json
 
 # if the station does not come up (no internet, no reception), wake with a tone instead
@@ -38,6 +38,11 @@ class Alarm:
 
     async def ring(self):
         only_tone = self.data["station"] == "tone"
+        try:   # a radio muted in the evening still has to wake in the morning
+            await audio.set_mute(False)
+            await self.core.refresh_volume()
+        except (RuntimeError, OSError):
+            pass
         try:
             if only_tone:
                 raise RuntimeError("no station wanted")

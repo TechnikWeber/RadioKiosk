@@ -163,6 +163,12 @@ def build(cfg):
         await core.refresh_volume()
         return ok()
 
+    @routes.post("/api/mute")
+    async def mute(request):
+        await audio.set_mute(bool((await request.json())["on"]))
+        await core.refresh_volume()
+        return ok()
+
     @routes.post("/api/active")
     async def active(request):
         """An interface tells that somebody is operating it; see Core.watch_playing."""

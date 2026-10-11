@@ -59,6 +59,11 @@ async def set_volume(percent):
     await pactl("set-sink-volume", "@DEFAULT_SINK@", f"{percent}%")
 
 
+async def set_mute(on):
+    """Silence the output without losing the volume it had."""
+    await pactl("set-sink-mute", "@DEFAULT_SINK@", "1" if on else "0")
+
+
 async def watch(callback):
     """Call callback() whenever sinks or the default sink change."""
     while True:

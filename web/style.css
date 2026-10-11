@@ -100,19 +100,23 @@ footer button.icon { width: var(--bar-touch); }
 footer button.icon svg { width: calc(var(--bar-touch) * .5); height: calc(var(--bar-touch) * .5); }
 
 /* home */
-.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+/* the tiles come in three sizes, a setting; medium is made so that three rows fit a 7 inch display */
+body { --tile: 1; }
+body[data-tiles="small"] { --tile: .84; }
+body[data-tiles="large"] { --tile: 1.25; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(170px * var(--tile)), 1fr)); gap: 12px; }
 .tile {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 132px;
+  min-height: calc(132px * var(--tile));
   padding: 12px;
   font-size: 19px;
   font-weight: 600;
 }
-.tile svg { width: 44px; height: 44px; color: var(--accent); }
+.tile svg { width: calc(44px * var(--tile)); height: calc(44px * var(--tile)); color: var(--accent); }
 .tile small { font-weight: 400; font-size: 14px; color: var(--muted); text-align: center; }
 .tile.running { border-color: var(--accent); }
 
@@ -208,25 +212,27 @@ footer button.icon svg { width: calc(var(--bar-touch) * .5); height: calc(var(--
   body { font-size: 22px; }
   header { min-height: 78px; }
   header h1 { font-size: 27px; }
-  .tiles { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-  .tile { min-height: 170px; font-size: 23px; }
-  .tile svg { width: 56px; height: 56px; }
+  .tiles { grid-template-columns: repeat(auto-fill, minmax(calc(220px * var(--tile)), 1fr)); gap: 16px; }
+  .tile { min-height: calc(170px * var(--tile)); font-size: 23px; }
+  .tile svg { width: calc(56px * var(--tile)); height: calc(56px * var(--tile)); }
   .tile small, .row small, .label { font-size: 17px; }
   main { padding: 16px; }
   body { --bar-touch: 80px; --bar-pad: 12px; --bar-title: 24px; --bar-text: 19px; }
 }
 @media (max-height: 500px) {
-  .tile { min-height: 96px; gap: 4px; padding: 6px; }
-  .favrow + .tiles .tile { min-height: 78px; font-size: 17px; }
+  .tile { min-height: calc(96px * var(--tile)); gap: 4px; padding: 6px; }
+  .favrow { margin-bottom: 10px; }
+  .favrow + .tiles { gap: 10px; }
+  .favrow + .tiles .tile { min-height: calc(72px * var(--tile)); font-size: 17px; }
   .favrow + .tiles .tile small { display: none; }
-  .tile svg { width: 36px; height: 36px; }
+  .tile svg { width: calc(34px * var(--tile)); height: calc(34px * var(--tile)); }
   .dial { font-size: 44px; margin: 0; }
   .waterfall { height: 96px; }
   .keys, .key-row { gap: 5px; }
   .key-row button { min-height: 42px; }
 }
 @media (max-height: 420px) {
-  .tile { min-height: 104px; }
+  .tile { min-height: calc(104px * var(--tile)); }
 }
 
 /* aircraft map */
@@ -373,5 +379,9 @@ body.immersive header, body.immersive footer, body.immersive #warn, body.immersi
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
 #remind[hidden] { display: none; }
 #rec[hidden] { display: none; }
+#mute .cross, #mute.on .sound { display: none; }
+#mute.on .cross { display: inline; }
+#mute.on { color: var(--danger); border-color: var(--danger); }
+#vol.off { opacity: .35; text-decoration: line-through; }
 #rec.on { color: var(--danger); border-color: var(--danger); }
 #rec.on svg { fill: currentColor; }

@@ -150,7 +150,7 @@ const STRINGS = {
     losungenThere: "Imported:", losungenMissing: "No file imported yet for", losungenUpload: "Import a file from this device",
     losungenFolder: "Import from a folder of this computer", losungenImported: "Imported the Losungen for",
     theme: "Design", themes: { dark: "dark", light: "light" },
-    bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
+    tileSize: "Tiles", bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
     bluetooth: "Bluetooth", btSub: "Speakers and phone", btVisible: "Let a phone connect", btVisibleFor: "Visible for",
     btPhoneHint: "Then pick this device in the phone's Bluetooth settings and play music.",
@@ -311,7 +311,7 @@ const STRINGS = {
     losungenThere: "Eingespielt:", losungenMissing: "Noch keine Datei eingespielt für", losungenUpload: "Datei von diesem Gerät einspielen",
     losungenFolder: "Aus einem Ordner dieses Rechners einspielen", losungenImported: "Losungen eingespielt für",
     theme: "Design", themes: { dark: "dunkel", light: "hell" },
-    bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
+    tileSize: "Kacheln", bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
     bluetooth: "Bluetooth", btSub: "Lautsprecher und Handy", btVisible: "Handy verbinden lassen", btVisibleFor: "Sichtbar für",
     btPhoneHint: "Wähle danach dieses Gerät in den Bluetooth-Einstellungen des Handys und spiele Musik ab.",
@@ -722,11 +722,32 @@ const home = {
         tool("settings", t.settings, () => show(settings)),
         ...(c.power ? [tool("power", t.powerTile, askPower)] : [])),
       h("div", { className: "tiles" }, ...[
+      // what is listened to first, then what is read and looked at, then the radio hobby and the expert programs
       tile("webradio", t.webradio, c.mpv ? null : t.noMpv, () => show(webradio)),
       tile("dab", t.dab, c.dab ? sdrProblem : `welle-cli ${t.notInstalled}`, () => show(dab)),
       tile("fm", t.fm, c.fm ? sdrProblem : `librtlsdr ${t.notInstalled}`, () => show(fm)),
       tile("tuner", t.tuner, c.fm ? sdrProblem : `librtlsdr ${t.notInstalled}`, () => show(tuner), t.tunerSub),
+      tile("podcast", t.podcasts, c.mpv ? null : t.noMpv, () => show(podcasts)),
+      tile("music", t.music, c.mpv ? null : t.noMpv, () => show(musicView), t.musicSub),
+      tile("audiobooks", t.audiobooks, c.mpv ? null : t.noMpv, () => show(audiobooksView), t.audiobooksSub),
+      ...(c.bluetooth ? [tile("bluetooth", t.bluetooth, null, () => show(bluetooth), t.btSub)] : []),
+      tile("news", t.news, null, () => show(news), t.newsSub),
+      tile("weather", t.weather, null, () => show(weather)),
+      tile("gallery", t.gallery, null, () => show(galleryView), t.gallerySub),
+      tile("alarm", t.alarm, null, () => show(alarm), state.alarm || t.off),
+      tile("timer", t.timer, null, () => show(timerView), t.timerSub),
+      tile("notes", t.notes, null, () => show(notesView), t.notesSub),
+      tile("reminders", t.reminders, null, () => show(remindersView),
+        (state.reminders || []).length ? `${state.reminders.length} × ${t.remDue.toLowerCase()}` : t.remindersSub),
       tile("adsb", t.adsb, c.adsb ? sdrProblem : `dump1090 ${t.notInstalled}`, () => show(adsb), t.adsbSub),
+      tile("ais", t.ais, c.ais ? sdrProblem : `rtl_ais ${t.notInstalled}`, () => show(ships), t.aisSub),
+      tile("sensors", t.sensors, c.sensors ? sdrProblem : `rtl_433 ${t.notInstalled}`, () => show(sensors), t.sensorsSub),
+      tile("aprs", t.aprs, c.aprs ? sdrProblem : `direwolf ${t.notInstalled}`, () => show(aprsView), t.aprsSub),
+      tile("propagation", t.propagation, null, () => show(propagationView), t.propagationSub),
+      tile("spots", t.spots, null, () => show(spotsView), t.spotsSub),
+      tile("satellites", t.satellites, null, () => show(satellitesView), t.satellitesSub),
+      tile("qso", t.qso, null, () => show(qsoLog), t.qsoSub),
+      tile("survey", t.survey, c.survey ? sdrProblem : `rtl_power ${t.notInstalled}`, () => show(surveyView), t.surveySub),
       ...c.apps.map(a => {
         const running = state.source === "app" && state.detail.app === a.id;
         const el = tile("app", a.name,
@@ -737,26 +758,6 @@ const home = {
         el.dataset.tile = a.id;
         return el;
       }),
-      ...(c.bluetooth ? [tile("bluetooth", t.bluetooth, null, () => show(bluetooth), t.btSub)] : []),
-      tile("podcast", t.podcasts, c.mpv ? null : t.noMpv, () => show(podcasts)),
-      tile("music", t.music, c.mpv ? null : t.noMpv, () => show(musicView), t.musicSub),
-      tile("audiobooks", t.audiobooks, c.mpv ? null : t.noMpv, () => show(audiobooksView), t.audiobooksSub),
-      tile("news", t.news, null, () => show(news), t.newsSub),
-      tile("sensors", t.sensors, c.sensors ? sdrProblem : `rtl_433 ${t.notInstalled}`, () => show(sensors), t.sensorsSub),
-      tile("ais", t.ais, c.ais ? sdrProblem : `rtl_ais ${t.notInstalled}`, () => show(ships), t.aisSub),
-      tile("weather", t.weather, null, () => show(weather)),
-      tile("gallery", t.gallery, null, () => show(galleryView), t.gallerySub),
-      tile("alarm", t.alarm, null, () => show(alarm), state.alarm || t.off),
-      tile("timer", t.timer, null, () => show(timerView), t.timerSub),
-      tile("notes", t.notes, null, () => show(notesView), t.notesSub),
-      tile("reminders", t.reminders, null, () => show(remindersView),
-        (state.reminders || []).length ? `${state.reminders.length} × ${t.remDue.toLowerCase()}` : t.remindersSub),
-      tile("propagation", t.propagation, null, () => show(propagationView), t.propagationSub),
-      tile("spots", t.spots, null, () => show(spotsView), t.spotsSub),
-      tile("satellites", t.satellites, null, () => show(satellitesView), t.satellitesSub),
-      tile("aprs", t.aprs, c.aprs ? sdrProblem : `direwolf ${t.notInstalled}`, () => show(aprsView), t.aprsSub),
-      tile("qso", t.qso, null, () => show(qsoLog), t.qsoSub),
-      tile("survey", t.survey, c.survey ? sdrProblem : `rtl_power ${t.notInstalled}`, () => show(surveyView), t.surveySub),
       ].filter(el => !hidden.includes(el.dataset.tile))));
   },
   draw() { this.render(); },
@@ -2875,10 +2876,12 @@ const tilesView = {
   render() { this.draw(); },
   draw() {
     const c = state.caps, hidden = state.hidden_tiles || [];
-    const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner], ["adsb", t.adsb],
-      ...c.apps.map(a => [a.id, a.name]), ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
-      ["podcast", t.podcasts], ["music", t.music], ["audiobooks", t.audiobooks], ["news", t.news], ["sensors", t.sensors], ["ais", t.ais], ["weather", t.weather],
-      ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders], ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["aprs", t.aprs], ["qso", t.qso], ["survey", t.survey]];
+    // in the order of the start screen
+    const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner],
+      ["podcast", t.podcasts], ["music", t.music], ["audiobooks", t.audiobooks], ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
+      ["news", t.news], ["weather", t.weather], ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders],
+      ["adsb", t.adsb], ["ais", t.ais], ["sensors", t.sensors], ["aprs", t.aprs], ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["qso", t.qso], ["survey", t.survey],
+      ...c.apps.map(a => [a.id, a.name])];
     const top = view.scrollTop;
     view.replaceChildren(h("p", { className: "explain", textContent: t.tilesHint }),
       h("div", { className: "toolbar wrap" }, ...all.map(([id, name]) => h("button", {
@@ -3238,6 +3241,7 @@ const settings = {
         }),
         cycle(t.theme, "theme", "dark", t.themes, () => { document.documentElement.dataset.theme = pref("theme", "dark"); }),
         cycle(t.bar, "bar", BAR_DEFAULT, t.barSizes, () => { document.body.dataset.bar = pref("bar", BAR_DEFAULT); }),
+        cycle(t.tileSize, "tile_size", "medium", t.barSizes, () => { document.body.dataset.tiles = pref("tile_size", "medium"); }),
         cycle(t.keyboard, "keyboard", "auto", t.keyboardModes),
         cycle(t.recordButton, "record", "off", { off: t.off, on: t.on }, () => applyState(state)),
         h("button", { textContent: t.tiles, onclick: () => show(tilesView) })),
@@ -3585,6 +3589,8 @@ function applyState(next) {
   $("now-title").textContent = state.title || "";
   $("now-text").textContent = failed ? say(state.error) : state.status === "loading" ? t.loading : say(state.text) || "";
   $("vol").textContent = state.volume ?? "";
+  $("vol").classList.toggle("off", !!state.muted);
+  $("mute").classList.toggle("on", !!state.muted);
   $("stop").disabled = !state.source;
   $("rec").hidden = pref("record", "off") !== "on" && !state.recording;   // a running recording can always be stopped
   $("rec").disabled = !state.recording && !(["webradio", "dab", "fm", "tuner", "podcast", "music"].includes(state.source) && state.status === "playing");
@@ -3622,6 +3628,7 @@ async function openLink() {
 
 document.documentElement.dataset.theme = pref("theme", "dark");
 document.body.dataset.bar = pref("bar", BAR_DEFAULT);
+document.body.dataset.tiles = pref("tile_size", "medium");
 let loadedVersion = null, ownVersion = "";
 const versionLine = () => `${t.version} ${ownVersion}` + (state.update ? ` · ${state.update} ${t.available}` : "");
 function connect() {
@@ -3655,6 +3662,7 @@ function connect() {
 $("back").onclick = () => { if (!(current.back && current.back())) show(home); };
 $("stop").onclick = () => api("/api/stop", {});
 $("rec").onclick = () => api("/api/record", { on: !state.recording }).catch(() => {});
+$("mute").onclick = () => api("/api/mute", { on: !state.muted }).catch(() => {});
 $("vol-down").onclick = () => api("/api/volume", { value: (state.volume ?? 50) - 5 });
 $("vol-up").onclick = () => api("/api/volume", { value: (state.volume ?? 50) + 5 });
 

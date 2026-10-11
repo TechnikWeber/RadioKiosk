@@ -137,7 +137,7 @@ Die Oberfläche ist standardmäßig englisch und lässt sich in den Einstellunge
 
 Ist in den Einstellungen die Fernbedienung eingeschaltet, können Handys und Rechner im selben Netz die Oberfläche im Browser öffnen. Es gibt keine Anmeldung, nutze das also nur in einem Netz, dem du vertraust.
 
-Der Aufnahmeknopf in der unteren Leiste, einzuschalten unter Einstellungen → *Aufnahmeknopf*, speichert, was gerade läuft, nach `Musik/RadioKiosk`. Bei eingeschalteter Fernbedienung können andere Geräte im Netz außerdem unter `http://<Adresse>:8080/live.mp3` mithören.
+Die untere Leiste hat neben der Lautstärke einen Stumm-Knopf; der Wecker hebt die Stummschaltung auf, damit er trotzdem weckt. Der Aufnahmeknopf in der unteren Leiste, einzuschalten unter Einstellungen → *Aufnahmeknopf*, speichert, was gerade läuft, nach `Musik/RadioKiosk`. Bei eingeschalteter Fernbedienung können andere Geräte im Netz außerdem unter `http://<Adresse>:8080/live.mp3` mithören.
 
 RadioKiosk warnt, wenn ein Raspberry Pi zu wenig Spannung meldet, und startet einen SDR-Stick, der sich am USB aufgehängt hat, selbst neu, statt dich zum Umstecken aufzufordern.
 
