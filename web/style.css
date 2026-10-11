@@ -69,10 +69,18 @@ header {
   min-height: 64px;
   border-bottom: 1px solid var(--line);
 }
-#titles { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+#titles { flex: 0 1 auto; min-width: 0; display: flex; flex-direction: column; }
+/* the room between title and clock: the newest headline or the weather, one line */
+#ticker { flex: 1; min-width: 0; padding: 0 8px; text-align: center; color: var(--muted); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#ticker[hidden] { display: block; visibility: hidden; }   /* keeps the clock at the right edge */
 #version { font-size: 10px; }
 header h1 { margin: 0; font-size: 22px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#clock { color: var(--muted); font-variant-numeric: tabular-nums; }
+#clock { flex: none; display: flex; align-items: center; gap: 10px; color: var(--muted); font-variant-numeric: tabular-nums; }
+#clock-extra { font-size: 15px; }
+#clock-now { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+#clock-time { font-size: 22px; font-weight: 600; color: var(--text); }
+#clock-date { font-size: 12px; white-space: nowrap; }
+@media (max-width: 620px) { #ticker { display: none; } #titles { flex: 1; } }
 
 main { flex: 1; overflow-y: auto; padding: 12px; scrollbar-width: none; }
 
@@ -271,6 +279,8 @@ body:has(.keys) footer, body:has(.keys) #warn, body:has(.keys) #remind { display
 /* idle screen */
 #idle { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; background: #000; color: #c9d1da; text-align: center; }
 #idle[hidden] { display: none; }
+/* with the display switched off for the night nothing is drawn: the touch that wakes it lights it for a moment */
+#idle.blank > * { visibility: hidden; }
 /* isolated: the layers order themselves among each other only, never above the clock of the idle screen */
 .slides { position: absolute; inset: 0; background: #000; overflow: hidden; isolation: isolate; }
 /* two layers, each a picture over its own blurred backdrop; one comes in while the other goes */

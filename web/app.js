@@ -168,6 +168,7 @@ const STRINGS = {
     smartSwitchHint: "A switch calls its address when tapped. For a Home Assistant webhook: http://homeassistant.local:8123/api/webhook/NAME, called with POST. \"Ask before\" suits a garage door.",
     smartFieldHint: "A value shows the answer of its address, asked for again every half minute. Where the answer is JSON, name the value in it, with dots for what lies deeper (state, attributes.temperature). An access token is sent as \"Authorization: Bearer …\", as Home Assistant wants it.",
     alertRead: "Read", alertTone: "Sound for extreme warnings", alertLevels: { minor: "Notice", moderate: "Warning", severe: "Severe warning", extreme: "Extreme warning" },
+    tickerSetting: "Headline or weather in the header",
     hamTiles: "Radio hobby", hamHint: "Aircraft, ships, radio sensors, APRS, propagation, DX cluster, satellites, QSO log, radio survey and the expert receivers. A tile whose program is not installed stays away.",
     mediaSearches: "Kept searches", mediaTitles: "Kept titles", paused: "Paused", mediaKeepSearch: "Keep this search", mediaDating: "date loading …",
     tileSize: "Tiles", bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
@@ -349,6 +350,7 @@ const STRINGS = {
     smartSwitchHint: "Ein Schalter ruft beim Antippen seine Adresse auf. Für einen Webhook von Home Assistant: http://homeassistant.local:8123/api/webhook/NAME, Aufruf mit POST. „Vorher nachfragen“ passt zu einem Garagentor.",
     smartFieldHint: "Ein Wert zeigt die Antwort seiner Adresse und wird jede halbe Minute neu geholt. Ist die Antwort JSON, nenne den Wert darin, mit Punkten für Tieferliegendes (state, attributes.temperature). Ein Zugangs-Token wird als „Authorization: Bearer …“ mitgeschickt, wie Home Assistant es verlangt.",
     alertRead: "Gelesen", alertTone: "Ton bei extremen Warnungen", alertLevels: { minor: "Hinweis", moderate: "Warnung", severe: "Schwere Warnung", extreme: "Extreme Warnung" },
+    tickerSetting: "Schlagzeile oder Wetter in der Kopfzeile",
     hamTiles: "Funk-Hobby", hamHint: "Flugzeuge, Schiffe, Funksensoren, APRS, Funkwetter, DX-Cluster, Satelliten, QSO-Log, Funk-Analyse und die Experten-Empfänger. Eine Kachel, deren Programm nicht installiert ist, bleibt weg.",
     mediaSearches: "Gemerkte Suchen", mediaTitles: "Gemerkte Titel", paused: "Pausiert", mediaKeepSearch: "Suche merken", mediaDating: "Datum lädt …",
     tileSize: "Kacheln", bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
@@ -3676,6 +3678,7 @@ const settings = {
         cycle(t.theme, "theme", "dark", t.themes, () => { document.documentElement.dataset.theme = pref("theme", "dark"); }),
         cycle(t.bar, "bar", BAR_DEFAULT, t.barSizes, () => { document.body.dataset.bar = pref("bar", BAR_DEFAULT); }),
         cycle(t.tileSize, "tile_size", "medium", t.barSizes, () => { document.body.dataset.tiles = pref("tile_size", "medium"); }),
+        cycle(t.tickerSetting, "ticker", "on", { on: t.on, off: t.off }, drawTicker),
         cycle(t.keyboard, "keyboard", "auto", t.keyboardModes),
         cycle(t.recordButton, "record", "off", { off: t.off, on: t.on }, () => applyState(state)),
         h("button", { textContent: t.tiles, onclick: () => show(tilesView) })),
@@ -3907,12 +3910,13 @@ let idleNight = false;
 async function showIdleKind(kind) {
   idleKind = kind;
   idleSince = Date.now();
-  idle.classList.remove("pictures", "news");
+  idle.classList.remove("pictures", "news", "blank");
   idleSlides.stop();
   drawIdle();
   idleNight = nightNow();
   const night = idleNight && kind !== "reminder" ? pref("night", "dim") : "none";
   if (night === "off" || night === "dim") {   // nothing but the clock, dimmed, or no light at all
+    idle.classList.toggle("blank", night === "off");
     dim(night === "off" ? "off" : true);
     return;
   }
@@ -3954,7 +3958,7 @@ function showIdle() {
 }
 function hideIdle() {
   idle.hidden = true;
-  idle.classList.remove("pictures", "news");
+  idle.classList.remove("pictures", "news", "blank");
   idleSlides.stop();
 }
 
@@ -4064,9 +4068,35 @@ const tick = () => {
   const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const left = state.sleep_until ? Math.max(1, Math.round((state.sleep_until - Date.now() / 1000) / 60)) : 0;
   const timer = state.timer && state.timer.until ? `⏱ ${clockTime(state.timer.until - Date.now() / 1000)}` : null;
-  $("clock").textContent = [timer, state.alarm ? `⏰ ${state.alarm}` : null, left ? `☾ ${left} ${t.minutes}` : null, time]
+  $("clock-extra").textContent = [timer, state.alarm ? `⏰ ${state.alarm}` : null, left ? `☾ ${left} ${t.minutes}` : null]
     .filter(Boolean).join(" · ");
+  $("clock-time").textContent = time;
+  $("clock-date").textContent = new Date().toLocaleDateString(lang, { weekday: "short", day: "numeric", month: "short" });
+  drawTicker();
 };
+
+// Between title and clock there is room for one line: the newest headline of the news reader, the
+// weather, or both in turn. It keeps itself up to date and leads to its tile when tapped.
+const TICKER_TURN = 20;   // seconds one of the two stays
+let tickerNews = null, tickerWeather = null, tickerAt = 0;
+function loadTicker() {
+  tickerAt = Date.now();
+  api("/api/feeds").then(d => { tickerNews = d.feeds.length ? d.articles[0] || null : null; drawTicker(); }, () => {});
+  api("/api/weather").then(w => { tickerWeather = { ...w.now, place: w.place }; drawTicker(); }, () => { tickerWeather = null; });
+}
+function drawTicker() {
+  if (pref("ticker", "on") !== "on") { $("ticker").hidden = true; return; }
+  if (Date.now() - tickerAt > 10 * 60e3) loadTicker();
+  const lines = [
+    tickerNews ? [tickerNews.title, news] : null,
+    tickerWeather ? [[tickerWeather.place, `${Math.round(tickerWeather.temperature)}°`, describe(tickerWeather.code)].filter(Boolean).join(" "), weather] : null,
+  ].filter(Boolean);
+  $("ticker").hidden = !lines.length;
+  if (!lines.length) return;
+  const [text, target] = lines[Math.floor(Date.now() / 1000 / TICKER_TURN) % lines.length];
+  $("ticker").textContent = text;
+  $("ticker").onclick = () => show(target);
+}
 
 function applyState(next) {
   const rang = state.timer && state.timer.ringing;
