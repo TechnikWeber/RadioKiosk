@@ -118,6 +118,7 @@ class Media:
         self.kept = load_json("media.json", [])
         self.item = None
         self.watch = None
+        self.retried = None   # id of the title that was already opened a second time
 
     def keep(self, item, on):
         self.kept = [k for k in self.kept if k["id"] != item["id"]]
@@ -126,11 +127,15 @@ class Media:
         self.kept = self.kept[:KEPT]
         save_json("media.json", self.kept)
 
-    async def play(self, item):
+    async def play(self, item, again=False):
         async with self.core.lock:
+            if again and self.item is not item:   # stopped in the meantime
+                return
             await self.core.take(self)
             self._end_watch()
             self.item = item
+            if not again:
+                self.retried = None
             self.core.update(source=self.name, status="loading", title=item["title"], text=item.get("author", ""),
                              error=None, detail={"id": item["id"]})
             self.core.remember("media", item["title"], item=item)
@@ -165,6 +170,14 @@ class Media:
                 continue
             started = True
             self.core.update(detail={"id": item["id"], "position": round(position), "length": round(length or 0)})
+
+    def on_playback_error(self):
+        """The address yt-dlp found is sometimes refused; a second look gets another one. Once per title."""
+        if self.item is None or self.retried == self.item["id"]:
+            return False
+        self.retried = self.item["id"]
+        asyncio.create_task(self.play(self.item, again=True))
+        return True
 
     async def seek(self, seconds):
         if self.core.active is self:
