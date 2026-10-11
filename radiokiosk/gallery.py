@@ -25,8 +25,9 @@ except ImportError:   # without Pillow the pictures go out as they are
 
 KINDS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"}
 # fit: "whole" shows all of a picture, "fill" crops it to the screen, "smart" crops only where little is lost
-DEFAULTS = {"folder": None, "seconds": 15, "shuffle": True, "fit": "whole", "subfolders": True, "effect": "fade"}
+DEFAULTS = {"folder": None, "seconds": 15, "shuffle": True, "fit": "whole", "subfolders": True, "effect": "fade", "pan": "up"}
 FITS = ("whole", "smart", "fill")
+PANS = ("up", "down", "off")   # a picture cropped to the screen travels from its lower end to its upper, or the other way
 EFFECTS = ("fade", "slide", "flip", "zoom", "mix")   # how one picture gives way to the next; "mix" takes them in turn
 DEMO = WEB_DIR.parent / "demo-pictures"   # shown until a folder is chosen
 SECONDS = (5, 10, 15, 30, 60, 300)
@@ -174,6 +175,8 @@ class Gallery:
         if key in ("shuffle", "subfolders") and isinstance(value, bool):
             return value
         if key == "fit" and value in FITS:
+            return value
+        if key == "pan" and value in PANS:
             return value
         if key == "effect" and value in EFFECTS:
             return value

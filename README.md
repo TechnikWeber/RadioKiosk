@@ -15,7 +15,7 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 | ![Idle screen with the gallery behind the clock](docs/screenshots/idle.png) | ![On the air: the DX cluster](docs/screenshots/spots.png) |
 | ![Propagation: solar figures and band conditions](docs/screenshots/propagation.png) | ![Report of a radio survey](docs/screenshots/survey.png) |
 
-> Version 0.21: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
+> Version 0.22: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
 
 ## Install
 
@@ -97,7 +97,7 @@ A small Python service controls the receivers and serves a web interface that a 
 | Timer | kitchen timer that also rings over the station that is playing, and a stopwatch | `mpv` |
 | Notes | write short notes, pin, change and delete them; all of them can be saved as one text file | – |
 | Reminders | a reminder for a day, with a time of day and a repeat (daily to yearly) if wanted; it stays as a bar on every screen and on the idle screen until it is acknowledged or put off | `mpv` for the tone |
-| Gallery | slide show from a folder, on its own through the tile or behind the clock on the idle screen; with or without subfolders, pictures whole (a blurred copy of the picture then fills the free edges instead of black bars), slightly zoomed or filling the screen; the change from one picture to the next fades, wipes, turns the page or zooms, as set; pictures can be added and deleted in the interface, also from a phone or computer by remote control | Pillow |
+| Gallery | slide show from a folder, on its own through the tile or behind the clock on the idle screen; with or without subfolders, pictures whole (a blurred copy of the picture then fills the free edges instead of black bars), slightly zoomed or filling the screen; the change from one picture to the next fades, wipes, turns the page or zooms, as set; a picture cropped to the screen pans slowly from one end to the other; pictures can be added and deleted in the interface, also from a phone or computer by remote control | Pillow |
 | SDR++ | the full SDR program for everything else | started as a normal program |
 | Settings | language, light or dark design, audio output, sleep timer, idle screen, size of the bottom bar, on-screen keyboard, location, remote control, receiver backend | PipeWire or PulseAudio |
 | Device | screen brightness, Wi-Fi, Wi-Fi power saving on/off, update, restart and shut down, AirPlay and Spotify Connect receivers | NetworkManager, systemd, `shairport-sync`, `librespot` |
@@ -137,7 +137,7 @@ The interface is English by default and can be switched to German under Settings
 
 With remote control switched on under Settings, phones and computers in the same network can open the interface in a browser. There is no login, so use it only in a network you trust.
 
-The record button in the bottom bar saves what is playing to `Music/RadioKiosk`. With remote control on, other devices in the network can also listen along at `http://<address>:8080/live.mp3`.
+The record button in the bottom bar, switched on under Settings → *Record button*, saves what is playing to `Music/RadioKiosk`. With remote control on, other devices in the network can also listen along at `http://<address>:8080/live.mp3`.
 
 RadioKiosk warns when a Raspberry Pi reports too little voltage, and it restarts an SDR stick that has hung on the USB bus instead of asking you to replug it.
 

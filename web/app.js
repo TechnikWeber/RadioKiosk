@@ -58,7 +58,7 @@ const STRINGS = {
     scanChannels: "Scan", stopScan: "Stop scan", onAir: "Scheduled to be on the air now, within ±250 kHz (EiBi list)", onNow: "on now", daily: "daily",
     broadcastGroups: { german: "In German", english: "In English for Europe", others: "Other languages for Europe" },
     broadcastsHint: "From the current EiBi schedule, your local time. Stations on the air right now come first; whether they can be heard depends on antenna and conditions.",
-    record: "Record", recordingTo: "Recording to Music/RadioKiosk",
+    record: "Record", recordButton: "Record button", recordingTo: "Recording to Music/RadioKiosk",
     warn: { undervoltage: "The power supply is too weak: reception suffers and the SDR stick may hang.",
       autostop: "Playback was stopped because nobody had operated the radio for a long time (see Settings)." },
     adsb: "Aircraft", adsbSub: "Live map (ADS-B)", aircraftSeen: "aircraft received", withPosition: "with position",
@@ -98,6 +98,7 @@ const STRINGS = {
     idleContentsHint: "Switch on what the idle screen is to show. With more than one it changes between them. The clock alone is black and dims the display; everything else keeps it bright.",
     idleRotate: "Changes every",
     galleryFit: "Pictures", galleryFits: { whole: "whole picture", smart: "zoom slightly", fill: "fill the screen" },
+    galleryPan: "Pan over cropped pictures", galleryPans: { up: "from the bottom up", down: "from the top down", off: "off" },
     galleryEffect: "Change", galleryEffects: { fade: "fade", slide: "wipe", flip: "turn the page", zoom: "zoom in", mix: "in turn" },
     subfoldersToo: "Subfolders", demoPictures: "Demo pictures (no folder of your own chosen yet)",
     sectionPlayback: "Playback", sectionDisplay: "Display", sectionContent: "Content", sectionReception: "Reception",
@@ -217,7 +218,7 @@ const STRINGS = {
     scanChannels: "Suchlauf", stopScan: "Suchlauf stoppen", onAir: "Laut Sendeplan jetzt auf Sendung, im Umkreis von ±250 kHz (EiBi-Liste)", onNow: "jetzt", daily: "täglich",
     broadcastGroups: { german: "Auf Deutsch", english: "Auf Englisch für Europa", others: "Andere Sprachen für Europa" },
     broadcastsHint: "Aus dem aktuellen EiBi-Sendeplan, in deiner Ortszeit. Sender, die gerade senden, stehen oben; ob man sie hört, hängt von Antenne und Ausbreitung ab.",
-    record: "Aufnehmen", recordingTo: "Aufnahme läuft nach Musik/RadioKiosk",
+    record: "Aufnehmen", recordButton: "Aufnahmeknopf", recordingTo: "Aufnahme läuft nach Musik/RadioKiosk",
     warn: { undervoltage: "Das Netzteil ist zu schwach: Der Empfang leidet und der SDR-Stick kann sich aufhängen.",
       autostop: "Die Wiedergabe wurde gestoppt, weil das Radio lange nicht bedient wurde (siehe Einstellungen)." },
     adsb: "Flugzeuge", adsbSub: "Live-Karte (ADS-B)", aircraftSeen: "Flugzeuge empfangen", withPosition: "mit Position",
@@ -257,6 +258,7 @@ const STRINGS = {
     idleContentsHint: "Schalte ein, was der Ruhebildschirm zeigen soll. Bei mehr als einem wechselt er zwischen ihnen. Die Uhr allein ist schwarz und dunkelt das Display ab; alles andere lässt es hell.",
     idleRotate: "Wechsel alle",
     galleryFit: "Bilder", galleryFits: { whole: "ganzes Bild", smart: "leicht zoomen", fill: "Bildschirm füllen" },
+    galleryPan: "Schwenk über beschnittene Bilder", galleryPans: { up: "von unten nach oben", down: "von oben nach unten", off: "aus" },
     galleryEffect: "Übergang", galleryEffects: { fade: "überblenden", slide: "wischen", flip: "blättern", zoom: "heranzoomen", mix: "abwechselnd" },
     subfoldersToo: "Unterordner", demoPictures: "Demobilder (noch kein eigener Ordner gewählt)",
     sectionPlayback: "Wiedergabe", sectionDisplay: "Anzeige", sectionContent: "Inhalte", sectionReception: "Empfang",
@@ -2987,15 +2989,26 @@ function slideShow() {
       const shape = picture.naturalWidth / picture.naturalHeight, screen = el.clientWidth / el.clientHeight;
       const little = Math.min(shape, screen) / Math.max(shape, screen) > 0.85;
       const cover = galleryInfo.fit === "fill" || (galleryInfo.fit === "smart" && little);
+      picture.getAnimations().forEach(running => running.cancel());
+      picture.style.cssText = "";
       picture.style.objectFit = cover ? "cover" : "contain";
       back.hidden = cover;
+      // A picture taller than the screen travels from one end to the other while it is shown, so all of
+      // it is seen. It gets its full size and is moved, which the graphics chip does without redrawing.
+      const height = el.clientWidth / shape, travel = el.clientHeight - height;
+      if (cover && galleryInfo.pan !== "off" && travel < -2) {
+        Object.assign(picture.style, { height: `${height}px`, objectFit: "fill" });
+        const ends = [`translateY(${travel}px)`, "translateY(0)"];   // first the lower end, then the upper
+        if (galleryInfo.pan === "down") ends.reverse();
+        picture.animate({ transform: ends }, { duration: (galleryInfo.seconds + 1.5) * 1000, easing: "ease-in-out", fill: "both" });
+      }
       // the very first picture fades in whatever is set: there is nothing yet to wipe or turn away
       const effect = !turns ? "fade" : galleryInfo.effect === "mix" ? SLIDE_EFFECTS[turns % SLIDE_EFFECTS.length]
         : SLIDE_EFFECTS.includes(galleryInfo.effect) ? galleryInfo.effect : "fade";
       turns++;
       el.classList.toggle("backwards", step < 0);
-      el.children[front].className = `out ${effect}`;
-      next.className = `in ${effect}`;
+      el.children[front].className = `out by-${effect}`;
+      next.className = `in by-${effect}`;
       front = 1 - front;
     };
     picture.onerror = () => later(1);   // unreadable picture: on to the next one
@@ -3082,6 +3095,10 @@ const gallerySettings = {
         h("button", { textContent: `${t.galleryFit}: ${t.galleryFits[g.fit]}`, onclick: () => {
           const fits = Object.keys(t.galleryFits);
           set("fit", fits[(fits.indexOf(g.fit) + 1) % fits.length]);
+        } }),
+        h("button", { textContent: `${t.galleryPan}: ${t.galleryPans[g.pan]}`, onclick: () => {
+          const pans = Object.keys(t.galleryPans);
+          set("pan", pans[(pans.indexOf(g.pan) + 1) % pans.length]);
         } }),
         h("button", { textContent: `${t.galleryEffect}: ${t.galleryEffects[g.effect]}`, onclick: () => {
           const effects = Object.keys(t.galleryEffects);
@@ -3215,6 +3232,7 @@ const settings = {
         cycle(t.theme, "theme", "dark", t.themes, () => { document.documentElement.dataset.theme = pref("theme", "dark"); }),
         cycle(t.bar, "bar", BAR_DEFAULT, t.barSizes, () => { document.body.dataset.bar = pref("bar", BAR_DEFAULT); }),
         cycle(t.keyboard, "keyboard", "auto", t.keyboardModes),
+        cycle(t.recordButton, "record", "off", { off: t.off, on: t.on }, () => applyState(state)),
         h("button", { textContent: t.tiles, onclick: () => show(tilesView) })),
 
       ...section(t.idle,
@@ -3561,6 +3579,7 @@ function applyState(next) {
   $("now-text").textContent = failed ? say(state.error) : state.status === "loading" ? t.loading : say(state.text) || "";
   $("vol").textContent = state.volume ?? "";
   $("stop").disabled = !state.source;
+  $("rec").hidden = pref("record", "off") !== "on" && !state.recording;   // a running recording can always be stopped
   $("rec").disabled = !state.recording && !(["webradio", "dab", "fm", "tuner", "podcast", "music"].includes(state.source) && state.status === "playing");
   $("rec").classList.toggle("on", !!state.recording);
   if (state.recording && !failed) $("now-text").textContent = `● ${t.recordingTo}`;

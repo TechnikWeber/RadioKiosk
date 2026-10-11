@@ -30,7 +30,7 @@ class GalleryTest(unittest.TestCase):
         gallery = Gallery({})
         self.assertEqual(gallery.check("folder", str(self.folder)), str(self.folder))
         for key, value in (("folder", "/no/such/folder"), ("seconds", 7), ("shuffle", "yes"), ("fit", "stretch"),
-                           ("effect", "explode")):
+                           ("effect", "explode"), ("pan", "left")):
             with self.assertRaises(ValueError):
                 gallery.check(key, value)
 

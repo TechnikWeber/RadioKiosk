@@ -15,7 +15,7 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 | ![Ruhebildschirm mit der Galerie hinter der Uhr](docs/screenshots/idle.png) | ![Funkaktivität: der DX-Cluster](docs/screenshots/spots.png) |
 | ![Funkwetter: Sonnenwerte und Bandbedingungen](docs/screenshots/propagation.png) | ![Bericht einer Funk-Analyse](docs/screenshots/survey.png) |
 
-> Version 0.21: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
+> Version 0.22: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
 
 ## Installation
 
@@ -97,7 +97,7 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Timer | Kurzzeitwecker, der auch über dem laufenden Sender klingelt, und Stoppuhr | `mpv` |
 | Notizen | kurze Notizen schreiben, anheften, ändern und löschen; alle zusammen lassen sich als Textdatei sichern | – |
 | Erinnerungen | Erinnerung für einen Tag, auf Wunsch mit Uhrzeit und Wiederholung (täglich bis jährlich); sie bleibt als Leiste auf jedem Bildschirm und im Ruhebildschirm stehen, bis sie quittiert oder verschoben wird | `mpv` für den Hinweiston |
-| Galerie | Diashow aus einem Ordner, pur über die Kachel oder im Ruhebildschirm hinter der Uhr; mit oder ohne Unterordner, Bilder ganz (die freien Ränder füllt dann das Bild selbst, unscharf und abgedunkelt, statt schwarzer Balken), leicht gezoomt oder bildschirmfüllend; der Wechsel zum nächsten Bild als Überblenden, Wischen, Blättern oder Heranzoomen einstellbar; Bilder lassen sich in der Oberfläche hinzufügen und löschen, auch vom Handy oder PC über die Fernbedienung | Pillow |
+| Galerie | Diashow aus einem Ordner, pur über die Kachel oder im Ruhebildschirm hinter der Uhr; mit oder ohne Unterordner, Bilder ganz (die freien Ränder füllt dann das Bild selbst, unscharf und abgedunkelt, statt schwarzer Balken), leicht gezoomt oder bildschirmfüllend; der Wechsel zum nächsten Bild als Überblenden, Wischen, Blättern oder Heranzoomen einstellbar; ein auf den Bildschirm beschnittenes Bild schwenkt langsam von einem Ende zum anderen; Bilder lassen sich in der Oberfläche hinzufügen und löschen, auch vom Handy oder PC über die Fernbedienung | Pillow |
 | SDR++ | das vollwertige SDR-Programm für alles Weitere | startet als normales Programm |
 | Einstellungen | Sprache, helles oder dunkles Design, Tonausgabe, Sleep-Timer, Ruhebildschirm, Größe der unteren Leiste, Bildschirmtastatur, Standort, Fernbedienung, Empfangsart | PipeWire oder PulseAudio |
 | Gerät | Bildschirmhelligkeit, WLAN, WLAN-Stromsparen ein/aus, Aktualisieren, Neustart und Ausschalten, AirPlay- und Spotify-Connect-Empfänger | NetworkManager, systemd, `shairport-sync`, `librespot` |
@@ -137,7 +137,7 @@ Die Oberfläche ist standardmäßig englisch und lässt sich in den Einstellunge
 
 Ist in den Einstellungen die Fernbedienung eingeschaltet, können Handys und Rechner im selben Netz die Oberfläche im Browser öffnen. Es gibt keine Anmeldung, nutze das also nur in einem Netz, dem du vertraust.
 
-Der Aufnahmeknopf in der unteren Leiste speichert, was gerade läuft, nach `Musik/RadioKiosk`. Bei eingeschalteter Fernbedienung können andere Geräte im Netz außerdem unter `http://<Adresse>:8080/live.mp3` mithören.
+Der Aufnahmeknopf in der unteren Leiste, einzuschalten unter Einstellungen → *Aufnahmeknopf*, speichert, was gerade läuft, nach `Musik/RadioKiosk`. Bei eingeschalteter Fernbedienung können andere Geräte im Netz außerdem unter `http://<Adresse>:8080/live.mp3` mithören.
 
 RadioKiosk warnt, wenn ein Raspberry Pi zu wenig Spannung meldet, und startet einen SDR-Stick, der sich am USB aufgehängt hat, selbst neu, statt dich zum Umstecken aufzufordern.
 
