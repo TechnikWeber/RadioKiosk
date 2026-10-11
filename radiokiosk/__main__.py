@@ -342,7 +342,6 @@ def build(cfg):
                                   "podcast_provider": cfg["podcast_provider"],
                                   "podcast_key": cfg["podcast_key"], "podcast_secret": cfg["podcast_secret"],
                                   "callsign": cfg["callsign"], "swl": cfg["swl"], "alerts": cfg["alerts"],
-                                  "online_media": cfg["online_media"],
                                   "music_folder": str(music.root()),
                                   "version": __version__, "build": BUILD, "tone": cfg["tone"], "tones": list(tones.TONES),
                                   "autostop_hours": cfg["autostop_hours"], "autostop_at": cfg["autostop_at"], "stream": network_audio.can_stream(),
@@ -396,14 +395,13 @@ def build(cfg):
             save_setting(cfg, body["key"], body["value"].strip())
             return ok()
         allowed = {"fm_backend": CHOICES, "tuner_backend": CHOICES, "remote": (True, False),
-                   "idle_rotate": (1, 2, 5, 10, 15, 30, 60), "podcast_provider": PROVIDERS, "swl": (True, False),
-                   "online_media": (True, False)}
+                   "idle_rotate": (1, 2, 5, 10, 15, 30, 60), "podcast_provider": PROVIDERS, "swl": (True, False)}
         if body["value"] not in allowed.get(body["key"], ()):
             raise ValueError("unknown setting")
         if body["key"].endswith("_backend"):
             await core.stop()
         save_setting(cfg, body["key"], body["value"])
-        if body["key"] in ("idle_rotate", "online_media"):
+        if body["key"] == "idle_rotate":
             await core._broadcast()   # every open interface learns what its idle screen shows now
         return ok()
 
@@ -485,6 +483,11 @@ def build(cfg):
     @routes.get("/api/audio")
     async def audio_list(request):
         return web.json_response(await audio.sinks())
+
+    @routes.post("/api/audio/test")
+    async def audio_test(request):
+        await tones.test((await request.json())["side"])
+        return ok()
 
     @routes.post("/api/audio")
     async def audio_select(request):
@@ -627,7 +630,7 @@ def build(cfg):
 
     @routes.get("/api/media/search")
     async def media_search(request):
-        return web.json_response(await online_media.search(request.query.get("q", "")))
+        return web.json_response(await online_media.search(request.query.get("q", ""), request.query.get("lang", "en")))
 
     @routes.post("/api/media/{action}")
     async def media_do(request):
@@ -887,6 +890,7 @@ def build(cfg):
         app["playing"] = asyncio.create_task(core.watch_playing())
         app["alerts"] = asyncio.create_task(alerts.run())
         app["updater"] = asyncio.create_task(updater.run())
+        app["media_fresh"] = asyncio.create_task(online_media.keep_fresh())
         app["reminders"] = asyncio.create_task(reminders.run())
         await receivers.start_enabled()
         core.update(alarm=alarm.data["time"] if alarm.data["enabled"] else None)
@@ -899,6 +903,7 @@ def build(cfg):
         app["alerts"].cancel()
         app["updater"].cancel()
         app["reminders"].cancel()
+        app["media_fresh"].cancel()
         await receivers.close()
         if bt.pairing:
             await bt.set_visible(False)

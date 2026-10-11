@@ -1,6 +1,6 @@
-"""Experimental: sound from what yt-dlp can find and open, played through mpv.
+"""Sound from what yt-dlp can find and open, played through mpv.
 
-Off unless switched on in the settings. yt-dlp is not part of RadioKiosk: it is used
+yt-dlp is not part of RadioKiosk: it is used
 where the system has it, or fetched on request as the project's own single file into
 the configuration folder, where it can also be renewed. The sites it reads change
 often, so an old yt-dlp is the usual reason for this to stop working.
@@ -12,6 +12,7 @@ import os
 import shutil
 import stat
 import sys
+import time
 
 import aiohttp
 
@@ -24,6 +25,8 @@ SEARCH_TIMEOUT = 45
 OPEN_TIMEOUT = 60     # a small computer needs a good ten seconds to find the stream of one title
 KEPT = 100
 WATCH_EVERY = 5
+RENEW_AFTER = 7 * 86400   # a fetched yt-dlp older than this is replaced by the newest
+LOOK_EVERY = 6 * 3600
 
 
 def program():
@@ -85,6 +88,18 @@ async def fetch():
     return out.decode().strip()
 
 
+async def keep_fresh():
+    """Renew a fetched yt-dlp once a week. One that came with the system is the system's business."""
+    while True:
+        await asyncio.sleep(600)   # not while the computer is still starting
+        try:
+            if OWN.exists() and time.time() - OWN.stat().st_mtime > RENEW_AFTER:
+                await fetch()
+        except (RuntimeError, OSError):
+            pass   # no connection just now: the next look comes
+        await asyncio.sleep(LOOK_EVERY)
+
+
 def entry(raw):
     """One title as the interface lists it; None for what cannot be played (a channel, a deleted title)."""
     address = raw.get("webpage_url") or raw.get("url")
@@ -92,22 +107,37 @@ def entry(raw):
         return None
     return {"id": str(raw.get("id") or address), "title": raw["title"], "url": address,
             "author": raw.get("channel") or raw.get("uploader") or "", "seconds": int(raw.get("duration") or 0),
+            "date": int(raw.get("timestamp") or raw.get("release_timestamp") or 0),
             "live": bool(raw.get("is_live") or raw.get("live_status") == "is_live")}
 
 
-async def search(query):
-    """Titles for some words, or what lies behind an address: one title or the titles of a list."""
-    query = query.strip()
-    if not query:
-        return []
-    target = query if query.startswith(("http://", "https://")) else f"ytsearch{RESULTS}:{query}"
-    out = await call("--flat-playlist", "--dump-single-json", "--playlist-end", "50", target, timeout=SEARCH_TIMEOUT)
+async def listing(target, *arguments):
+    out = await call("--flat-playlist", "--dump-single-json", "--playlist-end", "50", *arguments, target, timeout=SEARCH_TIMEOUT)
     try:
         data = json.loads(out)
     except ValueError:
         raise RuntimeError("yt-dlp failed: no usable answer")
     rows = data.get("entries") if isinstance(data.get("entries"), list) else [data]
     return [e for e in (entry(r) for r in rows if isinstance(r, dict)) if e]
+
+
+async def search(query, language="en"):
+    """Titles for some words, or what lies behind an address: one title or the titles of a list."""
+    query = query.strip()
+    if not query:
+        return []
+    target = query if query.startswith(("http://", "https://")) else f"ytsearch{RESULTS}:{query}"
+    language = language if language.isalpha() and len(language) == 2 else "en"
+    # A list tells when a title appeared only roughly ("3 days ago"), and yt-dlp can read that only in
+    # English, where the titles come translated. So it is asked twice at once: for the titles in the
+    # user's language, and for the dates, which are left out if that second answer fails.
+    titles, dates = await asyncio.gather(
+        listing(target, "--extractor-args", f"youtube:lang={language}"),
+        listing(target, "--extractor-args", "youtubetab:approximate_date"), return_exceptions=True)
+    if isinstance(titles, BaseException):
+        raise titles
+    when = {e["id"]: e["date"] for e in dates} if isinstance(dates, list) else {}
+    return [{**e, "date": e["date"] or when.get(e["id"], 0)} for e in titles]
 
 
 class Media:
@@ -123,7 +153,7 @@ class Media:
     def keep(self, item, on):
         self.kept = [k for k in self.kept if k["id"] != item["id"]]
         if on:
-            self.kept.insert(0, {k: item.get(k, "") for k in ("id", "title", "url", "author", "seconds", "live")})
+            self.kept.insert(0, {k: item.get(k, "") for k in ("id", "title", "url", "author", "seconds", "live", "date")})
         self.kept = self.kept[:KEPT]
         save_json("media.json", self.kept)
 

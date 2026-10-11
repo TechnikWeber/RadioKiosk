@@ -62,7 +62,6 @@ class Core:
         return {
             "mpv": Mpv.available(),
             "power": self.can_power_off,
-            "media": bool(self.cfg["online_media"]),
             "sdr": sdr,
             "dab": shutil.which("welle-cli") is not None,
             "fm": any(self.receiver_backends.values()),

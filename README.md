@@ -38,6 +38,8 @@ Add `--kiosk` to open the interface full screen after every login, `--rotate=180
 curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --with-sdrangel
 ```
 
+With `--kiosk` the installer also lets the system install its security updates by itself (`unattended-upgrades` on Debian-based systems, `dnf-automatic` on Fedora; security updates only, no automatic restart). `--no-security-updates` leaves that out, `--security-updates` switches it on without `--kiosk`.
+
 Programs your distribution does not package are skipped; their tiles stay disabled or hidden and everything else works.
 
 ## Raspberry Pi
@@ -83,6 +85,7 @@ A small Python service controls the receivers and serves a web interface that a 
 | Podcasts | search, subscriptions, episode list, skipping back and forth; remembers how far an episode has been heard | fyyd, Apple Podcasts or Podcast Index, `mpv` |
 | Music | your own collection from a folder, USB stick or mounted network folder: browse folders, play everything or shuffled | `mpv` |
 | Audiobooks | public domain audiobooks from LibriVox, with a search; a book continues where it stopped | Internet Archive, `mpv` |
+| Online media | titles found and opened by yt-dlp, by search words or an address, played as sound; titles can be kept | `yt-dlp` (fetched by the installer or from the settings, renewed weekly), `mpv` |
 | News | RSS and Atom feeds as a list of the newest articles that refreshes itself | own feed reader |
 | Sensors | wireless thermometers, weather stations and other sensors nearby on 433 MHz | `rtl_433` |
 | Ships | live map and list of the ships nearby (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |

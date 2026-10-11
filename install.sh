@@ -7,6 +7,8 @@
 #   --kiosk           open the interface full screen after every login
 #   --rotate=DEGREES  turn the screen by 90, 180 or 270 degrees (Raspberry Pi OS desktop)
 #   --with-sdrangel   also install SDRangel as an additional expert receiver
+#   --security-updates     let the system install its security updates by itself (the default with --kiosk)
+#   --no-security-updates  leave the system's updates alone, also with --kiosk
 #
 # Run it as your normal user; it asks for sudo when it installs packages.
 set -euo pipefail
@@ -16,11 +18,14 @@ DIR="${RADIOKIOSK_DIR:-$HOME/.local/share/radiokiosk}"
 WITH_SDRANGEL=0
 KIOSK=0
 ROTATE=""
+SECURITY=""
 for arg in "$@"; do
   case "$arg" in
     --kiosk) KIOSK=1 ;;
     --rotate=90|--rotate=180|--rotate=270) ROTATE="${arg#--rotate=}" ;;
     --with-sdrangel) WITH_SDRANGEL=1 ;;
+    --security-updates) SECURITY=1 ;;
+    --no-security-updates) SECURITY=0 ;;
     *) echo "Unknown option: $arg" >&2; exit 2 ;;
   esac
 done
@@ -125,6 +130,52 @@ UNIT
 systemctl --user daemon-reload
 systemctl --user enable radiokiosk.service
 systemctl --user restart radiokiosk.service
+
+# The Online media tile works through yt-dlp. The packaged one is usually too old for the sites
+# it reads, so the project's own single file goes into RadioKiosk's folder, where the settings
+# can renew it and RadioKiosk renews it once a week.
+YTDLP="${XDG_CONFIG_HOME:-$HOME/.config}/radiokiosk/bin/yt-dlp"
+if [ ! -e "$YTDLP" ]; then
+  say "Fetching yt-dlp for the Online media tile"
+  mkdir -p "$(dirname "$YTDLP")"
+  if curl -fsSL -o "$YTDLP.part" https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
+      && python3 "$YTDLP.part" --version >/dev/null 2>&1; then
+    chmod +x "$YTDLP.part" && mv "$YTDLP.part" "$YTDLP"
+  else
+    rm -f "$YTDLP.part"
+    warn "yt-dlp could not be fetched; the Online media tile offers to fetch it later."
+  fi
+fi
+
+# A device that stands somewhere as a radio is not looked after like a desktop computer, so with
+# --kiosk the system installs its security updates by itself: only those, and without restarting.
+# RadioKiosk itself is updated by its own update button and at night.
+[ -z "$SECURITY" ] && SECURITY="$KIOSK"
+if [ "$SECURITY" -eq 1 ]; then
+  say "Letting the system install its security updates by itself"
+  if command -v apt-get >/dev/null; then
+    # Debian's own setup of this package takes security updates only
+    if install unattended-upgrades; then
+      printf 'APT::Periodic::Update-Package-Lists "1";\nAPT::Periodic::Unattended-Upgrade "1";\n' \
+        | sudo tee /etc/apt/apt.conf.d/20auto-upgrades >/dev/null
+    else
+      warn "unattended-upgrades could not be installed; security updates stay manual."
+    fi
+  else
+    if install dnf5-plugin-automatic 2>/dev/null || install dnf-automatic; then
+      if [ ! -e /etc/dnf/automatic.conf ]; then
+        printf '[commands]\nupgrade_type = security\napply_updates = yes\nreboot = never\n' \
+          | sudo tee /etc/dnf/automatic.conf >/dev/null
+      else
+        warn "/etc/dnf/automatic.conf exists already and was left as it is."
+      fi
+      sudo systemctl enable --now dnf5-automatic.timer 2>/dev/null || sudo systemctl enable --now dnf-automatic.timer \
+        || warn "the timer for automatic updates could not be switched on."
+    else
+      warn "dnf-automatic could not be installed; security updates stay manual."
+    fi
+  fi
+fi
 
 # Date, time and time zone can be corrected in the settings. The system asks polkit before it
 # lets anybody touch the clock; this rule answers yes for the user the service runs as.

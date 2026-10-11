@@ -35,3 +35,20 @@ async def play(name, seconds):
                            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
     except OSError:
         return None
+
+
+SIDES = {"left": "{0}|0", "right": "0|{0}", "both": "{0}|{0}"}
+TEST = "0.5*sin(2*PI*440*t)*lt(mod(t,0.5),0.32)"   # four short strokes of a plain 440 Hz
+TEST_FOR = 2
+
+
+async def test(side):
+    """A short tone from the left loudspeaker, the right one or both, to check the wiring of the output."""
+    if side not in SIDES:
+        raise ValueError("unknown setting")
+    if not shutil.which("mpv"):
+        raise RuntimeError("mpv is not installed")
+    channels = SIDES[side].format(TEST)
+    return await spawn("mpv", "--no-video", "--no-terminal", "--no-config",
+                       f"av://lavfi:aevalsrc=exprs='{channels}':c=stereo:s=44100:d={TEST_FOR}",
+                       stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)

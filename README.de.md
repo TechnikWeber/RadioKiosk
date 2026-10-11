@@ -38,6 +38,8 @@ Mit `--kiosk` öffnet sich die Oberfläche nach jeder Anmeldung im Vollbild, `--
 curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --with-sdrangel
 ```
 
+Mit `--kiosk` lässt der Installer das System außerdem seine Sicherheitsupdates selbst einspielen (`unattended-upgrades` auf Debian-artigen Systemen, `dnf-automatic` auf Fedora; nur Sicherheitsupdates, kein automatischer Neustart). `--no-security-updates` lässt das weg, `--security-updates` schaltet es ohne `--kiosk` ein.
+
 Programme, die deine Distribution nicht als Paket anbietet, werden übersprungen; ihre Kacheln bleiben deaktiviert oder unsichtbar, alles andere funktioniert.
 
 ## Raspberry Pi
@@ -83,6 +85,7 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Podcasts | Suche, Abos, Folgenliste, Vor- und Zurückspringen; merkt sich, wie weit eine Folge gehört ist | fyyd, Apple Podcasts oder Podcast Index, `mpv` |
 | Musik | die eigene Sammlung aus einem Ordner, USB-Stick oder eingebundenen Netzwerkordner: Ordner durchblättern, alles oder zufällig abspielen | `mpv` |
 | Hörbücher | gemeinfreie Hörbücher von LibriVox, mit Suche; ein Buch geht dort weiter, wo es aufgehört hat | Internet Archive, `mpv` |
+| Online-Medien | Titel, die yt-dlp findet und öffnet, über Suchwörter oder eine Adresse, als Ton gespielt; Titel lassen sich merken | `yt-dlp` (holt der Installer oder die Einstellungen, wöchentlich erneuert), `mpv` |
 | Nachrichten | RSS- und Atom-Feeds als Liste der neuesten Artikel, aktualisiert sich selbst | eigener Feed-Leser |
 | Funksensoren | Funk-Thermometer, Wetterstationen und andere Sensoren der Umgebung auf 433 MHz | `rtl_433` |
 | Schiffe | Live-Karte und Liste der Schiffe in der Umgebung (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |
