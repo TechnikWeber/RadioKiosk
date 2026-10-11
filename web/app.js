@@ -4094,8 +4094,15 @@ function drawTicker() {
   $("ticker").hidden = !lines.length;
   if (!lines.length) return;
   const [text, target] = lines[Math.floor(Date.now() / 1000 / TICKER_TURN) % lines.length];
-  $("ticker").textContent = text;
   $("ticker").onclick = () => show(target);
+  const shown = $("ticker").querySelector("span:not(.out)");
+  if (shown && shown.textContent === text) return;
+  if (shown) {
+    shown.className = "out";
+    shown.onanimationend = () => shown.remove();
+    setTimeout(() => shown.remove(), 1000);   // where animations are switched off nothing ever ends
+  }
+  $("ticker").append(h("span", { className: shown ? "in" : "", textContent: text }));
 }
 
 function applyState(next) {
