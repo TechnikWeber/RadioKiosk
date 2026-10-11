@@ -89,7 +89,7 @@ class Core:
     def snapshot(self):
         backends = {name: self.sources[name].backend_id() for name in ("fm", "tuner") if name in self.sources}
         return {**self.state, "caps": self.caps(), "backends": backends, "idle_contents": self.cfg["idle_contents"] or [self.cfg["idle_content"]], "idle_rotate": self.cfg["idle_rotate"],
-                "hidden_tiles": self.cfg["hidden_tiles"]}
+                "hidden_tiles": self.cfg["hidden_tiles"], "ham": self.cfg["ham"]}
 
     def update(self, **changes):
         if all(self.state.get(k) == v for k, v in changes.items()):

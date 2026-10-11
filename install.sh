@@ -6,7 +6,9 @@
 # Options (append after "bash -s --" when piping):
 #   --kiosk           open the interface full screen after every login
 #   --rotate=DEGREES  turn the screen by 90, 180 or 270 degrees (Raspberry Pi OS desktop)
-#   --with-sdrangel   also install SDRangel as an additional expert receiver
+#   --ham             also install the programs of the radio hobby (aircraft, ships, radio sensors,
+#                     APRS, satellites, SDR++) and show their tiles
+#   --with-sdrangel   also install SDRangel as an additional expert receiver (with --ham)
 #   --security-updates     let the system install its security updates by itself (the default with --kiosk)
 #   --no-security-updates  leave the system's updates alone, also with --kiosk
 #
@@ -19,11 +21,15 @@ WITH_SDRANGEL=0
 KIOSK=0
 ROTATE=""
 SECURITY=""
+HAM=0
+FRESH=1
+[ -d "$DIR/.git" ] && FRESH=0
 for arg in "$@"; do
   case "$arg" in
     --kiosk) KIOSK=1 ;;
     --rotate=90|--rotate=180|--rotate=270) ROTATE="${arg#--rotate=}" ;;
-    --with-sdrangel) WITH_SDRANGEL=1 ;;
+    --ham) HAM=1 ;;
+    --with-sdrangel) WITH_SDRANGEL=1; HAM=1 ;;
     --security-updates) SECURITY=1 ;;
     --no-security-updates) SECURITY=0 ;;
     *) echo "Unknown option: $arg" >&2; exit 2 ;;
@@ -44,17 +50,21 @@ if command -v apt-get >/dev/null; then
   install() { sudo apt-get install -y "$@"; }
   sudo apt-get update
   REQUIRED=(git python3 python3-aiohttp python3-numpy mpv rtl-sdr pulseaudio-utils bluez)
-  OPTIONAL=(welle.io readsb sdrpp shairport-sync python3-pil rtl-433 rtl-ais python3-sgp4 direwolf)
+  OPTIONAL=(welle.io shairport-sync python3-pil)
+  HOBBY=(readsb sdrpp rtl-433 rtl-ais python3-sgp4 direwolf)
   FFMPEG=ffmpeg
 elif command -v dnf >/dev/null; then
   install() { sudo dnf install -y "$@"; }
   REQUIRED=(git python3 python3-aiohttp python3-numpy mpv rtl-sdr pulseaudio-utils bluez)
-  OPTIONAL=(welle-io sdrpp dump1090 shairport-sync python3-pillow rtl-433 python3-sgp4 direwolf)
+  OPTIONAL=(welle-io shairport-sync python3-pillow)
+  HOBBY=(sdrpp dump1090 rtl-433 python3-sgp4 direwolf)
   FFMPEG=ffmpeg-free
 else
   echo "Unsupported system: neither apt nor dnf found." >&2
   exit 1
 fi
+# Listening and everyday use come without asking; the radio hobby is for those who ask for it.
+[ "$HAM" -eq 1 ] && OPTIONAL+=("${HOBBY[@]}")
 [ "$WITH_SDRANGEL" -eq 1 ] && OPTIONAL+=(sdrangel)
 # ffmpeg encodes the network stream. Fedora offers two packages that exclude each
 # other, so only install one where none is present.
@@ -70,7 +80,7 @@ for package in "${OPTIONAL[@]}"; do
 done
 
 # Debian and Ubuntu do not package SDR++; its project publishes .deb files per release.
-if ! command -v sdrpp >/dev/null && command -v apt-get >/dev/null; then
+if [ "$HAM" -eq 1 ] && ! command -v sdrpp >/dev/null && command -v apt-get >/dev/null; then
   . /etc/os-release
   case "$(dpkg --print-architecture)" in arm64) ARCH=aarch64 ;; *) ARCH="$(dpkg --print-architecture)" ;; esac
   DEB="sdrpp_${ID}_${VERSION_CODENAME}_${ARCH}.deb"
@@ -111,6 +121,24 @@ fi
 # version into a folder of its own and turns the link, and back if the version does not start.
 CURRENT="$DIR-current"
 [ -e "$CURRENT" ] || ln -s "$DIR" "$CURRENT"
+
+# The tiles of the radio hobby show with --ham. Without it they are hidden on a new installation only:
+# an existing one keeps what it shows, and the settings can change it either way.
+SETTINGS="${XDG_CONFIG_HOME:-$HOME/.config}/radiokiosk/config.json"
+if [ "$HAM" -eq 1 ] || [ "$FRESH" -eq 1 ]; then
+  mkdir -p "$(dirname "$SETTINGS")"
+  python3 - "$SETTINGS" "$HAM" <<'PY'
+import json, sys
+path, ham = sys.argv[1], sys.argv[2] == "1"
+try:
+    settings = json.load(open(path))
+except (OSError, ValueError):
+    settings = {}
+if ham or "ham" not in settings:
+    settings["ham"] = ham
+    json.dump(settings, open(path, "w"), indent=1)
+PY
+fi
 
 say "Setting up the background service"
 mkdir -p "$HOME/.config/systemd/user" "$HOME/.local/share/applications"

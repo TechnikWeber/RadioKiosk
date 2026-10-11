@@ -24,6 +24,7 @@ RESULTS = 15
 SEARCH_TIMEOUT = 45
 OPEN_TIMEOUT = 60     # a small computer needs a good ten seconds to find the stream of one title
 KEPT = 100
+SEARCHES = 30
 WATCH_EVERY = 5
 RENEW_AFTER = 7 * 86400   # a fetched yt-dlp older than this is replaced by the newest
 LOOK_EVERY = 6 * 3600
@@ -133,11 +134,26 @@ async def search(query, language="en"):
     # user's language, and for the dates, which are left out if that second answer fails.
     titles, dates = await asyncio.gather(
         listing(target, "--extractor-args", f"youtube:lang={language}"),
-        listing(target, "--extractor-args", "youtubetab:approximate_date"), return_exceptions=True)
+        listing(target.replace(f"ytsearch{RESULTS}:", f"ytsearch{2 * RESULTS}:"),   # the two lists differ; more of this one, more matches
+                "--extractor-args", "youtubetab:approximate_date"), return_exceptions=True)
     if isinstance(titles, BaseException):
         raise titles
     when = {e["id"]: e["date"] for e in dates} if isinstance(dates, list) else {}
     return [{**e, "date": e["date"] or when.get(e["id"], 0)} for e in titles]
+
+
+_when = {}
+
+
+async def when(address):
+    """The moment one title appeared, exactly, by opening it: for the titles a list gave no day for. 0 if unknown."""
+    if address not in _when:
+        try:
+            out = await call("--print", "%(timestamp)s", "--skip-download", "--no-playlist", address, timeout=OPEN_TIMEOUT)
+            _when[address] = int(float(out.strip().splitlines()[0]))
+        except (RuntimeError, ValueError, IndexError):
+            return 0
+    return _when[address]
 
 
 class Media:
@@ -146,6 +162,7 @@ class Media:
     def __init__(self, core):
         self.core = core
         self.kept = load_json("media.json", [])
+        self.searches = load_json("media_searches.json", [])   # search words kept to be run again, newest first
         self.item = None
         self.watch = None
         self.retried = None   # id of the title that was already opened a second time
@@ -156,6 +173,14 @@ class Media:
             self.kept.insert(0, {k: item.get(k, "") for k in ("id", "title", "url", "author", "seconds", "live", "date")})
         self.kept = self.kept[:KEPT]
         save_json("media.json", self.kept)
+
+    def keep_search(self, query, on):
+        query = " ".join(query.split())[:200]
+        self.searches = [s for s in self.searches if s.lower() != query.lower()]
+        if on and query:
+            self.searches.insert(0, query)
+        self.searches = self.searches[:SEARCHES]
+        save_json("media_searches.json", self.searches)
 
     async def play(self, item, again=False):
         async with self.core.lock:

@@ -395,13 +395,14 @@ def build(cfg):
             save_setting(cfg, body["key"], body["value"].strip())
             return ok()
         allowed = {"fm_backend": CHOICES, "tuner_backend": CHOICES, "remote": (True, False),
-                   "idle_rotate": (1, 2, 5, 10, 15, 30, 60), "podcast_provider": PROVIDERS, "swl": (True, False)}
+                   "idle_rotate": (1, 2, 5, 10, 15, 30, 60), "podcast_provider": PROVIDERS, "swl": (True, False),
+                   "ham": (True, False)}
         if body["value"] not in allowed.get(body["key"], ()):
             raise ValueError("unknown setting")
         if body["key"].endswith("_backend"):
             await core.stop()
         save_setting(cfg, body["key"], body["value"])
-        if body["key"] == "idle_rotate":
+        if body["key"] in ("idle_rotate", "ham"):
             await core._broadcast()   # every open interface learns what its idle screen shows now
         return ok()
 
@@ -626,7 +627,11 @@ def build(cfg):
 
     @routes.get("/api/media")
     async def media_get(request):
-        return web.json_response({"kept": media.kept, "version": await online_media.version()})
+        return web.json_response({"kept": media.kept, "searches": media.searches, "version": await online_media.version()})
+
+    @routes.get("/api/media/date")
+    async def media_date(request):
+        return web.json_response({"date": await online_media.when(request.query["url"])})
 
     @routes.get("/api/media/search")
     async def media_search(request):
@@ -640,6 +645,8 @@ def build(cfg):
             asyncio.create_task(media.play(body))   # finding the stream takes seconds; the state tells how it goes
         elif action == "keep":
             media.keep(body["item"], bool(body["on"]))
+        elif action == "search":
+            media.keep_search(str(body["query"]), bool(body["on"]))
         elif action == "seek":
             await media.seek(float(body["seconds"]))
         elif action == "fetch":

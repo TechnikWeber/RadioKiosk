@@ -32,10 +32,12 @@ Der Installer läuft auf Fedora und auf Debian-basierten Systemen (Debian, Ubunt
 
 Anschließend öffnest du **RadioKiosk** im Anwendungsmenü oder rufst <http://localhost:8080> auf. Zum Aktualisieren führst du dieselbe Zeile noch einmal aus.
 
+Der Installer bringt mit, was zum Hören und für den Alltag nötig ist. Mit `--ham` kommt das Funk-Hobby dazu: Flugzeuge, Schiffe, Funksensoren, APRS, Satelliten und SDR++ werden dann installiert und ihre Kacheln gezeigt (**Einstellungen › Kacheln auf dem Startbildschirm › Funk-Hobby** schaltet die Kacheln später um). Eine Kachel, deren Programm nicht installiert ist, bleibt weg.
+
 Mit `--kiosk` öffnet sich die Oberfläche nach jeder Anmeldung im Vollbild, `--rotate=180` dreht den Bildschirm (Raspberry Pi OS), und mit `--with-sdrangel` kommt SDRangel als zweiter Experten-Empfänger dazu:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --with-sdrangel
+curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --ham --with-sdrangel
 ```
 
 Mit `--kiosk` lässt der Installer das System außerdem seine Sicherheitsupdates selbst einspielen (`unattended-upgrades` auf Debian-artigen Systemen, `dnf-automatic` auf Fedora; nur Sicherheitsupdates, kein automatischer Neustart). `--no-security-updates` lässt das weg, `--security-updates` schaltet es ohne `--kiosk` ein.
@@ -85,7 +87,7 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | Podcasts | Suche, Abos, Folgenliste, Vor- und Zurückspringen; merkt sich, wie weit eine Folge gehört ist | fyyd, Apple Podcasts oder Podcast Index, `mpv` |
 | Musik | die eigene Sammlung aus einem Ordner, USB-Stick oder eingebundenen Netzwerkordner: Ordner durchblättern, alles oder zufällig abspielen | `mpv` |
 | Hörbücher | gemeinfreie Hörbücher von LibriVox, mit Suche; ein Buch geht dort weiter, wo es aufgehört hat | Internet Archive, `mpv` |
-| Online-Medien | Titel, die yt-dlp findet und öffnet, über Suchwörter oder eine Adresse, als Ton gespielt; Titel lassen sich merken | `yt-dlp` (holt der Installer oder die Einstellungen, wöchentlich erneuert), `mpv` |
+| Online-Medien | Titel, die yt-dlp findet und öffnet, über Suchwörter oder eine Adresse, als Ton gespielt; Titel und Suchen lassen sich merken | `yt-dlp` (holt der Installer oder die Einstellungen, wöchentlich erneuert), `mpv` |
 | Nachrichten | RSS- und Atom-Feeds als Liste der neuesten Artikel, aktualisiert sich selbst | eigener Feed-Leser |
 | Funksensoren | Funk-Thermometer, Wetterstationen und andere Sensoren der Umgebung auf 433 MHz | `rtl_433` |
 | Schiffe | Live-Karte und Liste der Schiffe in der Umgebung (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |

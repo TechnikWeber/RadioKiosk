@@ -63,6 +63,7 @@ DEFAULTS = {
     "autostop_at": None,      # hour of the day at which playing stops, None never
     "tone": "tick",           # the sound of alarm, timer and reminders; see tones.py
     "auto_update": True,      # install new releases at night without being asked
+    "ham": True,              # show the tiles of the radio hobby; the installer sets False unless asked for them
     "callsign": "",
     "swl": False,
     "apps": [

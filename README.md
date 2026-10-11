@@ -32,10 +32,12 @@ The installer works on Fedora and on Debian-based systems (Debian, Ubuntu, Raspb
 
 Afterwards open **RadioKiosk** from the application menu or go to <http://localhost:8080>. Run the same line again to update.
 
+The installer brings what is needed for listening and everyday use. Add `--ham` for the radio hobby as well: aircraft, ships, radio sensors, APRS, satellites and SDR++ are then installed and their tiles shown (**Settings › Tiles on the start screen › Radio hobby** switches the tiles later). A tile whose program is not installed is left out.
+
 Add `--kiosk` to open the interface full screen after every login, `--rotate=180` to turn the screen (Raspberry Pi OS), and `--with-sdrangel` for SDRangel as a second expert receiver:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --with-sdrangel
+curl -fsSL https://raw.githubusercontent.com/TechnikWeber/RadioKiosk/main/install.sh | bash -s -- --kiosk --ham --with-sdrangel
 ```
 
 With `--kiosk` the installer also lets the system install its security updates by itself (`unattended-upgrades` on Debian-based systems, `dnf-automatic` on Fedora; security updates only, no automatic restart). `--no-security-updates` leaves that out, `--security-updates` switches it on without `--kiosk`.
@@ -85,7 +87,7 @@ A small Python service controls the receivers and serves a web interface that a 
 | Podcasts | search, subscriptions, episode list, skipping back and forth; remembers how far an episode has been heard | fyyd, Apple Podcasts or Podcast Index, `mpv` |
 | Music | your own collection from a folder, USB stick or mounted network folder: browse folders, play everything or shuffled | `mpv` |
 | Audiobooks | public domain audiobooks from LibriVox, with a search; a book continues where it stopped | Internet Archive, `mpv` |
-| Online media | titles found and opened by yt-dlp, by search words or an address, played as sound; titles can be kept | `yt-dlp` (fetched by the installer or from the settings, renewed weekly), `mpv` |
+| Online media | titles found and opened by yt-dlp, by search words or an address, played as sound; titles and searches can be kept | `yt-dlp` (fetched by the installer or from the settings, renewed weekly), `mpv` |
 | News | RSS and Atom feeds as a list of the newest articles that refreshes itself | own feed reader |
 | Sensors | wireless thermometers, weather stations and other sensors nearby on 433 MHz | `rtl_433` |
 | Ships | live map and list of the ships nearby (AIS) | `rtl_ais`, Leaflet, OpenStreetMap |
