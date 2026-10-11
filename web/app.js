@@ -303,6 +303,7 @@ const MESSAGES_DE = [
   [/^update failed: the new version does not start on this computer$/, "Aktualisierung abgebrochen: Die neue Version startet auf diesem Rechner nicht. Die bisherige läuft weiter"],
   [/^update failed: the new version could not be unpacked$/, "Aktualisierung abgebrochen: Die neue Version ließ sich nicht entpacken"],
   [/^update failed: an update is already running$/, "Es läuft bereits eine Aktualisierung"],
+  [/^update failed: files of this copy were changed by hand$/, "Aktualisierung abgebrochen: Dateien dieser Kopie wurden von Hand geändert"],
   [/^update failed: this is not an installed copy$/, "Diese Kopie wurde nicht vom Installer eingerichtet und aktualisiert sich nicht selbst"],
   [/^update failed: GitHub does not answer right now$/, "GitHub antwortet gerade nicht – später noch einmal versuchen"],
   [/^update failed.*$/, "Aktualisierung fehlgeschlagen – besteht eine Internetverbindung?"],

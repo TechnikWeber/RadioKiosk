@@ -234,10 +234,26 @@ class Updater:
         if not self.installed():
             raise RuntimeError("update failed: this is not an installed copy")
         checkout, versions, link = await self.find_places()
-        code, out = await run("git", "-C", str(checkout), "pull", "--ff-only", timeout=120)
+        git = ("git", "-C", str(checkout))
+        _, branch = await run(*git, "symbolic-ref", "--short", "-q", "HEAD")
+        _, shallow = await run(*git, "rev-parse", "--is-shallow-repository")
+        depth = ("--depth", "1") if shallow.strip() == "true" else ()
+        code, _ = await run(*git, "fetch", *depth, "origin", branch.strip() or "main", timeout=120)
         if code:
             raise RuntimeError("update failed – is there an internet connection?")
-        changed = "Already up to date" not in out and "Bereits aktuell" not in out
+        _, here = await run(*git, "rev-parse", "HEAD")
+        _, there = await run(*git, "rev-parse", "FETCH_HEAD")
+        changed = here != there
+        if changed:
+            # A checkout the installer made is shallow, and fetching a release moves where its history
+            # is cut off: git then no longer sees that the branch only moved forward. So the fetched
+            # commit is taken as it is, unless somebody has changed files here by hand.
+            _, edits = await run(*git, "status", "--porcelain", "--untracked-files=no")
+            if edits:
+                raise RuntimeError("update failed: files of this copy were changed by hand")
+            code, _ = await run(*git, "reset", "--hard", "FETCH_HEAD")
+            if code:
+                raise RuntimeError("update failed: the new version could not be unpacked")
         if link.is_symlink() and link.resolve() != checkout.resolve():
             turn(link, checkout)
             changed = True
