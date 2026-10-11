@@ -571,9 +571,12 @@ addEventListener("unhandledrejection", e => {
   setTimeout(() => mine.remove(), 6000);
 });
 
+// Many stations list a logo that no longer exists. Such a picture is tried once: asked for again at
+// every redraw, the row made room for it and closed up again each time, and the name jumped to and fro.
+const brokenLogos = new Set();
 function stationRow({ title, info, active, onPlay, starred, onStar, logo }) {
-  const picture = logo ? h("img", { className: "logo", src: logo, loading: "lazy", alt: "" }) : null;
-  if (picture) picture.onerror = () => picture.remove();   // many stations list a logo that no longer exists
+  const picture = logo && !brokenLogos.has(logo) ? h("img", { className: "logo", src: logo, loading: "lazy", alt: "" }) : null;
+  if (picture) picture.onerror = () => { brokenLogos.add(logo); picture.remove(); };
   const row = h("div", { className: "row" + (active ? " current" : "") },
     h("button", { onclick: onPlay }, picture,
       h("span", { className: "texts" }, h("b", { textContent: title }), h("small", { textContent: info || "" }))));

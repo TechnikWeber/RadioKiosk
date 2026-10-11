@@ -89,8 +89,9 @@ def month_days(year, month):
     return (following - datetime.date(year, month, 1)).days
 
 
-def repeats(start, rule, until):
-    """The moments a repeating event takes place, from its first one up to `until`."""
+def repeats(start, rule, until, since=None):
+    """The moments a repeating event takes place, from its first one up to `until`. With `since`, a
+    daily or weekly event that began years ago is not followed day by day from its beginning."""
     parts = dict(p.split("=", 1) for p in rule.split(";") if "=" in p)
     freq, every = parts.get("FREQ", ""), max(1, int(parts.get("INTERVAL", "1")))
     count = int(parts["COUNT"]) if parts.get("COUNT", "").isdigit() else None
@@ -139,7 +140,10 @@ def repeats(start, rule, until):
     if freq not in ("DAILY", "WEEKLY", "MONTHLY", "YEARLY"):
         yield start
         return
-    for step in range(MAX_REPEATS):
+    first = 0
+    if since and count is None and freq in ("DAILY", "WEEKLY") and since > start:   # with a count every one has to be counted
+        first = max(0, (since - start).days // (every * (1 if freq == "DAILY" else 7)) - 1)
+    for step in range(first, first + MAX_REPEATS):
         for when in candidates(step):
             if when < start:
                 continue
@@ -178,7 +182,7 @@ def upcoming(text, since, until):
         uid = first(event, "UID")[1]
         rule = first(event, "RRULE")[1]
         single = "RECURRENCE-ID" in event or not rule
-        for when in ([start] if single else repeats(start, rule, until)):
+        for when in ([start] if single else repeats(start, rule, until, since - length)):
             if when in left_out or (not single and (uid, when) in moved):
                 continue
             if when + max(length, datetime.timedelta(minutes=1)) <= since or when > until:
@@ -205,7 +209,11 @@ class Agenda:
             async with aiohttp.ClientSession(headers=HEADERS, timeout=aiohttp.ClientTimeout(total=30)) as http:
                 async with http.get(calendar["url"]) as reply:
                     reply.raise_for_status()
-                    data = await reply.content.read(MAX_SIZE)
+                    data = b""
+                    async for chunk in reply.content.iter_chunked(65536):   # one read gives only what has arrived so far
+                        data += chunk
+                        if len(data) > MAX_SIZE:
+                            raise ValueError
             text = data.decode("utf-8", errors="replace")
             if "BEGIN:VCALENDAR" not in text:
                 raise ValueError
@@ -244,8 +252,9 @@ class Agenda:
         limit = (now.replace(hour=0, minute=0, second=0, microsecond=0) + DAY * 2).isoformat()
         return [{k: e[k] for k in ("start", "all_day", "title")} for e in self.events(2, now) if e["start"] < limit][:6]
 
-    def tell(self):
-        self.core.update(agenda=self.soon())
+    async def tell(self):
+        # reading large calendars takes a moment on a small computer; the rest must not wait for it
+        self.core.update(agenda=await asyncio.to_thread(self.soon))
 
     def listing(self):
         return {"events": self.events(), "calendars": [{**c, "problem": self.problems.get(c["id"])} for c in self.calendars]}
@@ -263,25 +272,25 @@ class Agenda:
             raise RuntimeError(self.problems.pop(calendar["id"]))
         self.calendars.append(calendar)
         save_json("calendars.json", self.calendars)
-        self.tell()
+        await self.tell()
 
-    def remove(self, calendar_id):
+    async def remove(self, calendar_id):
         for calendar in self.calendars:
             if calendar["id"] == calendar_id:
                 self.file(calendar).unlink(missing_ok=True)
         self.calendars = [c for c in self.calendars if c["id"] != calendar_id]
         save_json("calendars.json", self.calendars)
-        self.tell()
+        await self.tell()
 
     async def refresh(self):
         for calendar in list(self.calendars):
             await self.fetch(calendar)
-        self.tell()
+        await self.tell()
 
     async def run(self):
         while True:
             for calendar in list(self.calendars):
                 if time.time() - self.fetched.get(calendar["id"], 0) > FETCH_EVERY:
                     await self.fetch(calendar)
-            self.tell()   # also without a fetch: what was "tomorrow" becomes "today"
+            await self.tell()   # also without a fetch: what was "tomorrow" becomes "today"
             await asyncio.sleep(LOOK_EVERY)

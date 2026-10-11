@@ -2,6 +2,7 @@
 
 import asyncio
 import ipaddress
+import urllib.parse
 import logging
 import socket
 from pathlib import Path
@@ -93,6 +94,11 @@ def build(cfg):
         """Answer this computer always, the local network only when remote control is on."""
         client = ipaddress.ip_address(request.remote or "127.0.0.1")
         client = getattr(client, "ipv4_mapped", None) or client
+        # A web page open in a browser of this network could otherwise operate RadioKiosk behind the
+        # user's back. A browser names the page a request comes from, and only RadioKiosk's own may.
+        origin = request.headers.get("Origin")
+        if origin and (urllib.parse.urlsplit(origin).netloc != request.host if origin != "null" else request.method != "GET"):
+            raise web.HTTPForbidden(text="This request comes from another web page.")
         if client.is_loopback or (cfg["remote"] and (client.is_private or client.is_link_local)):
             return await handler(request)
         raise web.HTTPForbidden(text="Remote control is switched off on this RadioKiosk.")
@@ -663,7 +669,7 @@ def build(cfg):
         if action == "add":
             await agenda.add(str(body.get("name", "")), str(body.get("url", "")))
         elif action == "remove":
-            agenda.remove(body["id"])
+            await agenda.remove(body["id"])
         elif action == "refresh":
             await agenda.refresh()
         else:
@@ -687,6 +693,8 @@ def build(cfg):
         body = await request.json() if request.can_read_body else {}
         action = request.match_info["action"]
         if action == "play":
+            if not online_media.is_address(body.get("url")) or not body.get("title") or not body.get("id"):
+                raise ValueError("this is not a title that can be played")
             asyncio.create_task(media.play(body))   # finding the stream takes seconds; the state tells how it goes
         elif action == "keep":
             media.keep(body["item"], bool(body["on"]))

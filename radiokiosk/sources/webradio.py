@@ -56,6 +56,8 @@ class Webradio:
             save_json("stations.json", {key: found})
 
     async def play(self, station):
+        if not str(station.get("url", "")).startswith(("http://", "https://")):   # the player would open files and devices as well
+            raise ValueError("this is not an address")
         async with self.core.lock:
             await self.core.take(self)
             self.station = station

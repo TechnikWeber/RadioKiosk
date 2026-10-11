@@ -38,11 +38,33 @@ def program():
     return [found] if found else None
 
 
+def is_address(text):
+    return isinstance(text, str) and text.startswith(("http://", "https://")) and not any(c.isspace() for c in text)
+
+
+async def call_plain(option, timeout):
+    """yt-dlp with one option and nothing to open, as for its version."""
+    command = program()
+    if command is None:
+        raise RuntimeError("yt-dlp is not installed")
+    proc = await asyncio.create_subprocess_exec(*command, option, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
+    try:
+        out, _ = await asyncio.wait_for(proc.communicate(), timeout)
+    except asyncio.TimeoutError:
+        proc.kill()
+        raise RuntimeError("yt-dlp took too long")
+    if proc.returncode:
+        raise RuntimeError("yt-dlp failed: it does not start")
+    return out.decode(errors="replace")
+
+
 async def call(*arguments, timeout):
     command = program()
     if command is None:
         raise RuntimeError("yt-dlp is not installed")
-    proc = await asyncio.create_subprocess_exec(*command, "--no-warnings", "--ignore-config", *arguments,
+    # what is asked for stands last, after "--": an address can then never be taken for an option of yt-dlp
+    *options, target = arguments
+    proc = await asyncio.create_subprocess_exec(*command, "--no-warnings", "--ignore-config", *options, "--", target,
                                                 stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     try:
         out, err = await asyncio.wait_for(proc.communicate(), timeout)
@@ -61,7 +83,7 @@ async def version():
     key = tuple(program() or ())
     if key not in _version:
         try:
-            _version[key] = (await call("--version", timeout=30)).strip()
+            _version[key] = (await call_plain("--version", timeout=30)).strip()
         except RuntimeError:
             return None
     return _version[key]
@@ -154,6 +176,10 @@ _when = {}
 
 async def when(address):
     """The moment one title appeared, exactly, by opening it: for the titles a list gave no day for. 0 if unknown."""
+    if not is_address(address):
+        raise ValueError("this is not an address")
+    if len(_when) > 500:
+        _when.clear()
     if address not in _when:
         try:
             out = await call("--print", "%(timestamp)s", "--skip-download", "--no-playlist", address, timeout=OPEN_TIMEOUT)
@@ -190,6 +216,8 @@ class Media:
         save_json("media_searches.json", self.searches)
 
     async def play(self, item, again=False):
+        if not is_address(item.get("url")) or not item.get("title") or not item.get("id"):
+            raise ValueError("this is not a title that can be played")
         async with self.core.lock:
             if again and self.item is not item:   # stopped in the meantime
                 return

@@ -139,6 +139,8 @@ class Podcasts:
 
     async def play(self, episode):
         """episode: id, title, audio and the podcast's title."""
+        if not str(episode.get("audio", "")).startswith(("http://", "https://")):
+            raise ValueError("this is not an address")
         async with self.core.lock:
             await self.core.take(self)
             self._end_watch()

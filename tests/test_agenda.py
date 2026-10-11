@@ -70,6 +70,16 @@ class ReadingCalendars(unittest.TestCase):
         self.assertEqual([title for _, title in course], ["Kurs", "Kurs verlegt", "Kurs"])
         self.assertEqual(len({start[:10] for start, _ in course}), 3)
 
+    def test_a_daily_event_that_began_long_ago_still_reaches_today(self):
+        old = "BEGIN:VEVENT\nUID:x\nDTSTART:20080101T070000\nRRULE:FREQ=DAILY\nSUMMARY:Morning\nEND:VEVENT\n"
+        weekly = "BEGIN:VEVENT\nUID:y\nDTSTART:20050103T190000\nRRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO\nSUMMARY:Club\nEND:VEVENT\n"
+        since = datetime.datetime(2026, 10, 11)
+        found = upcoming(old + weekly, since, since + datetime.timedelta(days=14))
+        self.assertEqual(len([e for e in found if e["title"] == "Morning"]), 14)
+        club = [e["start"][:10] for e in found if e["title"] == "Club"]
+        self.assertEqual(len(club), 1)
+        self.assertEqual((datetime.date.fromisoformat(club[0]) - datetime.date(2005, 1, 3)).days % 14, 0)
+
     def test_cancelled_events_are_left_out(self):
         self.assertNotIn("Abgesagt", [title for _, title in self.titles])
 
