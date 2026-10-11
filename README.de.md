@@ -128,7 +128,7 @@ Die Losungen gehören nicht zu RadioKiosk: Sie sind für nicht-kommerzielle Nutz
 
 Ohne Internet läuft alles weiter, was keines braucht (UKW, DAB+, Empfänger, Galerie, Timer, QSO-Log, Funk-Analyse); die übrigen Kacheln sagen, dass ihre Quelle nicht erreichbar ist.
 
-Amtliche Unwetterwarnungen des Deutschen Wetterdienstes und die Warnungen des Bevölkerungsschutzes (NINA: Hochwasser, Brände, Trinkwasser, Bombenfunde; gelesen von warnung.bund.de) für den eingestellten Standort erscheinen als Balken unter der Kopfzeile und ausführlich in der Wetter-Kachel (Daten über brightsky.dev, nur für Orte in Deutschland, abschaltbar in den Einstellungen).
+Amtliche Unwetterwarnungen des Deutschen Wetterdienstes und die Warnungen des Bevölkerungsschutzes (NINA: Hochwasser, Brände, Trinkwasser, Bombenfunde; gelesen von warnung.bund.de) für den eingestellten Standort erscheinen als Balken unter der Kopfzeile und ausführlich in der Wetter-Kachel. Eine Warnung bleibt, bis jemand sie als gelesen markiert; im Ruhebildschirm steht sie als Zeile, und eine der beiden höchsten Stufen kommt einmal über den ganzen Ruhebildschirm (nachts nur die höchste). Ein Ton für Warnungen der höchsten Stufe lässt sich einschalten (Daten über brightsky.dev, nur für Orte in Deutschland, abschaltbar in den Einstellungen).
 
 Mondphase und Funkwetter lassen sich in den Einstellungen zuschalten; sie erscheinen dann im Ruhebildschirm und in der Wetter-Kachel. Beides ist standardmäßig aus.
 

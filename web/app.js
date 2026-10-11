@@ -167,6 +167,7 @@ const STRINGS = {
     smartIntro: "For what is reachable in your network: a switch calls an address when you tap it (a webhook of Home Assistant, ioBroker or Node-RED, a Shelly or Tasmota plug); a value shows what an address answers, a temperature for instance.",
     smartSwitchHint: "A switch calls its address when tapped. For a Home Assistant webhook: http://homeassistant.local:8123/api/webhook/NAME, called with POST. \"Ask before\" suits a garage door.",
     smartFieldHint: "A value shows the answer of its address, asked for again every half minute. Where the answer is JSON, name the value in it, with dots for what lies deeper (state, attributes.temperature). An access token is sent as \"Authorization: Bearer …\", as Home Assistant wants it.",
+    alertRead: "Read", alertTone: "Sound for extreme warnings", alertLevels: { minor: "Notice", moderate: "Warning", severe: "Severe warning", extreme: "Extreme warning" },
     hamTiles: "Radio hobby", hamHint: "Aircraft, ships, radio sensors, APRS, propagation, DX cluster, satellites, QSO log, radio survey and the expert receivers. A tile whose program is not installed stays away.",
     mediaSearches: "Kept searches", mediaTitles: "Kept titles", paused: "Paused", mediaKeepSearch: "Keep this search", mediaDating: "date loading …",
     tileSize: "Tiles", bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
@@ -347,6 +348,7 @@ const STRINGS = {
     smartIntro: "Für alles, was in deinem Netz erreichbar ist: Ein Schalter ruft beim Antippen eine Adresse auf (ein Webhook von Home Assistant, ioBroker oder Node-RED, eine Shelly- oder Tasmota-Steckdose); ein Wert zeigt, was eine Adresse antwortet, zum Beispiel eine Temperatur.",
     smartSwitchHint: "Ein Schalter ruft beim Antippen seine Adresse auf. Für einen Webhook von Home Assistant: http://homeassistant.local:8123/api/webhook/NAME, Aufruf mit POST. „Vorher nachfragen“ passt zu einem Garagentor.",
     smartFieldHint: "Ein Wert zeigt die Antwort seiner Adresse und wird jede halbe Minute neu geholt. Ist die Antwort JSON, nenne den Wert darin, mit Punkten für Tieferliegendes (state, attributes.temperature). Ein Zugangs-Token wird als „Authorization: Bearer …“ mitgeschickt, wie Home Assistant es verlangt.",
+    alertRead: "Gelesen", alertTone: "Ton bei extremen Warnungen", alertLevels: { minor: "Hinweis", moderate: "Warnung", severe: "Schwere Warnung", extreme: "Extreme Warnung" },
     hamTiles: "Funk-Hobby", hamHint: "Flugzeuge, Schiffe, Funksensoren, APRS, Funkwetter, DX-Cluster, Satelliten, QSO-Log, Funk-Analyse und die Experten-Empfänger. Eine Kachel, deren Programm nicht installiert ist, bleibt weg.",
     mediaSearches: "Gemerkte Suchen", mediaTitles: "Gemerkte Titel", paused: "Pausiert", mediaKeepSearch: "Suche merken", mediaDating: "Datum lädt …",
     tileSize: "Kacheln", bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
@@ -3706,6 +3708,8 @@ const settings = {
         h("button", { textContent: t.manageFeeds, onclick: () => { feedList.origin = settings; show(feedList); } }),
         h("button", { className: receivers.alerts ? "on" : "", textContent: `${t.weatherAlerts}: ${receivers.alerts ? t.on : t.off}`,
           onclick: async () => { await api("/api/settings", { key: "alerts", value: !receivers.alerts }); this.render(); } }),
+        ...(receivers.alerts ? [h("button", { className: receivers.alert_tone ? "on" : "", textContent: `${t.alertTone}: ${receivers.alert_tone ? t.on : t.off}`,
+          onclick: async () => { await api("/api/settings", { key: "alert_tone", value: !receivers.alert_tone }); this.render(); } })] : []),
         h("button", {
           textContent: `${t.location}: ${position ? place || t.locationSet : t.locationUnset}`, onclick: () => show(locationPicker),
         })),
@@ -3773,6 +3777,7 @@ function drawIdle() {
     idleWeather ? [idleWeather.place, `${Math.round(idleWeather.temperature)}°`, describe(idleWeather.code)].filter(Boolean).join(" ") : null,
     showMoon() ? moonLine() : null,
     showSpace() && spaceWeather ? spaceLine(spaceWeather) : null,
+    unreadAlerts().length ? `⚠ ${clipped(alertHeadline(unreadAlerts()[0]))}` : null,
     state.alarm ? `⏰ ${state.alarm}` : null,
     (state.agenda || []).length ? `▦ ${agendaLine()}` : null,
   ].filter(Boolean).join("  ·  ");
@@ -3797,6 +3802,7 @@ function drawIdle() {
 // right after the idle screen appeared cannot be overtaken by the dimming it cancels.
 let dimmed = false, dimming = Promise.resolve();
 function dim(on) {
+  if (on && $("alert-full")) return;   // a warning that is up keeps the display bright
   if (on === dimmed) return;
   dimmed = on;
   dimming = dimming.then(() => api("/api/device/dim", { on })).catch(() => { /* no adjustable backlight */ });
@@ -3942,7 +3948,9 @@ function showIdle() {
   const kinds = state.idle_contents || ["clock"];
   idleTurn %= kinds.length;
   // a reminder that is due stays on the idle screen until it is acknowledged
-  return showIdleKind((state.reminders || []).length ? "reminder" : kinds[idleTurn]);
+  const shown = showIdleKind((state.reminders || []).length ? "reminder" : kinds[idleTurn]);
+  shown.then(alertDue);
+  return shown;
 }
 function hideIdle() {
   idle.hidden = true;
@@ -3950,12 +3958,70 @@ function hideIdle() {
   idleSlides.stop();
 }
 
+/* ---------- official warnings ---------- */
+
+// A warning is shown until somebody has read it, on this display: as a line below the header and
+// on the idle screen, and one of the two highest levels once over the whole idle screen. Read, it
+// keeps quiet until it ends; the weather tile lists everything in force all the same. A warning
+// that is changed, made more severe or longer, counts as a new one.
+const alertKey = a => [a.severity, a.from, a.until, a.headline_de || a.event_de].join("|");
+const alertHeadline = a => a[`headline_${lang}`] || a.headline_de || a[`event_${lang}`] || a.event_de;
+const alertsNow = () => (state.alerts || []).filter(a => !a.until || a.until * 1000 > Date.now());
+function alertsRead() {
+  try { return JSON.parse(pref("alerts_read", "[]")); } catch (e) { return []; }
+}
+function unreadAlerts() {
+  const read = alertsRead();
+  return alertsNow().filter(a => !read.includes(alertKey(a)));
+}
+function markRead(alerts) {
+  const inForce = alertsNow().map(alertKey);   // what has ended need not be remembered
+  setPref("alerts_read", JSON.stringify([...new Set([...alertsRead(), ...alerts.map(alertKey)])].filter(key => inForce.includes(key))));
+  applyState(state);
+  if (!idle.hidden) drawIdle();
+}
+function showAlert(alert) {
+  if ($("alert-full")) return;
+  const moment = unix => new Date(unix * 1000).toLocaleString(lang, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const read = h("button", { className: "primary", textContent: t.alertRead, disabled: true, onclick: () => {
+    box.remove();
+    markRead([alert]);
+    if (!idle.hidden) showIdle();   // back to how the idle screen keeps the display, or on to the next warning
+  } });
+  const box = h("div", { id: "alert-full", className: alert.severity }, h("div", {},
+    h("p", { className: "level", textContent: [t.alertLevels[alert.severity], alert.until ? `${t.until} ${moment(alert.until)}` : null].filter(Boolean).join(" · ") }),
+    h("h2", { textContent: alertHeadline(alert) }),
+    h("p", { textContent: alert[`description_${lang}`] || alert.description_de }),
+    h("p", { className: "advice", textContent: alert[`instruction_${lang}`] || alert.instruction_de }),
+    read));
+  document.body.append(box);
+  setTimeout(() => { read.disabled = false; }, 700);   // the tap that brought it up must not also close it
+}
+// On the idle screen a warning of the two highest levels comes up by itself, once. While the night
+// keeps the display dark, only the highest does: a thunderstorm warning should not light a bedroom.
+function alertDue() {
+  if (idle.hidden || $("alert-full")) return;
+  const dark = nightNow() && ["dim", "off"].includes(pref("night", "dim"));
+  const due = unreadAlerts().find(a => a.severity === "extreme" || (a.severity === "severe" && !dark));
+  if (!due) return;
+  dim(false);
+  showAlert(due);
+}
+
 // The first touch on the idle screen only wakes the display. The screen stays up until that
 // tap is over; hidden at once, the tap would land on whatever tile lies beneath the finger.
 let waking = false;
-addEventListener("pointerdown", () => {
+addEventListener("pointerdown", e => {
   lastTouch = Date.now();
   tellActive();
+  const on = name => e.target.closest && e.target.closest(name);
+  if (on("#alert-full")) { waking = false; return; }   // a warning over the idle screen takes its own taps
+  if (!idle.hidden && on("#idle-extra") && unreadAlerts().length) {   // the line of a warning opens the warning
+    waking = false;
+    dim(false);
+    showAlert(unreadAlerts()[0]);
+    return;
+  }
   waking = !idle.hidden;
   if (waking) dim(false);
 }, true);
@@ -4037,13 +4103,15 @@ function applyState(next) {
   $("rec").disabled = !state.recording && !(["webradio", "dab", "fm", "tuner", "podcast", "music"].includes(state.source) && state.status === "playing");
   $("rec").classList.toggle("on", !!state.recording);
   if (state.recording && !failed) $("now-text").textContent = `● ${t.recordingTo}`;
-  // the computer's own warnings, and the weather service's for this place
-  const alerts = (state.alerts || []).filter(a => !a.until || a.until * 1000 > Date.now());
-  const lines = [...state.warnings.map(w => t.warn[w] || w), ...alerts.map(a => a[`headline_${lang}`] || a.headline_de || a.event_de)];
+  // the computer's own warnings, and the official ones for this place that nobody has marked as read yet
+  const alerts = unreadAlerts();
+  const lines = [...state.warnings.map(w => t.warn[w] || w), ...alerts.map(alertHeadline)];
   $("warn").hidden = !lines.length;
-  $("warn").textContent = lines.join(" · ");
+  $("warn").replaceChildren(h("span", { textContent: lines.join(" · ") }),
+    ...(alerts.length ? [h("button", { textContent: t.alertRead, onclick: e => { e.stopPropagation(); markRead(alerts); } })] : []));
   $("warn").classList.toggle("alert", alerts.some(a => ["severe", "extreme"].includes(a.severity)));
   $("warn").onclick = alerts.length ? () => show(weather) : null;
+  alertDue();
   tick();
   if (current && current.onState) current.onState();
 }

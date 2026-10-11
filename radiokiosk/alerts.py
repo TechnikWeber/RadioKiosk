@@ -12,6 +12,7 @@ import time
 
 import aiohttp
 
+from . import tones
 from .feeds import HEADERS, plain
 
 URL = "https://api.brightsky.dev/alerts"
@@ -91,6 +92,7 @@ class Alerts:
         self.weather = []
         self.others = []
         self.checked = {}   # (id, version) of a portal warning -> its alert here, or None if it is for elsewhere
+        self.extreme = None   # the warnings of the highest level seen so far; None before the first look
 
     async def look_nina(self, http, location):
         """What the warning portal has for this place. An area is looked at once per version of a warning."""
@@ -127,7 +129,14 @@ class Alerts:
 
     def tell(self):
         order = {"extreme": 0, "severe": 1, "moderate": 2, "minor": 3}
-        self.core.update(alerts=sorted(self.weather + self.others, key=lambda a: (order.get(a["severity"], 4), a["from"])))
+        found = sorted(self.weather + self.others, key=lambda a: (order.get(a["severity"], 4), a["from"]))
+        self.core.update(alerts=found)
+        # A sound for a new warning of the highest level, where that is switched on. Not for what is
+        # found at the first look: the service restarts with every update and would sound each time.
+        extreme = {(a["headline_de"], a["from"], a["until"]) for a in found if a["severity"] == "extreme"}
+        if self.extreme is not None and extreme - self.extreme and self.core.cfg["alert_tone"]:
+            asyncio.create_task(tones.play(self.core.cfg["tone"], 4))
+        self.extreme = extreme
 
     async def look(self):
         location = self.core.cfg.get("location")

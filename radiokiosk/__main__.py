@@ -356,7 +356,7 @@ def build(cfg):
                                   "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
                                   "podcast_provider": cfg["podcast_provider"],
                                   "podcast_key": cfg["podcast_key"], "podcast_secret": cfg["podcast_secret"],
-                                  "callsign": cfg["callsign"], "swl": cfg["swl"], "alerts": cfg["alerts"],
+                                  "callsign": cfg["callsign"], "swl": cfg["swl"], "alerts": cfg["alerts"], "alert_tone": cfg["alert_tone"],
                                   "music_folder": str(music.root()),
                                   "version": __version__, "build": BUILD, "tone": cfg["tone"], "tones": list(tones.TONES),
                                   "autostop_hours": cfg["autostop_hours"], "autostop_at": cfg["autostop_at"], "stream": network_audio.can_stream(),
@@ -398,6 +398,9 @@ def build(cfg):
             return ok()
         if body["key"] == "auto_update" and isinstance(body["value"], bool):
             save_setting(cfg, "auto_update", body["value"])
+            return ok()
+        if body["key"] == "alert_tone" and isinstance(body["value"], bool):
+            save_setting(cfg, "alert_tone", body["value"])
             return ok()
         if body["key"] == "alerts" and isinstance(body["value"], bool):
             save_setting(cfg, "alerts", body["value"])

@@ -128,7 +128,7 @@ The Losungen are not part of RadioKiosk: they are free of charge for non-commerc
 
 Without an internet connection everything that needs none keeps working (FM, DAB+, receiver, gallery, timer, QSO log, radio survey); the other tiles say that their source cannot be reached.
 
-Official weather warnings of the German weather service and the warnings of civil protection (NINA: floods, fires, drinking water, bomb disposal; read from warnung.bund.de) for the set location appear as a bar below the header and in full in the weather tile (data through brightsky.dev, for places in Germany only; can be switched off in the settings).
+Official weather warnings of the German weather service and the warnings of civil protection (NINA: floods, fires, drinking water, bomb disposal; read from warnung.bund.de) for the set location appear as a bar below the header and in full in the weather tile. A warning stays until somebody marks it as read; on the idle screen it shows as a line, and one of the two highest levels comes up once over the whole idle screen (at night only the highest). A sound for warnings of the highest level can be switched on (data through brightsky.dev, for places in Germany only; can be switched off in the settings).
 
 Moon phase and propagation can be switched on in the settings; they then appear on the idle screen and in the weather tile. Both are off by default.
 
