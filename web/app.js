@@ -1802,7 +1802,9 @@ function roughDay(unix) {
   const then = new Date(unix * 1000), midnight = new Date().setHours(0, 0, 0, 0);
   const days = Math.round((midnight - new Date(then).setHours(0, 0, 0, 0)) / 86400000);
   if (days > 31) return then.toLocaleDateString(lang, { month: "short", year: "numeric" });
-  if (days > 2 || days < 0) return dayOf(unix);
+  if (days < 0) return dayOf(unix);
+  if (days > 6) return `${t.about} ${dayOf(unix)}`;   // "2 weeks ago" is a day only roughly
+  if (days > 2) return dayOf(unix);
   const hour = unix % 86400 ? `, ${t.about} ${t.oclock(then.getHours())}` : "";   // a whole day in UTC means only the day is known
   return [t.today, t.yesterday, t.dayBefore][days] + hour;
 }
