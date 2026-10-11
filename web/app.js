@@ -40,7 +40,7 @@ const STRINGS = {
     manageDemo: "These sample pictures belong to RadioKiosk. With your first own picture a folder of your own is started, and from then on only your pictures are shown.",
     nightMode: "At night", nightModes: { none: "as by day", same: "as by day, but dimmed", dim: "only the dimmed clock", off: "display off" },
     nightHint: "At night, whatever the idle screen shows by day (pictures, news) can be dimmed, replaced by the dimmed clock, or the display switched off. A touch always brings it back.",
-    powerTile: "Switch off", powerSub: "or restart", powerHint: "Switch the device off here before pulling the plug: pulled while running, the memory card can take damage.",
+    powerTile: "Switch off", powerAsk: "Really switch the device off? Wait for the display to go dark before pulling the plug.",
     wakeTone: "Only the sound, no station", wakeToneHint: "With a station chosen, the sound is only heard if the station does not come up.", nightFrom: "Night from", nightTo: "until",
     oclock: h => `${h}:00`, autostopAfter: "Stops by itself after", autostopHours: h => `${h} h without a touch`, autostopAt: "Stops every day at", never: "never",
     notesSub: "Short notes", noteNew: "New note", noteNone: "No notes yet.", noteEdit: "Edit", notePin: "Pin to the top", notePinned: "Pinned",
@@ -92,13 +92,14 @@ const STRINGS = {
     sensors: "Sensors", sensorsSub: "433 MHz", sensorsWaiting: "Listening for wireless sensors … many only report every few minutes.",
     sensorWords: { humidity: "humidity", battery: "battery low", wind: "wind", rain: "rain", ago: "ago", channel: "channel" },
     ais: "Ships", aisSub: "Live map (AIS)", shipsSeen: "ships received",
-    timer: "Timer", timerSub: "and stopwatch", stopwatch: "Stopwatch", start: "Start", stopIt: "Stop", reset: "Reset", cancel: "Cancel",
+    timer: "Timer", timerSub: "and stopwatch", stopwatch: "Stopwatch", start: "Start", stopIt: "Stop", reset: "Reset", cancel: "Cancel", ok: "OK",
     timeUp: "Time is up",
     idleContent: "Shows", idleContents: { clock: "clock", gallery: "gallery", feed: "news", spots: "DX cluster", verse: "Bible verse" },
     idleContentsHint: "Switch on what the idle screen is to show. With more than one it changes between them. The clock alone is black and dims the display; everything else keeps it bright.",
     idleRotate: "Changes every",
     galleryFit: "Pictures", galleryFits: { whole: "whole picture", smart: "zoom slightly", fill: "fill the screen" },
     galleryPan: "Pan over cropped pictures", galleryPans: { up: "from the bottom up", down: "from the top down", off: "off" },
+    galleryPanRange: "Pan covers", galleryPanRanges: { 80: "most of the picture (calm)", 100: "all of the picture", 50: "the middle half (very calm)" },
     galleryEffect: "Change", galleryEffects: { fade: "fade", slide: "wipe", flip: "turn the page", zoom: "zoom in", mix: "in turn" },
     subfoldersToo: "Subfolders", demoPictures: "Demo pictures (no folder of your own chosen yet)",
     sectionPlayback: "Playback", sectionDisplay: "Display", sectionContent: "Content", sectionReception: "Reception",
@@ -200,7 +201,7 @@ const STRINGS = {
     manageDemo: "Diese Beispielbilder gehören zu RadioKiosk. Mit deinem ersten eigenen Bild wird ein eigener Ordner angelegt, und ab dann werden nur noch deine Bilder gezeigt.",
     nightMode: "Nachts", nightModes: { none: "wie am Tag", same: "wie am Tag, aber abgedunkelt", dim: "nur die abgedunkelte Uhr", off: "Display aus" },
     nightHint: "Nachts lässt sich das, was der Ruhebildschirm tagsüber zeigt (Bilder, Nachrichten), abdunkeln, durch die abgedunkelte Uhr ersetzen oder das Display ganz ausschalten. Eine Berührung holt es immer zurück.",
-    powerTile: "Ausschalten", powerSub: "oder neu starten", powerHint: "Schalte das Gerät hier aus, bevor du den Stecker ziehst: Im laufenden Betrieb gezogen, kann die Speicherkarte Schaden nehmen.",
+    powerTile: "Ausschalten", powerAsk: "Gerät wirklich ausschalten? Warte, bis das Display dunkel ist, bevor du den Stecker ziehst.",
     wakeTone: "Nur der Ton, kein Sender", wakeToneHint: "Ist ein Sender gewählt, erklingt der Ton nur, wenn der Sender nicht kommt.", nightFrom: "Nacht ab", nightTo: "bis",
     oclock: h => `${h} Uhr`, autostopAfter: "Stoppt von selbst nach", autostopHours: h => `${h} h ohne Bedienung`, autostopAt: "Stoppt jeden Tag um", never: "nie",
     notesSub: "Kurze Notizen", noteNew: "Neue Notiz", noteNone: "Noch keine Notizen.", noteEdit: "Bearbeiten", notePin: "Oben anheften", notePinned: "Angeheftet",
@@ -252,13 +253,14 @@ const STRINGS = {
     sensors: "Funksensoren", sensorsSub: "433 MHz", sensorsWaiting: "Lausche auf Funksensoren … viele melden sich nur alle paar Minuten.",
     sensorWords: { humidity: "Feuchte", battery: "Batterie schwach", wind: "Wind", rain: "Regen", ago: "vor", channel: "Kanal" },
     ais: "Schiffe", aisSub: "Live-Karte (AIS)", shipsSeen: "Schiffe empfangen",
-    timer: "Timer", timerSub: "und Stoppuhr", stopwatch: "Stoppuhr", start: "Start", stopIt: "Stopp", reset: "Zurücksetzen", cancel: "Abbrechen",
+    timer: "Timer", timerSub: "und Stoppuhr", stopwatch: "Stoppuhr", start: "Start", stopIt: "Stopp", reset: "Zurücksetzen", cancel: "Abbrechen", ok: "OK",
     timeUp: "Die Zeit ist um",
     idleContent: "Zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", feed: "Nachrichten", spots: "DX-Cluster", verse: "Bibelvers" },
     idleContentsHint: "Schalte ein, was der Ruhebildschirm zeigen soll. Bei mehr als einem wechselt er zwischen ihnen. Die Uhr allein ist schwarz und dunkelt das Display ab; alles andere lässt es hell.",
     idleRotate: "Wechsel alle",
     galleryFit: "Bilder", galleryFits: { whole: "ganzes Bild", smart: "leicht zoomen", fill: "Bildschirm füllen" },
     galleryPan: "Schwenk über beschnittene Bilder", galleryPans: { up: "von unten nach oben", down: "von oben nach unten", off: "aus" },
+    galleryPanRange: "Schwenk zeigt", galleryPanRanges: { 80: "fast das ganze Bild (ruhig)", 100: "das ganze Bild", 50: "die mittlere Hälfte (sehr ruhig)" },
     galleryEffect: "Übergang", galleryEffects: { fade: "überblenden", slide: "wischen", flip: "blättern", zoom: "heranzoomen", mix: "abwechselnd" },
     subfoldersToo: "Unterordner", demoPictures: "Demobilder (noch kein eigener Ordner gewählt)",
     sectionPlayback: "Wiedergabe", sectionDisplay: "Anzeige", sectionContent: "Inhalte", sectionReception: "Empfang",
@@ -711,9 +713,14 @@ const home = {
     const hidden = state.hidden_tiles || [];
     const favorite = f => h("button", { onclick: () => api("/api/favorites/play", f) },
       h("i", { innerHTML: icon(f.kind) }), h("span", { textContent: f.title }));
+    // the favourites scroll; what belongs to the device rather than to listening stays at the right end
+    const tool = (name, label, onclick) => h("button", { className: "icon", innerHTML: icon(name), ariaLabel: label, onclick });
     view.replaceChildren(
-      ...(favorites.length ? [h("div", { className: "favrow" }, ...favorites.map(favorite),
-        h("button", { className: "icon", innerHTML: icon("star"), ariaLabel: t.manage, onclick: () => show(favoritesView) }))] : []),
+      h("div", { className: "favrow" },
+        h("div", { className: "favlist" }, ...favorites.map(favorite)),
+        ...(favorites.length ? [tool("star", t.manage, () => show(favoritesView))] : []),
+        tool("settings", t.settings, () => show(settings)),
+        ...(c.power ? [tool("power", t.powerTile, askPower)] : [])),
       h("div", { className: "tiles" }, ...[
       tile("webradio", t.webradio, c.mpv ? null : t.noMpv, () => show(webradio)),
       tile("dab", t.dab, c.dab ? sdrProblem : `welle-cli ${t.notInstalled}`, () => show(dab)),
@@ -750,8 +757,6 @@ const home = {
       tile("aprs", t.aprs, c.aprs ? sdrProblem : `direwolf ${t.notInstalled}`, () => show(aprsView), t.aprsSub),
       tile("qso", t.qso, null, () => show(qsoLog), t.qsoSub),
       tile("survey", t.survey, c.survey ? sdrProblem : `rtl_power ${t.notInstalled}`, () => show(surveyView), t.surveySub),
-      ...(c.power ? [tile("power", t.powerTile, null, () => show(powerView), t.powerSub)] : []),
-      tile("settings", t.settings, null, () => show(settings)),
       ].filter(el => !hidden.includes(el.dataset.tile))));
   },
   draw() { this.render(); },
@@ -2428,28 +2433,23 @@ const qsoForm = {
 
 /* ---------- switching the computer off ---------- */
 
-// Its own tile, so nobody has to pull the plug. Both buttons take two taps.
-const powerView = {
-  title: t.powerTile,
-  confirm: null,
-  note: "",
-  render() {
-    const twice = (id, label) => h("button", {
-      className: this.confirm === id ? "primary" : "", textContent: this.confirm === id ? t.sure : label,
-      onclick: async () => {
-        if (this.confirm !== id) { this.confirm = id; return this.render(); }
-        this.confirm = null;
-        try { await api("/api/device/power", { action: id }); } catch (error) { this.note = say(error.message); }
-        this.render();
-      },
-    });
-    view.replaceChildren(
-      h("p", { className: "explain", textContent: t.powerHint }),
-      h("div", { className: "toolbar wrap center" }, twice("poweroff", t.shutDown), twice("reboot", t.restart)),
-      ...(this.note ? [hint(this.note)] : []));
-  },
-  leave() { this.confirm = null; },
-};
+// A question over whatever is on screen, with one button per answer; a tap beside it or on the
+// last button leaves everything as it is.
+function ask(text, answers) {
+  const close = () => box.remove();
+  const box = h("div", { className: "ask", onclick: e => { if (e.target === box) close(); } },
+    h("div", {}, h("p", { textContent: text }),
+      h("div", { className: "toolbar wrap center" },
+        ...answers.map(([label, action, kind]) => h("button", { className: kind || "", textContent: label,
+          onclick: () => { close(); if (action) action(); } })))));
+  document.body.append(box);
+}
+
+// From the corner of the start page, so nobody has to pull the plug; never without asking first.
+function askPower() {
+  const run = action => () => api("/api/device/power", { action }).catch(error => ask(say(error.message), [[t.ok]]));
+  ask(t.powerAsk, [[t.shutDown, run("poweroff"), "primary"], [t.restart, run("reboot")], [t.cancel]]);
+}
 
 /* ---------- the gallery's pictures ---------- */
 
@@ -2878,7 +2878,7 @@ const tilesView = {
     const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner], ["adsb", t.adsb],
       ...c.apps.map(a => [a.id, a.name]), ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
       ["podcast", t.podcasts], ["music", t.music], ["audiobooks", t.audiobooks], ["news", t.news], ["sensors", t.sensors], ["ais", t.ais], ["weather", t.weather],
-      ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders], ...(c.power ? [["power", t.powerTile]] : []), ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["aprs", t.aprs], ["qso", t.qso], ["survey", t.survey]];
+      ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders], ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["aprs", t.aprs], ["qso", t.qso], ["survey", t.survey]];
     const top = view.scrollTop;
     view.replaceChildren(h("p", { className: "explain", textContent: t.tilesHint }),
       h("div", { className: "toolbar wrap" }, ...all.map(([id, name]) => h("button", {
@@ -2998,9 +2998,12 @@ function slideShow() {
       const height = el.clientWidth / shape, travel = el.clientHeight - height;
       if (cover && galleryInfo.pan !== "off" && travel < -2) {
         Object.assign(picture.style, { height: `${height}px`, objectFit: "fill" });
-        const ends = [`translateY(${travel}px)`, "translateY(0)"];   // first the lower end, then the upper
+        // evenly and for as long as the picture is seen, both changes included; by default it leaves
+        // a tenth at either end unvisited, which is calmer and loses little
+        const rest = (1 - (galleryInfo.pan_range || 80) / 100) / 2;
+        const ends = [`translateY(${travel * (1 - rest)}px)`, `translateY(${travel * rest}px)`];   // first the lower end, then the upper
         if (galleryInfo.pan === "down") ends.reverse();
-        picture.animate({ transform: ends }, { duration: (galleryInfo.seconds + 1.5) * 1000, easing: "ease-in-out", fill: "both" });
+        picture.animate({ transform: ends }, { duration: (galleryInfo.seconds + 2.5) * 1000, easing: "linear", fill: "both" });
       }
       // the very first picture fades in whatever is set: there is nothing yet to wipe or turn away
       const effect = !turns ? "fade" : galleryInfo.effect === "mix" ? SLIDE_EFFECTS[turns % SLIDE_EFFECTS.length]
@@ -3100,6 +3103,10 @@ const gallerySettings = {
           const pans = Object.keys(t.galleryPans);
           set("pan", pans[(pans.indexOf(g.pan) + 1) % pans.length]);
         } }),
+        ...(g.pan === "off" ? [] : [h("button", { textContent: `${t.galleryPanRange}: ${t.galleryPanRanges[g.pan_range]}`, onclick: () => {
+          const ranges = Object.keys(t.galleryPanRanges).map(Number);
+          set("pan_range", ranges[(ranges.indexOf(g.pan_range) + 1) % ranges.length]);
+        } })]),
         h("button", { textContent: `${t.galleryEffect}: ${t.galleryEffects[g.effect]}`, onclick: () => {
           const effects = Object.keys(t.galleryEffects);
           set("effect", effects[(effects.indexOf(g.effect) + 1) % effects.length]);
@@ -3599,7 +3606,7 @@ async function openLink() {
   const [name, band] = location.hash.slice(1).split("/");
   if (name === "idle") showIdle();
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
-    wifi: wifiView, receiver: receiverView, gallerymanage: galleryManage, notes: notesView, reminders: remindersView, clock: clockView, power: powerView,
+    wifi: wifiView, receiver: receiverView, gallerymanage: galleryManage, notes: notesView, reminders: remindersView, clock: clockView,
     gallery: galleryView, gallerysettings: gallerySettings, podcasts, news, sensors, ais: ships, timer: timerView,
     podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList, propagation: propagationView, qso: qsoLog,
     survey: surveyView, spots: spotsView, verse: verseSettings, music: musicView, audiobooks: audiobooksView, satellites: satellitesView,
