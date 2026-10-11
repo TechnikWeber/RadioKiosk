@@ -1387,6 +1387,9 @@ const deviceView = {
       this.draw();
       try { await job(); } catch (error) { this.note = say(error.message); }
       this.draw();
+      // the outcome stands below the buttons, out of sight on a small display: bring it into view
+      const outcome = this.note ? [...view.querySelectorAll(".hint")].pop() : view.querySelector(".found");
+      if (outcome) outcome.scrollIntoView({ block: this.note ? "nearest" : "start" });
     };
     // switching the computer off takes two taps
     const twice = (id, label, action) => h("button", {
@@ -1426,7 +1429,7 @@ const deviceView = {
         twice("poweroff", t.shutDown, () => api("/api/device/power", { action: "poweroff" })))] : []),
       h("p", { className: "label", textContent: `${t.software}: RadioKiosk ${d.version}` }),
       ...(r.failed ? [hint(t.updateFailed(r.failed))] : []),
-      ...(r.available ? [h("p", { className: "label", textContent: `${t.version} ${r.available.version} ${t.available}` })] : []),
+      ...(r.available ? [h("p", { className: "label found", textContent: `${t.version} ${r.available.version} ${t.available}` })] : []),
       h("div", { className: "toolbar wrap" },
         r.available && r.can ? h("button", {
           className: "primary", textContent: `${t.updateTo} ${r.available.version}`, onclick: () => work(t.updating, async () => {

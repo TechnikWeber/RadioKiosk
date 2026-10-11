@@ -152,7 +152,7 @@ Listening to radio services that are not meant for the public is restricted in m
 
 ## Updating
 
-Under **Settings › Device**, “Look for updates” asks GitHub for a newer release; once a day RadioKiosk also looks by itself and says so next to the version number on the home screen. “Update to …” installs it. If you like, switch on “Update by itself at night”: it then happens between 3 and 5 o'clock while nothing is playing.
+Under **Settings › Device**, “Look for updates” asks GitHub for a newer release; once a day RadioKiosk also looks by itself and says so next to the version number on the home screen. “Update to …” installs it. With “Update by itself at night” it also happens unasked, between 3 and 5 o'clock and only while nothing is playing; this is switched on and can be switched off there.
 
 An update does not leave the device dark:
 

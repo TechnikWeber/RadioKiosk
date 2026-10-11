@@ -152,7 +152,7 @@ Das Abhören von Funkdiensten, die nicht für die Allgemeinheit bestimmt sind, i
 
 ## Aktualisieren
 
-Unter **Einstellungen › Gerät** sucht „Nach Updates suchen“ bei GitHub nach einem neueren Release; einmal am Tag sieht RadioKiosk auch von selbst nach und zeigt auf der Startseite neben der Versionsnummer, wenn eines bereitsteht. „Aktualisieren auf …“ installiert es. Wer möchte, schaltet „Nachts von selbst aktualisieren“ ein: Dann geschieht das zwischen 3 und 5 Uhr, solange nichts läuft.
+Unter **Einstellungen › Gerät** sucht „Nach Updates suchen“ bei GitHub nach einem neueren Release; einmal am Tag sieht RadioKiosk auch von selbst nach und zeigt auf der Startseite neben der Versionsnummer, wenn eines bereitsteht. „Aktualisieren auf …“ installiert es. Mit „Nachts von selbst aktualisieren“ geschieht das auch ohne Zutun, zwischen 3 und 5 Uhr und nur solange nichts läuft; das ist eingeschaltet und lässt sich dort abschalten.
 
 Ein Update lässt das Gerät nicht dunkel zurück:
 
