@@ -54,11 +54,17 @@ async def call(*arguments, timeout):
     return out.decode(errors="replace")
 
 
+_version = {}   # how yt-dlp is started -> its version; asking takes seconds on a small computer
+
+
 async def version():
-    try:
-        return (await call("--version", timeout=30)).strip()
-    except RuntimeError:
-        return None
+    key = tuple(program() or ())
+    if key not in _version:
+        try:
+            _version[key] = (await call("--version", timeout=30)).strip()
+        except RuntimeError:
+            return None
+    return _version[key]
 
 
 async def fetch():
@@ -86,6 +92,7 @@ async def fetch():
         partial.unlink(missing_ok=True)
         raise RuntimeError("yt-dlp could not be fetched: the new copy does not start")
     os.replace(partial, OWN)
+    _version.clear()
     return out.decode().strip()
 
 

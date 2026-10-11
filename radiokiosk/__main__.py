@@ -645,8 +645,10 @@ def build(cfg):
             asyncio.create_task(media.play(body))   # finding the stream takes seconds; the state tells how it goes
         elif action == "keep":
             media.keep(body["item"], bool(body["on"]))
+            return web.json_response({"kept": media.kept})
         elif action == "search":
             media.keep_search(str(body["query"]), bool(body["on"]))
+            return web.json_response({"searches": media.searches})
         elif action == "seek":
             await media.seek(float(body["seconds"]))
         elif action == "fetch":

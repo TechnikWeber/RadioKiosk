@@ -156,7 +156,7 @@ const STRINGS = {
     mediaRenew: "Renew yt-dlp", mediaHint: "The Online media tile finds and opens its titles with the program yt-dlp and plays their sound. The sites it reads change often: if titles stop playing, renew yt-dlp here. The newest version is fetched from its project into RadioKiosk's own folder.",
     about: "about", dayBefore: "The day before yesterday", testTone: "Test tone", sides: { left: "left", right: "right", both: "both" },
     hamTiles: "Radio hobby", hamHint: "Aircraft, ships, radio sensors, APRS, propagation, DX cluster, satellites, QSO log, radio survey and the expert receivers. A tile whose program is not installed stays away.",
-    mediaSearches: "Kept searches", mediaTitles: "Kept titles", mediaKeepSearch: "Keep this search",
+    mediaSearches: "Kept searches", mediaTitles: "Kept titles", mediaKeepSearch: "Keep this search", mediaDating: "date loading …",
     tileSize: "Tiles", bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
     bluetooth: "Bluetooth", btSub: "Speakers and phone", btVisible: "Let a phone connect", btVisibleFor: "Visible for",
@@ -324,7 +324,7 @@ const STRINGS = {
     mediaRenew: "yt-dlp erneuern", mediaHint: "Die Kachel Online-Medien findet und öffnet ihre Titel mit dem Programm yt-dlp und spielt deren Ton. Die Seiten, die es liest, ändern sich oft: Spielen Titel nicht mehr, hier yt-dlp erneuern. Die neueste Version wird von seinem Projekt in den eigenen Ordner von RadioKiosk geholt.",
     about: "ca.", dayBefore: "Vorgestern", testTone: "Testton", sides: { left: "links", right: "rechts", both: "beide" },
     hamTiles: "Funk-Hobby", hamHint: "Flugzeuge, Schiffe, Funksensoren, APRS, Funkwetter, DX-Cluster, Satelliten, QSO-Log, Funk-Analyse und die Experten-Empfänger. Eine Kachel, deren Programm nicht installiert ist, bleibt weg.",
-    mediaSearches: "Gemerkte Suchen", mediaTitles: "Gemerkte Titel", mediaKeepSearch: "Suche merken",
+    mediaSearches: "Gemerkte Suchen", mediaTitles: "Gemerkte Titel", mediaKeepSearch: "Suche merken", mediaDating: "Datum lädt …",
     tileSize: "Kacheln", bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
     bluetooth: "Bluetooth", btSub: "Lautsprecher und Handy", btVisible: "Handy verbinden lassen", btVisibleFor: "Sichtbar für",
@@ -1739,16 +1739,38 @@ const mediaView = {
     catch (e) { this.results = []; this.error = e.message; }
     if (current === this) this.draw();
     // The list gave no day for some titles: those are opened one by one, which takes a few seconds each.
-    for (const item of found.filter(item => !item.date && !item.live).slice(0, 6)) {
-      try { item.date = (await api("/api/media/date?url=" + encodeURIComponent(item.url))).date; } catch (e) { break; }
+    const undated = found.filter(item => !item.date && !item.live).slice(0, 6);
+    for (const item of undated) item.dating = true;   // shown as "loading" where the day will stand
+    if (undated.length && current === this) this.draw();
+    for (const item of undated) {
+      try { item.date = (await api("/api/media/date?url=" + encodeURIComponent(item.url))).date; } catch (e) {}
+      item.dating = false;
       if (this.results !== found) return;   // another search since
       if (current === this && !this.typing) this.draw();
     }
   },
+  // The star changes at once and takes no second tap until the service has answered: on a small
+  // computer that can take a moment, and tapping again would undo it.
+  saving: false,
   async keepSearch(query, on) {
-    await api("/api/media/search", { query, on });
-    ({ searches: this.searches } = await api("/api/media"));
+    if (this.saving) return;
+    this.saving = true;
+    const before = this.searches;
+    this.searches = on ? [query, ...before] : before.filter(s => s.toLowerCase() !== query.toLowerCase());
     this.draw();
+    try { ({ searches: this.searches } = await api("/api/media/search", { query, on })); } catch (e) { this.searches = before; }
+    this.saving = false;
+    if (current === this && !this.typing) this.draw();
+  },
+  async keep(item, on) {
+    if (this.saving) return;
+    this.saving = true;
+    const before = this.kept;
+    this.kept = on ? [item, ...before] : before.filter(k => k.id !== item.id);
+    this.draw();
+    try { ({ kept: this.kept } = await api("/api/media/keep", { item, on })); } catch (e) { this.kept = before; }
+    this.saving = false;
+    if (current === this && !this.typing) this.draw();
   },
   async fetch() {
     this.note = t.loading;
@@ -1810,15 +1832,11 @@ const mediaView = {
       const kept = this.kept.some(k => k.id === item.id);
       parts.push(stationRow({
         title: item.title,
-        info: [item.author, item.live ? t.mediaLive : item.seconds ? clockTime(item.seconds) : null, roughDay(item.date)].filter(Boolean).join(" · "),
+        info: [item.author, item.live ? t.mediaLive : item.seconds ? clockTime(item.seconds) : null, item.dating ? t.mediaDating : roughDay(item.date)].filter(Boolean).join(" · "),
         active: state.source === "media" && state.detail.id === item.id,
         onPlay: () => api("/api/media/play", item).catch(() => {}),
         starred: kept,
-        onStar: async () => {
-          await api("/api/media/keep", { item, on: !kept });
-          ({ kept: this.kept } = await api("/api/media"));
-          this.draw();
-        },
+        onStar: () => this.keep(item, !kept),
       }));
     }
     const top = view.scrollTop;
