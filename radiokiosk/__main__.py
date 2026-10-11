@@ -34,6 +34,8 @@ from .sources.aprs import Aprs
 from .sources.music import Music
 from .sources import podcasts as podcast_directory
 from .sources.ais import Ais
+from .sources import media as online_media
+from .sources.media import Media
 from .sources.podcasts import PROVIDERS, Podcasts
 from .sources.sensors import Sensors
 from .notes import SNOOZES, Notes, Reminders
@@ -103,6 +105,7 @@ def build(cfg):
     music, aprs, shelf, sky, alerts = Music(core), Aprs(core), audiobooks.Shelf(), satellite_passes.Satellites(), Alerts(core)
     verses = Verses(cfg)
     podcasts, sensors, ais = Podcasts(core), Sensors(core), Ais(core)
+    media = Media(core)
     alarm = Alarm(core)
     timer = Timer(core)
     notes, reminders = Notes(), Reminders(core)
@@ -116,6 +119,7 @@ def build(cfg):
         "tuner": lambda last: tuner.tune(last["hz"], last["mode"], last.get("squelch", 0), 1, last["title"]),
         "podcast": lambda last: podcasts.play(last["episode"]),
         "music": lambda last: music.play(last["path"]),
+        "media": lambda last: media.play(last["item"]),
     }
     core.sources.update(fm=fm, tuner=tuner)
     core.receiver_backends = available_backends()
@@ -338,6 +342,7 @@ def build(cfg):
                                   "podcast_provider": cfg["podcast_provider"],
                                   "podcast_key": cfg["podcast_key"], "podcast_secret": cfg["podcast_secret"],
                                   "callsign": cfg["callsign"], "swl": cfg["swl"], "alerts": cfg["alerts"],
+                                  "online_media": cfg["online_media"],
                                   "music_folder": str(music.root()),
                                   "version": __version__, "build": BUILD, "tone": cfg["tone"], "tones": list(tones.TONES),
                                   "autostop_hours": cfg["autostop_hours"], "autostop_at": cfg["autostop_at"], "stream": network_audio.can_stream(),
@@ -391,13 +396,14 @@ def build(cfg):
             save_setting(cfg, body["key"], body["value"].strip())
             return ok()
         allowed = {"fm_backend": CHOICES, "tuner_backend": CHOICES, "remote": (True, False),
-                   "idle_rotate": (1, 2, 5, 10, 15, 30, 60), "podcast_provider": PROVIDERS, "swl": (True, False)}
+                   "idle_rotate": (1, 2, 5, 10, 15, 30, 60), "podcast_provider": PROVIDERS, "swl": (True, False),
+                   "online_media": (True, False)}
         if body["value"] not in allowed.get(body["key"], ()):
             raise ValueError("unknown setting")
         if body["key"].endswith("_backend"):
             await core.stop()
         save_setting(cfg, body["key"], body["value"])
-        if body["key"] == "idle_rotate":
+        if body["key"] in ("idle_rotate", "online_media"):
             await core._broadcast()   # every open interface learns what its idle screen shows now
         return ok()
 
@@ -614,6 +620,30 @@ def build(cfg):
     @routes.get("/api/ais/ships")
     async def ais_ships(request):
         return web.json_response({"ships": ais.list(), "location": cfg.get("location")})
+
+    @routes.get("/api/media")
+    async def media_get(request):
+        return web.json_response({"kept": media.kept, "version": await online_media.version()})
+
+    @routes.get("/api/media/search")
+    async def media_search(request):
+        return web.json_response(await online_media.search(request.query.get("q", "")))
+
+    @routes.post("/api/media/{action}")
+    async def media_do(request):
+        body = await request.json() if request.can_read_body else {}
+        action = request.match_info["action"]
+        if action == "play":
+            asyncio.create_task(media.play(body))   # finding the stream takes seconds; the state tells how it goes
+        elif action == "keep":
+            media.keep(body["item"], bool(body["on"]))
+        elif action == "seek":
+            await media.seek(float(body["seconds"]))
+        elif action == "fetch":
+            return web.json_response({"version": await online_media.fetch()})
+        else:
+            raise web.HTTPNotFound()
+        return ok()
 
     @routes.get("/api/podcasts")
     async def podcasts_get(request):

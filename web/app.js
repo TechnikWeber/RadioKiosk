@@ -150,6 +150,11 @@ const STRINGS = {
     losungenThere: "Imported:", losungenMissing: "No file imported yet for", losungenUpload: "Import a file from this device",
     losungenFolder: "Import from a folder of this computer", losungenImported: "Imported the Losungen for",
     theme: "Design", themes: { dark: "dark", light: "light" },
+    media: "Online media", mediaSub: "via yt-dlp", mediaKept: "Kept", mediaSearch: "Search words or an address", mediaLive: "live",
+    mediaOpening: "yt-dlp is looking for the stream …", mediaNoneKept: "Nothing kept yet. The star beside a title keeps it here.",
+    mediaMissing: "yt-dlp is not installed. It can be fetched from its project into RadioKiosk's own folder.", mediaFetch: "Fetch yt-dlp",
+    mediaRenew: "Renew yt-dlp", mediaHint: "Experimental, sound only. If titles stop playing, renew yt-dlp. In use:",
+    mediaSetting: "Online media via yt-dlp (experimental)",
     tileSize: "Tiles", bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
     bluetooth: "Bluetooth", btSub: "Speakers and phone", btVisible: "Let a phone connect", btVisibleFor: "Visible for",
@@ -311,6 +316,11 @@ const STRINGS = {
     losungenThere: "Eingespielt:", losungenMissing: "Noch keine Datei eingespielt für", losungenUpload: "Datei von diesem Gerät einspielen",
     losungenFolder: "Aus einem Ordner dieses Rechners einspielen", losungenImported: "Losungen eingespielt für",
     theme: "Design", themes: { dark: "dunkel", light: "hell" },
+    media: "Online-Medien", mediaSub: "über yt-dlp", mediaKept: "Gemerkt", mediaSearch: "Suchwörter oder eine Adresse", mediaLive: "live",
+    mediaOpening: "yt-dlp sucht den Stream …", mediaNoneKept: "Noch nichts gemerkt. Der Stern neben einem Titel merkt ihn hier.",
+    mediaMissing: "yt-dlp ist nicht installiert. Es lässt sich von seinem Projekt in den eigenen Ordner von RadioKiosk holen.", mediaFetch: "yt-dlp holen",
+    mediaRenew: "yt-dlp erneuern", mediaHint: "Experimentell, nur Ton. Spielen Titel nicht mehr, yt-dlp erneuern. In Gebrauch:",
+    mediaSetting: "Online-Medien über yt-dlp (experimentell)",
     tileSize: "Kacheln", bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
     bluetooth: "Bluetooth", btSub: "Lautsprecher und Handy", btVisible: "Handy verbinden lassen", btVisibleFor: "Sichtbar für",
@@ -420,6 +430,10 @@ const MESSAGES_DE = [
   [/^nothing has been played yet$/, "Es wurde noch nichts abgespielt"],
   [/^scan timed out$/, "Der Suchlauf hat zu lange gedauert"],
   [/^mpv is not installed$/, "mpv ist nicht installiert"],
+  [/^yt-dlp is not installed$/, "yt-dlp ist nicht installiert"],
+  [/^yt-dlp took too long$/, "yt-dlp hat zu lange gebraucht"],
+  [/^yt-dlp failed: (.*)$/, "yt-dlp ist gescheitert: $1"],
+  [/^yt-dlp could not be fetched.*$/, "yt-dlp ließ sich nicht holen"],
   [/^(playback|loading) failed$/, "Die Wiedergabe ist fehlgeschlagen"],
   [/^unrecognized file format$/, "Der Sender liefert kein abspielbares Format"],
 ];
@@ -444,6 +458,7 @@ const ICONS = {
   satellites: '<path d="M9 9l6 6M7 11l-4-4 4-4 4 4zM13 17l4 4 4-4-4-4zM14 6l4 4M5 16a4 4 0 004 4"/>',
   aprs: '<path d="M12 21s-6-5.5-6-10a6 6 0 0112 0c0 4.500-6 10-6 10z"/><circle cx="12" cy="11" r="2"/>',
   podcast: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>',
+  media: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z"/>',
   news: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/>',
   sensors: '<path d="M10 14V5a2 2 0 014 0v9a4 4 0 11-4 0z"/><path d="M12 17v-6"/>',
   ais: '<path d="M3 17l2 4h14l2-4M5 17v-6h14v6M9 11V6h6v5M12 6V3"/>',
@@ -730,6 +745,7 @@ const home = {
       tile("podcast", t.podcasts, c.mpv ? null : t.noMpv, () => show(podcasts)),
       tile("music", t.music, c.mpv ? null : t.noMpv, () => show(musicView), t.musicSub),
       tile("audiobooks", t.audiobooks, c.mpv ? null : t.noMpv, () => show(audiobooksView), t.audiobooksSub),
+      ...(c.media ? [tile("media", t.media, c.mpv ? null : t.noMpv, () => show(mediaView), t.mediaSub)] : []),
       ...(c.bluetooth ? [tile("bluetooth", t.bluetooth, null, () => show(bluetooth), t.btSub)] : []),
       tile("news", t.news, null, () => show(news), t.newsSub),
       tile("weather", t.weather, null, () => show(weather)),
@@ -1684,6 +1700,104 @@ const podcasts = {
     view.replaceChildren(...parts);
     view.scrollTop = top;
   },
+};
+
+// Experimental, and only there when switched on in the settings: titles found and opened by
+// yt-dlp, played as sound. A row plays; the star keeps a title for later.
+const mediaView = {
+  title: t.media,
+  tab: "kept",
+  typing: false,
+  kept: [],
+  version: undefined,
+  results: [],
+  query: "",
+  error: null,
+  note: "",
+  async render() {
+    this.draw();
+    ({ kept: this.kept, version: this.version } = await api("/api/media"));
+    if (!this.kept.length && this.tab === "kept") Object.assign(this, { tab: "search", typing: true });
+    if (current === this) this.draw();
+  },
+  async load(query) {
+    this.results = null;
+    this.error = null;
+    this.draw();
+    try { this.results = await api("/api/media/search?q=" + encodeURIComponent(query)); }
+    catch (e) { this.results = []; this.error = e.message; }
+    if (current === this) this.draw();
+  },
+  async fetch() {
+    this.note = t.loading;
+    this.draw();
+    try { this.version = (await api("/api/media/fetch", {})).version; this.note = ""; }
+    catch (e) { this.note = say(e.message); }
+    if (current === this) this.draw();
+  },
+  draw() {
+    const tabButton = id => h("button", {
+      className: this.tab === id ? "on" : "", textContent: id === "kept" ? t.mediaKept : t.search,
+      onclick: () => { Object.assign(this, { tab: id, typing: id === "search" && !(this.results || []).length }); this.draw(); },
+    });
+    const parts = [h("div", { className: "tabs" }, tabButton("kept"), tabButton("search"))];
+    if (this.version === null) {
+      view.replaceChildren(...parts, hint(t.mediaMissing),
+        h("div", { className: "toolbar center" }, h("button", { className: "primary", textContent: t.mediaFetch, onclick: () => this.fetch() })),
+        ...(this.note ? [hint(this.note)] : []));
+      return;
+    }
+    if (this.tab === "search") {
+      const input = h("input", { type: "search", value: this.query, placeholder: t.mediaSearch, enterKeyHint: "search" });
+      const run = () => { this.query = input.value.trim(); this.typing = false; if (this.query) this.load(this.query); else this.draw(); };
+      input.oninput = () => { this.query = input.value; };
+      input.onkeydown = e => { if (e.key === "Enter") run(); };
+      parts.push(h("div", { className: "toolbar" }, input, h("button", { className: "primary", textContent: t.go, onclick: run })));
+      if (keyboardWanted()) {
+        if (this.typing) {
+          input.inputMode = "none";
+          view.replaceChildren(...parts, keyboard(input, run));
+          return;
+        }
+        input.onfocus = () => { this.typing = true; this.draw(); };
+      }
+    }
+    if (state.source === "media") {
+      const seek = seconds => h("button", { textContent: `${seconds > 0 ? "+" : "−"}${Math.abs(seconds)} s`,
+        onclick: () => api("/api/media/seek", { seconds }) });
+      parts.push(h("div", { className: "toolbar wrap" }, seek(-30), seek(30), h("span", { className: "label", textContent:
+        state.status === "loading" ? t.mediaOpening : state.detail.position === undefined ? ""
+          : `${clockTime(state.detail.position)}${state.detail.length ? " / " + clockTime(state.detail.length) : ""}` })));
+    }
+    const list = this.tab === "kept" ? this.kept : this.results;
+    if (list === null) parts.push(hint(t.loading));
+    else if (this.error) parts.push(hint(say(this.error)));
+    else if (!list.length) parts.push(hint(this.tab === "kept" ? t.mediaNoneKept : this.query ? t.noResults : ""));
+    else for (const item of list) {
+      const kept = this.kept.some(k => k.id === item.id);
+      parts.push(stationRow({
+        title: item.title,
+        info: [item.author, item.live ? t.mediaLive : item.seconds ? clockTime(item.seconds) : null].filter(Boolean).join(" · "),
+        active: state.source === "media" && state.detail.id === item.id,
+        onPlay: () => api("/api/media/play", item).catch(() => {}),
+        starred: kept,
+        onStar: async () => {
+          await api("/api/media/keep", { item, on: !kept });
+          ({ kept: this.kept } = await api("/api/media"));
+          this.draw();
+        },
+      }));
+    }
+    if (this.tab === "kept") {
+      parts.push(h("p", { className: "label", textContent: `${t.mediaHint} yt-dlp ${this.version || ""}` }),
+        h("div", { className: "toolbar" }, h("button", { textContent: t.mediaRenew, onclick: () => this.fetch() })),
+        ...(this.note ? [hint(this.note)] : []));
+    }
+    const top = view.scrollTop;
+    view.replaceChildren(...parts);
+    view.scrollTop = top;
+  },
+  onState() { if (!this.typing) this.draw(); },
 };
 
 // The episodes of one podcast, with the controls of the one that is playing.
@@ -2878,7 +2992,7 @@ const tilesView = {
     const c = state.caps, hidden = state.hidden_tiles || [];
     // in the order of the start screen
     const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner],
-      ["podcast", t.podcasts], ["music", t.music], ["audiobooks", t.audiobooks], ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
+      ["podcast", t.podcasts], ["music", t.music], ["audiobooks", t.audiobooks], ...(c.media ? [["media", t.media]] : []), ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
       ["news", t.news], ["weather", t.weather], ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders],
       ["adsb", t.adsb], ["ais", t.ais], ["sensors", t.sensors], ["aprs", t.aprs], ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["qso", t.qso], ["survey", t.survey],
       ...c.apps.map(a => [a.id, a.name])];
@@ -3269,6 +3383,8 @@ const settings = {
       ...section(t.sectionContent,
         h("button", { textContent: t.gallery, onclick: () => show(gallerySettings) }),
         h("button", { textContent: t.podcastDirectory, onclick: () => show(podcastSettings) }),
+        h("button", { className: receivers.online_media ? "on" : "", textContent: `${t.mediaSetting}: ${receivers.online_media ? t.on : t.off}`,
+          onclick: async () => { await api("/api/settings", { key: "online_media", value: !receivers.online_media }); this.render(); } }),
         h("button", { textContent: t.verse, onclick: () => show(verseSettings) }),
         h("button", { textContent: t.manageFeeds, onclick: () => { feedList.origin = settings; show(feedList); } }),
         h("button", { className: receivers.alerts ? "on" : "", textContent: `${t.weatherAlerts}: ${receivers.alerts ? t.on : t.off}`,
@@ -3613,7 +3729,7 @@ async function openLink() {
   if (name === "idle") showIdle();
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
     wifi: wifiView, receiver: receiverView, gallerymanage: galleryManage, notes: notesView, reminders: remindersView, clock: clockView,
-    gallery: galleryView, gallerysettings: gallerySettings, podcasts, news, sensors, ais: ships, timer: timerView,
+    gallery: galleryView, gallerysettings: gallerySettings, media: mediaView, podcasts, news, sensors, ais: ships, timer: timerView,
     podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList, propagation: propagationView, qso: qsoLog,
     survey: surveyView, spots: spotsView, verse: verseSettings, music: musicView, audiobooks: audiobooksView, satellites: satellitesView,
     aprs: aprsView }[name] || home;

@@ -22,7 +22,7 @@ from .util import memory_mb, sdr_present
 
 # errors that mean the stick itself is stuck rather than the reception being poor
 SDR_HANG = ("no data from the SDR stick", "stopped delivering data", "does not respond")
-MPV_SOURCES = ("webradio", "dab", "fm", "tuner", "podcast", "music")
+MPV_SOURCES = ("webradio", "dab", "fm", "tuner", "podcast", "music", "media")
 
 
 def music_dir():
@@ -62,6 +62,7 @@ class Core:
         return {
             "mpv": Mpv.available(),
             "power": self.can_power_off,
+            "media": bool(self.cfg["online_media"]),
             "sdr": sdr,
             "dab": shutil.which("welle-cli") is not None,
             "fm": any(self.receiver_backends.values()),

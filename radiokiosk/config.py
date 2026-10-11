@@ -63,6 +63,7 @@ DEFAULTS = {
     "autostop_at": None,      # hour of the day at which playing stops, None never
     "tone": "tick",           # the sound of alarm, timer and reminders; see tones.py
     "auto_update": True,      # install new releases at night without being asked
+    "online_media": False,    # experimental: the tile that plays through yt-dlp
     "callsign": "",
     "swl": False,
     "apps": [
