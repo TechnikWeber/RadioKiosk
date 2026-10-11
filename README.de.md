@@ -15,7 +15,7 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 | ![Ruhebildschirm mit der Galerie hinter der Uhr](docs/screenshots/idle.png) | ![Funkaktivität: der DX-Cluster](docs/screenshots/spots.png) |
 | ![Funkwetter: Sonnenwerte und Bandbedingungen](docs/screenshots/propagation.png) | ![Bericht einer Funk-Analyse](docs/screenshots/survey.png) |
 
-> Version 0.23: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
+> Version 0.24: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
 
 ## Installation
 
