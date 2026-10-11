@@ -15,7 +15,7 @@ Macht aus jedem Linux-Rechner mit Touchscreen und RTL-SDR-Stick einen Weltempfä
 | ![Ruhebildschirm mit der Galerie hinter der Uhr](docs/screenshots/idle.png) | ![Funkaktivität: der DX-Cluster](docs/screenshots/spots.png) |
 | ![Funkwetter: Sonnenwerte und Bandbedingungen](docs/screenshots/propagation.png) | ![Bericht einer Funk-Analyse](docs/screenshots/survey.png) |
 
-> Version 0.20: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
+> Version 0.21: Alles hier Aufgeführte ist gebaut, aber noch nicht alles auf jeder Art von Hardware ausprobiert. Was getestet ist, steht in der Tabelle unter *Unterstützte Hardware*.
 
 ## Installation
 
@@ -92,7 +92,8 @@ Ein kleiner Python-Dienst steuert die Empfänger und liefert eine Weboberfläche
 | APRS | Positionsmeldungen von Funkamateuren auf 144,800 MHz auf der Karte | `rtl_fm`, `direwolf`, Leaflet |
 | QSO-Log | Logbuch für Funkverbindungen und für reine Hörer (SWL), mit Bändern und Betriebsarten zum Antippen; Export als ADIF und CSV nach `Dokumente/RadioKiosk` | – |
 | Funk-Analyse | durchläuft einen Bereich über eine gewählte Zeit und berichtet, was zeitweise sendet, was dauernd da ist und was nach Störung aussieht; Bericht zum Speichern | `rtl_power`, NumPy |
-| Wecker | weckt mit einem festen Sender oder dem zuletzt gehörten, ersatzweise mit einem Ton (wählbar: Ticken, Klopfen, Glocke, Piepen; gilt auch für Timer und Erinnerungen); die Weckzeit steht auch im Ruhebildschirm | `mpv` |
+| Wecker | weckt mit einem festen Sender oder dem zuletzt gehörten, ersatzweise oder auf Wunsch nur mit einem Ton (wählbar: Ticken, Klopfen, Glocke, Piepen; gilt auch für Timer und Erinnerungen); die Weckzeit steht auch im Ruhebildschirm | `mpv` |
+| Ausschalten | fährt den Rechner sauber herunter oder startet ihn neu, damit niemand den Stecker im Betrieb ziehen muss | – |
 | Timer | Kurzzeitwecker, der auch über dem laufenden Sender klingelt, und Stoppuhr | `mpv` |
 | Notizen | kurze Notizen schreiben, anheften, ändern und löschen; alle zusammen lassen sich als Textdatei sichern | – |
 | Erinnerungen | Erinnerung für einen Tag, auf Wunsch mit Uhrzeit und Wiederholung (täglich bis jährlich); sie bleibt als Leiste auf jedem Bildschirm und im Ruhebildschirm stehen, bis sie quittiert oder verschoben wird | `mpv` für den Hinweiston |
@@ -152,7 +153,7 @@ Nach einer Weile ohne Berührung zeigt ein Ruhebildschirm Uhrzeit, Datum, Wetter
 
 Das Abhören von Funkdiensten, die nicht für die Allgemeinheit bestimmt sind, ist in vielen Ländern eingeschränkt. Der Bandplan enthält deshalb nur Rundfunk, Amateurfunk und anmeldefreie Bänder.
 
-Damit ein vergessenes Radio nicht tagelang läuft, stoppt die Wiedergabe von selbst, wenn acht Stunden lang niemand das Gerät bedient hat (**Einstellungen › Wiedergabe**; 2 bis 24 Stunden oder nie, dazu auf Wunsch eine feste Uhrzeit). Nachts zeigt der Ruhebildschirm statt Bildern oder Nachrichten die abgedunkelte Uhr oder schaltet das Display ganz aus (**Einstellungen › Ruhebildschirm**, Standard 23 bis 6 Uhr abgedunkelt); eine Berührung holt es zurück.
+Damit ein vergessenes Radio nicht tagelang läuft, stoppt die Wiedergabe von selbst, wenn acht Stunden lang niemand das Gerät bedient hat (**Einstellungen › Wiedergabe**; 2 bis 24 Stunden oder nie, dazu auf Wunsch eine feste Uhrzeit). Nachts lässt sich der Ruhebildschirm abdunkeln, auch wenn er Bilder oder Nachrichten zeigt, durch die abgedunkelte Uhr ersetzen oder das Display ganz ausschalten (**Einstellungen › Ruhebildschirm**, Standard 23 bis 6 Uhr nur die abgedunkelte Uhr); eine Berührung holt es zurück.
 
 Unter **Einstellungen › Gerät › Datum und Uhrzeit** lassen sich Zeitzone, Datum und Uhrzeit des Rechners stellen und das Stellen aus dem Internet ein- und ausschalten. Das Recht dazu richtet der Installer ein.
 

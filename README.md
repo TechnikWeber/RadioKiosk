@@ -15,7 +15,7 @@ Turns any Linux computer with a touchscreen and an RTL-SDR stick into a world re
 | ![Idle screen with the gallery behind the clock](docs/screenshots/idle.png) | ![On the air: the DX cluster](docs/screenshots/spots.png) |
 | ![Propagation: solar figures and band conditions](docs/screenshots/propagation.png) | ![Report of a radio survey](docs/screenshots/survey.png) |
 
-> Version 0.20: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
+> Version 0.21: everything listed here is built, but not all of it has been tried on every kind of hardware yet. See the table under *Supported hardware* for what has been tested.
 
 ## Install
 
@@ -92,7 +92,8 @@ A small Python service controls the receivers and serves a web interface that a 
 | APRS | positions radio amateurs send on 144.800 MHz, on a map | `rtl_fm`, `direwolf`, Leaflet |
 | QSO log | logbook for contacts and for listeners (SWL), with bands and modes to tap; export as ADIF and CSV to `Documents/RadioKiosk` | – |
 | Radio survey | sweeps a range for a chosen time and reports what transmits now and then, what is always there and what looks like interference; the report can be saved | `rtl_power`, NumPy |
-| Alarm | wakes with a fixed station or the one heard last, with a tone if that fails (to choose: ticking, knocking, bell, beeps; also used by timer and reminders); the alarm time is also shown on the idle screen | `mpv` |
+| Alarm | wakes with a fixed station or the one heard last, with a tone if that fails or, if wanted, with the tone alone (to choose: ticking, knocking, bell, beeps; also used by timer and reminders); the alarm time is also shown on the idle screen | `mpv` |
+| Switch off | shuts the computer down cleanly or restarts it, so nobody has to pull the plug while it runs | – |
 | Timer | kitchen timer that also rings over the station that is playing, and a stopwatch | `mpv` |
 | Notes | write short notes, pin, change and delete them; all of them can be saved as one text file | – |
 | Reminders | a reminder for a day, with a time of day and a repeat (daily to yearly) if wanted; it stays as a bar on every screen and on the idle screen until it is acknowledged or put off | `mpv` for the tone |
@@ -152,7 +153,7 @@ After a while without a touch, an idle screen shows the time, date, weather and 
 
 Listening to radio services that are not meant for the public is restricted in many countries. The band plan therefore only contains broadcast, amateur radio and licence-free bands.
 
-So that a forgotten radio does not play for days, playback stops by itself when nobody has operated the device for eight hours (**Settings › Playback**; 2 to 24 hours or never, and a fixed hour of the day if wanted). At night the idle screen shows the dimmed clock instead of pictures or news, or switches the display off altogether (**Settings › Idle screen**, by default dimmed from 23 to 6 o'clock); a touch brings it back.
+So that a forgotten radio does not play for days, playback stops by itself when nobody has operated the device for eight hours (**Settings › Playback**; 2 to 24 hours or never, and a fixed hour of the day if wanted). At night the idle screen can be dimmed, also while it shows pictures or news, replaced by the dimmed clock, or the display switched off altogether (**Settings › Idle screen**, by default only the dimmed clock from 23 to 6 o'clock); a touch brings it back.
 
 Under **Settings › Device › Date and time** the computer's time zone, date and time can be set, and setting them from the internet switched on and off. The installer sets up the permission for that.
 

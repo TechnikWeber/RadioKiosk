@@ -38,7 +38,10 @@ const STRINGS = {
     picturesAdded: n => `${n} added`, picturesFailed: n => `${n} could not be added`, deleteChosen: n => n === 1 ? "Delete the chosen picture" : `Delete the ${n} chosen`,
     manageHint: "Tap pictures to choose them for deleting. Adding works from this device's files, so most easily from a phone or computer through the remote control.",
     manageDemo: "These sample pictures belong to RadioKiosk. With your first own picture a folder of your own is started, and from then on only your pictures are shown.",
-    nightMode: "At night", nightModes: { none: "as by day", dim: "dimmed clock", off: "display off" }, nightFrom: "Night from", nightTo: "until",
+    nightMode: "At night", nightModes: { none: "as by day", same: "as by day, but dimmed", dim: "only the dimmed clock", off: "display off" },
+    nightHint: "At night, whatever the idle screen shows by day (pictures, news) can be dimmed, replaced by the dimmed clock, or the display switched off. A touch always brings it back.",
+    powerTile: "Switch off", powerSub: "or restart", powerHint: "Switch the device off here before pulling the plug: pulled while running, the memory card can take damage.",
+    wakeTone: "Only the sound, no station", wakeToneHint: "With a station chosen, the sound is only heard if the station does not come up.", nightFrom: "Night from", nightTo: "until",
     oclock: h => `${h}:00`, autostopAfter: "Stops by itself after", autostopHours: h => `${h} h without a touch`, autostopAt: "Stops every day at", never: "never",
     notesSub: "Short notes", noteNew: "New note", noteNone: "No notes yet.", noteEdit: "Edit", notePin: "Pin to the top", notePinned: "Pinned",
     noteExport: "Save all as a text file", noteText: "Note",
@@ -193,7 +196,10 @@ const STRINGS = {
     picturesAdded: n => `${n} hinzugefügt`, picturesFailed: n => `${n} ließen sich nicht hinzufügen`, deleteChosen: n => n === 1 ? "Das gewählte Bild löschen" : `Die ${n} gewählten löschen`,
     manageHint: "Tippe Bilder an, um sie zum Löschen auszuwählen. Hinzufügen geht aus den Dateien dieses Geräts, also am einfachsten vom Handy oder PC über die Fernbedienung.",
     manageDemo: "Diese Beispielbilder gehören zu RadioKiosk. Mit deinem ersten eigenen Bild wird ein eigener Ordner angelegt, und ab dann werden nur noch deine Bilder gezeigt.",
-    nightMode: "Nachts", nightModes: { none: "wie am Tag", dim: "abgedunkelte Uhr", off: "Display aus" }, nightFrom: "Nacht ab", nightTo: "bis",
+    nightMode: "Nachts", nightModes: { none: "wie am Tag", same: "wie am Tag, aber abgedunkelt", dim: "nur die abgedunkelte Uhr", off: "Display aus" },
+    nightHint: "Nachts lässt sich das, was der Ruhebildschirm tagsüber zeigt (Bilder, Nachrichten), abdunkeln, durch die abgedunkelte Uhr ersetzen oder das Display ganz ausschalten. Eine Berührung holt es immer zurück.",
+    powerTile: "Ausschalten", powerSub: "oder neu starten", powerHint: "Schalte das Gerät hier aus, bevor du den Stecker ziehst: Im laufenden Betrieb gezogen, kann die Speicherkarte Schaden nehmen.",
+    wakeTone: "Nur der Ton, kein Sender", wakeToneHint: "Ist ein Sender gewählt, erklingt der Ton nur, wenn der Sender nicht kommt.", nightFrom: "Nacht ab", nightTo: "bis",
     oclock: h => `${h} Uhr`, autostopAfter: "Stoppt von selbst nach", autostopHours: h => `${h} h ohne Bedienung`, autostopAt: "Stoppt jeden Tag um", never: "nie",
     notesSub: "Kurze Notizen", noteNew: "Neue Notiz", noteNone: "Noch keine Notizen.", noteEdit: "Bearbeiten", notePin: "Oben anheften", notePinned: "Angeheftet",
     noteExport: "Alle als Textdatei sichern", noteText: "Notiz",
@@ -437,6 +443,7 @@ const ICONS = {
   ais: '<path d="M3 17l2 4h14l2-4M5 17v-6h14v6M9 11V6h6v5M12 6V3"/>',
   notes: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h5"/>',
   reminders: '<path d="M6 17V11a6 6 0 0112 0v6l2 2H4z"/><path d="M10 21h4"/>',
+  power: '<path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1011.4 0"/>',
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 2h6"/>',
   alarm: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2.500 2M5 4L2.500 6.500M19 4l2.500 2.500M7 19l-2 2M17 19l2 2"/>',
   spots: '<path d="M12 20V10M12 10l-5 10M12 10l5 10M8.5 6.5a5 5 0 017 0M6 4a8.5 8.5 0 0112 0"/><circle cx="12" cy="9" r="1"/>',
@@ -739,6 +746,7 @@ const home = {
       tile("aprs", t.aprs, c.aprs ? sdrProblem : `direwolf ${t.notInstalled}`, () => show(aprsView), t.aprsSub),
       tile("qso", t.qso, null, () => show(qsoLog), t.qsoSub),
       tile("survey", t.survey, c.survey ? sdrProblem : `rtl_power ${t.notInstalled}`, () => show(surveyView), t.surveySub),
+      ...(c.power ? [tile("power", t.powerTile, null, () => show(powerView), t.powerSub)] : []),
       tile("settings", t.settings, null, () => show(settings)),
       ].filter(el => !hidden.includes(el.dataset.tile))));
   },
@@ -1366,9 +1374,11 @@ const alarm = {
         onclick: () => this.change(0, !this.data.enabled),
       }), toneButton(() => this.draw())),
       h("p", { className: "label", textContent: t.wakesWith }),
+      stationRow({ title: t.wakeTone, info: `${t.toneLabel}: ${t.toneNames[toneNow] || toneNow}`, active: this.data.tone,
+        onPlay: () => this.change(0, this.data.enabled, "tone") }),
       ...(this.data.last || this.data.fixed ? [
         stationRow({
-          title: t.wakeLast, info: this.data.last || "", active: !this.data.fixed,
+          title: t.wakeLast, info: this.data.last || "", active: !this.data.fixed && !this.data.tone,
           onPlay: () => this.change(0, this.data.enabled, "last"),
         }),
         // pins whatever was heard last; to pick another station, play it first
@@ -1377,7 +1387,8 @@ const alarm = {
           info: this.data.fixed && this.data.last && this.data.last !== this.data.fixed ? `→ ${t.wakeFix}: ${this.data.last}` : "",
           active: !!this.data.fixed, onPlay: () => this.change(0, this.data.enabled, "fix"),
         }),
-      ] : [hint(t.wakesWithNothing)]));
+      ] : [hint(t.wakesWithNothing)]),
+      h("p", { className: "explain", textContent: t.wakeToneHint }));
   },
 };
 
@@ -2411,6 +2422,31 @@ const qsoForm = {
   back() { show(qsoLog); return true; },
 };
 
+/* ---------- switching the computer off ---------- */
+
+// Its own tile, so nobody has to pull the plug. Both buttons take two taps.
+const powerView = {
+  title: t.powerTile,
+  confirm: null,
+  note: "",
+  render() {
+    const twice = (id, label) => h("button", {
+      className: this.confirm === id ? "primary" : "", textContent: this.confirm === id ? t.sure : label,
+      onclick: async () => {
+        if (this.confirm !== id) { this.confirm = id; return this.render(); }
+        this.confirm = null;
+        try { await api("/api/device/power", { action: id }); } catch (error) { this.note = say(error.message); }
+        this.render();
+      },
+    });
+    view.replaceChildren(
+      h("p", { className: "explain", textContent: t.powerHint }),
+      h("div", { className: "toolbar wrap center" }, twice("poweroff", t.shutDown), twice("reboot", t.restart)),
+      ...(this.note ? [hint(this.note)] : []));
+  },
+  leave() { this.confirm = null; },
+};
+
 /* ---------- the gallery's pictures ---------- */
 
 // Add and delete pictures through the interface, so it also works from a phone or another
@@ -2838,7 +2874,7 @@ const tilesView = {
     const all = [["webradio", t.webradio], ["dab", t.dab], ["fm", t.fm], ["tuner", t.tuner], ["adsb", t.adsb],
       ...c.apps.map(a => [a.id, a.name]), ...(c.bluetooth ? [["bluetooth", t.bluetooth]] : []),
       ["podcast", t.podcasts], ["music", t.music], ["audiobooks", t.audiobooks], ["news", t.news], ["sensors", t.sensors], ["ais", t.ais], ["weather", t.weather],
-      ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders], ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["aprs", t.aprs], ["qso", t.qso], ["survey", t.survey]];
+      ["gallery", t.gallery], ["alarm", t.alarm], ["timer", t.timer], ["notes", t.notes], ["reminders", t.reminders], ...(c.power ? [["power", t.powerTile]] : []), ["propagation", t.propagation], ["spots", t.spots], ["satellites", t.satellites], ["aprs", t.aprs], ["qso", t.qso], ["survey", t.survey]];
     const top = view.scrollTop;
     view.replaceChildren(h("p", { className: "explain", textContent: t.tilesHint }),
       h("div", { className: "toolbar wrap" }, ...all.map(([id, name]) => h("button", {
@@ -3179,6 +3215,7 @@ const settings = {
         cycle(t.nightTo, "night_to", "6", Object.fromEntries([5, 6, 7, 8, 9].map(h => [h, t.oclock(h)]))),
         cycle(t.showMoon, "show_moon", "off", { off: t.off, on: t.on }),
         cycle(t.showSpace, "show_space", "off", { off: t.off, on: t.on })),
+      h("p", { className: "label", textContent: t.nightHint }),
       h("p", { className: "label", textContent: t.extrasHint }),
 
       ...section(t.sectionContent,
@@ -3373,17 +3410,19 @@ async function showIdleKind(kind) {
   idleSlides.stop();
   drawIdle();
   idleNight = nightNow();
-  if (idleNight && kind !== "reminder") {
-    dim(pref("night", "dim") === "off" ? "off" : true);
+  const night = idleNight && kind !== "reminder" ? pref("night", "dim") : "none";
+  if (night === "off" || night === "dim") {   // nothing but the clock, dimmed, or no light at all
+    dim(night === "off" ? "off" : true);
     return;
   }
+  const lit = () => dim(night === "same");     // pictures and news keep the display bright by day, not at night
   if (kind === "gallery") {
     await loadGallery();
     if (idle.hidden || idleKind !== kind) return;
     if (galleryInfo && galleryInfo.count) {
       idle.classList.add("pictures");
       idleSlides.start();
-      dim(false);
+      lit();
       return;
     }
   } else if (kind === "feed" || kind === "spots" || kind === "verse" || kind === "reminder") {
@@ -3392,7 +3431,7 @@ async function showIdleKind(kind) {
     const found = await ({ spots: idleSpots, verse: idleVerse, reminder: idleReminders }[kind] || idleNews)();
     if (idle.hidden || idleKind !== kind) return;
     if (found) {
-      dim(false);
+      lit();
       return;
     }
     idle.classList.remove("news");
@@ -3509,7 +3548,7 @@ async function openLink() {
   const [name, band] = location.hash.slice(1).split("/");
   if (name === "idle") showIdle();
   const target = { webradio, dab, fm, tuner, adsb, weather, bluetooth, alarm, settings, favorites: favoritesView, device: deviceView,
-    wifi: wifiView, receiver: receiverView, gallerymanage: galleryManage, notes: notesView, reminders: remindersView, clock: clockView,
+    wifi: wifiView, receiver: receiverView, gallerymanage: galleryManage, notes: notesView, reminders: remindersView, clock: clockView, power: powerView,
     gallery: galleryView, gallerysettings: gallerySettings, podcasts, news, sensors, ais: ships, timer: timerView,
     podcastsettings: podcastSettings, tiles: tilesView, feeds: feedList, propagation: propagationView, qso: qsoLog,
     survey: surveyView, spots: spotsView, verse: verseSettings, music: musicView, audiobooks: audiobooksView, satellites: satellitesView,

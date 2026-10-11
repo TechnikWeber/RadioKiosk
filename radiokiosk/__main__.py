@@ -290,14 +290,16 @@ def build(cfg):
     @routes.get("/api/alarm")
     async def alarm_get(request):
         return web.json_response({"enabled": alarm.data["enabled"], "time": alarm.data["time"],
-                                  "fixed": (alarm.data["station"] or {}).get("title"),
+                                  "tone": alarm.data["station"] == "tone",
+                                  "fixed": None if alarm.data["station"] == "tone" else (alarm.data["station"] or {}).get("title"),
                                   "last": (core.last or {}).get("title")})
 
     @routes.post("/api/alarm")
     async def alarm_set(request):
         body = await request.json()
-        # "station": "last" follows what was heard last, "fix" pins the station heard last right now
-        station = {"last": None, "fix": core.last}.get(body.get("station"), alarm.data["station"])
+        # "station": "last" follows what was heard last, "fix" pins the station heard last right now,
+        # "tone" wakes with the chosen sound and no station at all
+        station = {"last": None, "fix": core.last, "tone": "tone"}.get(body.get("station"), alarm.data["station"])
         alarm.set(body["enabled"], body["time"], station)
         core.update(alarm=alarm.data["time"] if alarm.data["enabled"] else None)
         return ok()
@@ -841,6 +843,7 @@ def build(cfg):
         if cfg["brightness"] and device.brightness() is not None:
             device.set_brightness(cfg["brightness"])   # a restart while the idle screen was up left it dimmed
         await core.refresh_volume()
+        core.can_power_off = await device.can_power_off()
         app["audio_watch"] = asyncio.create_task(audio.watch(core.refresh_volume))
         app["alarm"] = asyncio.create_task(alarm.run())
         app["health"] = asyncio.create_task(core.watch_health())

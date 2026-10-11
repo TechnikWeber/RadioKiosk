@@ -53,6 +53,7 @@ class Core:
         self.sleep_task = None
         self.touched = time.time()   # when an interface was last operated
         self.health, self.notices = [], set()
+        self.can_power_off = False   # asked once at start: may this service switch the computer off
         self.players = {}     # kind -> coroutine function that plays a remembered station
         self.last = load_json("last.json", None)
 
@@ -60,6 +61,7 @@ class Core:
         sdr = sdr_present()
         return {
             "mpv": Mpv.available(),
+            "power": self.can_power_off,
             "sdr": sdr,
             "dab": shutil.which("welle-cli") is not None,
             "fm": any(self.receiver_backends.values()),

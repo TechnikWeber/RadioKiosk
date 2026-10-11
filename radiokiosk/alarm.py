@@ -10,6 +10,7 @@ from .config import load_json, save_json
 # if the station does not come up (no internet, no reception), wake with a tone instead
 FALLBACK_AFTER = 25
 FALLBACK_FOR = 120
+TONE_FOR = 600        # an alarm set to the tone alone rings this long unless stopped
 
 
 class Alarm:
@@ -36,7 +37,10 @@ class Alarm:
                 asyncio.create_task(self.ring())
 
     async def ring(self):
+        only_tone = self.data["station"] == "tone"
         try:
+            if only_tone:
+                raise RuntimeError("no station wanted")
             await self.core.play(self.data["station"] or self.core.last)
             await asyncio.sleep(FALLBACK_AFTER)
             # idle means somebody already switched the alarm off; only a station
@@ -47,4 +51,4 @@ class Alarm:
             pass
         await self.core.stop()
         self.core.update(source="alarm", status="playing", title="Alarm", text="", error=None, detail={})
-        await self.core.mpv.play(tones.source(self.core.cfg["tone"], FALLBACK_FOR))
+        await self.core.mpv.play(tones.source(self.core.cfg["tone"], TONE_FOR if only_tone else FALLBACK_FOR))
