@@ -161,6 +161,11 @@ def build(cfg):
         await core.stop()
         return ok()
 
+    @routes.post("/api/pause")
+    async def pause(request):
+        await core.pause(bool((await request.json())["on"]))
+        return ok()
+
     @routes.post("/api/volume")
     async def volume(request):
         await audio.set_volume((await request.json())["value"])

@@ -156,7 +156,7 @@ const STRINGS = {
     mediaRenew: "Renew yt-dlp", mediaHint: "The Online media tile finds and opens its titles with the program yt-dlp and plays their sound. The sites it reads change often: if titles stop playing, renew yt-dlp here. The newest version is fetched from its project into RadioKiosk's own folder.",
     about: "about", dayBefore: "The day before yesterday", testTone: "Test tone", sides: { left: "left", right: "right", both: "both" },
     hamTiles: "Radio hobby", hamHint: "Aircraft, ships, radio sensors, APRS, propagation, DX cluster, satellites, QSO log, radio survey and the expert receivers. A tile whose program is not installed stays away.",
-    mediaSearches: "Kept searches", mediaTitles: "Kept titles", mediaKeepSearch: "Keep this search", mediaDating: "date loading …",
+    mediaSearches: "Kept searches", mediaTitles: "Kept titles", paused: "Paused", mediaKeepSearch: "Keep this search", mediaDating: "date loading …",
     tileSize: "Tiles", bar: "Bottom bar", barSizes: { small: "small", medium: "medium", large: "large" },
     idle: "Idle screen", keyboard: "On-screen keyboard", keyboardModes: { auto: "auto", on: "on", off: "off" },
     bluetooth: "Bluetooth", btSub: "Speakers and phone", btVisible: "Let a phone connect", btVisibleFor: "Visible for",
@@ -324,7 +324,7 @@ const STRINGS = {
     mediaRenew: "yt-dlp erneuern", mediaHint: "Die Kachel Online-Medien findet und öffnet ihre Titel mit dem Programm yt-dlp und spielt deren Ton. Die Seiten, die es liest, ändern sich oft: Spielen Titel nicht mehr, hier yt-dlp erneuern. Die neueste Version wird von seinem Projekt in den eigenen Ordner von RadioKiosk geholt.",
     about: "ca.", dayBefore: "Vorgestern", testTone: "Testton", sides: { left: "links", right: "rechts", both: "beide" },
     hamTiles: "Funk-Hobby", hamHint: "Flugzeuge, Schiffe, Funksensoren, APRS, Funkwetter, DX-Cluster, Satelliten, QSO-Log, Funk-Analyse und die Experten-Empfänger. Eine Kachel, deren Programm nicht installiert ist, bleibt weg.",
-    mediaSearches: "Gemerkte Suchen", mediaTitles: "Gemerkte Titel", mediaKeepSearch: "Suche merken", mediaDating: "Datum lädt …",
+    mediaSearches: "Gemerkte Suchen", mediaTitles: "Gemerkte Titel", paused: "Pausiert", mediaKeepSearch: "Suche merken", mediaDating: "Datum lädt …",
     tileSize: "Kacheln", bar: "Untere Leiste", barSizes: { small: "klein", medium: "mittel", large: "groß" },
     idle: "Ruhebildschirm", keyboard: "Bildschirmtastatur", keyboardModes: { auto: "automatisch", on: "an", off: "aus" },
     bluetooth: "Bluetooth", btSub: "Lautsprecher und Handy", btVisible: "Handy verbinden lassen", btVisibleFor: "Sichtbar für",
@@ -1719,6 +1719,7 @@ const mediaView = {
   typing: false,
   kept: [],
   searches: [],
+  loaded: false,   // until the service has answered, "nothing kept" would be a guess
   version: undefined,
   results: [],
   query: "",
@@ -1727,6 +1728,7 @@ const mediaView = {
   async render() {
     this.draw();
     ({ kept: this.kept, searches: this.searches, version: this.version } = await api("/api/media"));
+    this.loaded = true;
     if (!this.kept.length && !this.searches.length && this.tab === "kept") Object.assign(this, { tab: "search", typing: true });
     if (current === this) this.draw();
   },
@@ -1824,7 +1826,7 @@ const mediaView = {
       })));
       if (this.kept.length) parts.push(h("p", { className: "label", textContent: t.mediaTitles }));
     }
-    const list = this.tab === "kept" ? this.kept : this.results;
+    const list = this.tab === "kept" ? (this.loaded ? this.kept : null) : this.results;
     if (list === null) parts.push(hint(t.loading));
     else if (this.error) parts.push(hint(say(this.error)));
     else if (!list.length) parts.push(hint(this.tab === "kept" ? (this.searches.length ? "" : t.mediaNoneKept) : this.query ? t.noResults : ""));
@@ -3688,8 +3690,12 @@ async function showIdleKind(kind) {
   }
   const lit = () => dim(night === "same");     // pictures and news keep the display bright by day, not at night
   if (kind === "gallery") {
+    // What is known of the gallery decides the layout at once: waiting for the service first showed
+    // the plain clock in the middle for a moment, which then jumped into the corner.
+    if (galleryInfo && galleryInfo.count) idle.classList.add("pictures");
     await loadGallery();
     if (idle.hidden || idleKind !== kind) return;
+    idle.classList.remove("pictures");
     if (galleryInfo && galleryInfo.count) {
       idle.classList.add("pictures");
       idleSlides.start();
@@ -3797,11 +3803,14 @@ function applyState(next) {
   const failed = state.status === "error";
   $("now").classList.toggle("error", failed);
   $("now-title").textContent = state.title || "";
-  $("now-text").textContent = failed ? say(state.error) : state.status === "loading" ? t.loading : say(state.text) || "";
+  $("now-text").textContent = failed ? say(state.error) : state.status === "loading" ? t.loading
+    : state.status === "paused" ? [t.paused, say(state.text)].filter(Boolean).join(" · ") : say(state.text) || "";
   $("vol").textContent = state.volume ?? "";
   $("vol").classList.toggle("off", !!state.muted);
   $("mute").classList.toggle("on", !!state.muted);
   $("stop").disabled = !state.source;
+  $("stop").classList.toggle("pauses", canPause() && state.status === "playing");
+  $("stop").classList.toggle("goes", canPause() && state.status === "paused");
   $("rec").hidden = pref("record", "off") !== "on" && !state.recording;   // a running recording can always be stopped
   $("rec").disabled = !state.recording && !(["webradio", "dab", "fm", "tuner", "podcast", "music"].includes(state.source) && state.status === "playing");
   $("rec").classList.toggle("on", !!state.recording);
@@ -3870,7 +3879,9 @@ function connect() {
 }
 
 $("back").onclick = () => { if (!(current.back && current.back())) show(home); };
-$("stop").onclick = () => api("/api/stop", {});
+// Podcasts, music and online media go on from where they were, so their button pauses; radio stops.
+const canPause = () => ["podcast", "music", "media"].includes(state.source) && ["playing", "paused"].includes(state.status);
+$("stop").onclick = () => canPause() ? api("/api/pause", { on: state.status === "playing" }).catch(() => {}) : api("/api/stop", {});
 $("rec").onclick = () => api("/api/record", { on: !state.recording }).catch(() => {});
 $("mute").onclick = () => api("/api/mute", { on: !state.muted }).catch(() => {});
 $("vol-down").onclick = () => api("/api/volume", { value: (state.volume ?? 50) - 5 });
@@ -3878,4 +3889,5 @@ $("vol-up").onclick = () => api("/api/volume", { value: (state.volume ?? 50) + 5
 
 tick();
 setInterval(tick, 10000);
+loadGallery();   // known before the idle screen first needs it
 connect();

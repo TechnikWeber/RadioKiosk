@@ -23,6 +23,7 @@ from .util import memory_mb, sdr_present
 # errors that mean the stick itself is stuck rather than the reception being poor
 SDR_HANG = ("no data from the SDR stick", "stopped delivering data", "does not respond")
 MPV_SOURCES = ("webradio", "dab", "fm", "tuner", "podcast", "music", "media")
+PAUSABLE = ("podcast", "music", "media")   # what has a place to go on from; radio only stops
 
 
 def music_dir():
@@ -171,6 +172,13 @@ class Core:
                 await self.stop()
                 self.notices.add("autostop")
                 self.update(warnings=self.health + sorted(self.notices))
+
+    async def pause(self, on):
+        """Hold what is playing where it is, or let it go on."""
+        if self.state["source"] not in PAUSABLE or self.state["status"] not in ("playing", "paused"):
+            raise RuntimeError("nothing is playing")
+        await self.mpv.command("set_property", "pause", bool(on))
+        self.update(status="paused" if on else "playing")
 
     async def take(self, source):
         """Make `source` the active one, stopping the previous owner first."""

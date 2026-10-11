@@ -82,6 +82,7 @@ class Mpv:
 
     async def play(self, url, options=""):
         await self._ensure()
+        await self.command("set_property", "pause", False)   # a pause outlives what was paused
         await self.command("loadfile", url, "replace", -1, options)
 
     async def stop(self):

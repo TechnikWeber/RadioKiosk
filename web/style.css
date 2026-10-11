@@ -379,6 +379,9 @@ body.immersive header, body.immersive footer, body.immersive #warn, body.immersi
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
 #remind[hidden] { display: none; }
 #rec[hidden] { display: none; }
+/* the stop button pauses what can go on from where it was, and then starts it again */
+#stop .pause, #stop .go, #stop.pauses .square, #stop.goes .square { display: none; }
+#stop.pauses .pause, #stop.goes .go { display: inline; }
 #mute .cross, #mute.on .sound { display: none; }
 #mute.on .cross { display: inline; }
 #mute.on { color: var(--danger); border-color: var(--danger); }
