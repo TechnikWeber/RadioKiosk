@@ -97,6 +97,7 @@ const STRINGS = {
     idleContent: "Shows", idleContents: { clock: "clock", gallery: "gallery", weather: "weather", feed: "news", spots: "DX cluster", verse: "Bible verse" },
     idleContentsHint: "Switch on what the idle screen is to show. With more than one it changes between them. The clock alone is black and dims the display; everything else keeps it bright.",
     idleTimes: "How long each one stays", sleepHold: "Hold the button to switch the sleep timer off.",
+    idleNoLocation: "The weather needs a location. Until one is set the idle screen leaves it out.",
     galleryFit: "Pictures", galleryFits: { whole: "whole picture", smart: "zoom slightly", fill: "fill the screen" },
     galleryPan: "Pan over cropped pictures", galleryPans: { up: "from the bottom up", down: "from the top down", off: "off" },
     galleryPanRange: "Pan covers", galleryPanRanges: { 80: "most of the picture (calm)", 100: "all of the picture", 50: "the middle half (very calm)" },
@@ -279,6 +280,7 @@ const STRINGS = {
     idleContent: "Zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", weather: "Wetter", feed: "Nachrichten", spots: "DX-Cluster", verse: "Bibelvers" },
     idleContentsHint: "Schalte ein, was der Ruhebildschirm zeigen soll. Bei mehr als einem wechselt er zwischen ihnen. Die Uhr allein ist schwarz und dunkelt das Display ab; alles andere lässt es hell.",
     idleTimes: "So lange bleibt jedes", sleepHold: "Taste halten schaltet den Sleep-Timer aus.",
+    idleNoLocation: "Das Wetter braucht einen Standort. Bis einer festgelegt ist, lässt der Ruhebildschirm es aus.",
     galleryFit: "Bilder", galleryFits: { whole: "ganzes Bild", smart: "leicht zoomen", fill: "Bildschirm füllen" },
     galleryPan: "Schwenk über beschnittene Bilder", galleryPans: { up: "von unten nach oben", down: "von oben nach unten", off: "aus" },
     galleryPanRange: "Schwenk zeigt", galleryPanRanges: { 80: "fast das ganze Bild (ruhig)", 100: "das ganze Bild", 50: "die mittlere Hälfte (sehr ruhig)" },
@@ -3101,7 +3103,12 @@ const surveyView = {
 const idleMinutes = kind => (state.idle_times || {})[kind] || state.idle_rotate;
 const idleContentsView = {
   title: t.idle,
-  render() { this.draw(); },
+  located: true,
+  async render() {
+    this.draw();
+    this.located = Boolean((await api("/api/location").catch(() => ({ location: true }))).location);
+    if (current === this && !this.located) this.draw();
+  },
   draw() {
     const chosen = state.idle_contents || ["clock"], ROTATE = [1, 2, 3, 5, 10, 15, 30, 60];
     view.replaceChildren(h("p", { className: "explain", textContent: t.idleContentsHint }),
@@ -3112,6 +3119,8 @@ const idleContentsView = {
         onclick: () => api("/api/settings", { key: "idle_contents",
           value: chosen.includes(kind) ? chosen.filter(k => k !== kind) : [...chosen, kind] }),
       }))),
+      ...(chosen.includes("weather") && !this.located ? [h("p", { className: "explain", textContent: t.idleNoLocation }),
+        h("div", { className: "toolbar wrap" }, h("button", { textContent: `${t.location}: ${t.locationUnset}`, onclick: () => show(locationPicker) }))] : []),
       ...(chosen.length < 2 ? [] : [h("h2", { className: "section", textContent: t.idleTimes }),
         h("div", { className: "toolbar wrap" }, ...chosen.map(kind => h("button", {
           textContent: `${t.idleContents[kind]}: ${idleMinutes(kind)} ${t.minutes}`,
@@ -3954,8 +3963,9 @@ async function idleReminders() {
 // behind the clock, or the newest article. The last two keep the display bright.
 let idleKind = null, idleSince = 0, idleTurn = 0;
 const idleFill = { feed: idleNews, spots: idleSpots, verse: idleVerse, weather: idleForecast, reminder: idleReminders };
-// Bring one kind onto the idle screen. One that has nothing to show (no feed chosen, no
-// connection) leaves the plain clock in its place.
+// Bring one kind onto the idle screen. One that has nothing to show (no feed chosen, no location
+// for the weather, no connection) is left out where there are others to show; where it is the
+// only one, or none of them has anything, the plain clock takes its place.
 // At night the idle screen is the plain clock, dimmed, or the display is switched off: a picture
 // frame that runs all day needs far less power while everybody sleeps. A setting of this display.
 function nightNow() {
@@ -3964,7 +3974,7 @@ function nightNow() {
   return from > to ? hour >= from || hour < to : hour >= from && hour < to;
 }
 let idleNight = false;
-async function showIdleKind(kind) {
+async function showIdleKind(kind, skipped = 0) {
   idleKind = kind;
   idleSince = Date.now();
   idle.classList.remove("pictures", "news", "blank", "weather");
@@ -4002,6 +4012,11 @@ async function showIdleKind(kind) {
       return;
     }
     idle.classList.remove("news", "weather");
+  }
+  const kinds = state.idle_contents || ["clock"];
+  if (kind !== "clock" && kind !== "reminder" && kinds.includes(kind) && skipped < kinds.length - 1) {
+    idleTurn = (kinds.indexOf(kind) + 1) % kinds.length;
+    return showIdleKind(kinds[idleTurn], skipped + 1);
   }
   dim(true);
 }
