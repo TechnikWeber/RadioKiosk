@@ -3449,8 +3449,14 @@ function slideShow() {
   const layer = () => h("div", {}, h("img", { className: "back", alt: "" }), h("img", { alt: "" }),
     h("video", { muted: true, loop: true, playsInline: true, preload: "auto", hidden: true }));
   const el = h("div", { className: "slides" }, layer(), layer());
-  let front = 0, order = [], at = -1, timer = null, running = false, turns = 0, calls = 0;
-  const later = seconds => { clearTimeout(timer); if (running) timer = setTimeout(() => go(1), seconds * 1000); };
+  let front = 0, order = [], at = -1, timer = null, running = false, turns = 0, calls = 0, shownAt = 0, dueAt = 0;
+  // Where a picture's time is over, whoever shows the slide show may take over instead of the next
+  // picture (hold): the idle screen leaves the gallery there, never half a second into a new picture.
+  const later = seconds => {
+    clearTimeout(timer);
+    dueAt = Date.now() + seconds * 1000;
+    if (running) timer = setTimeout(() => { if (!show.hold || !show.hold()) go(1); }, seconds * 1000);
+  };
   function go(step) {
     if (!galleryInfo || !galleryInfo.count) return;
     if (order.length !== galleryInfo.count) {
@@ -3494,6 +3500,7 @@ function slideShow() {
       const effect = !turns ? "fade" : galleryInfo.effect === "mix" ? SLIDE_EFFECTS[turns % SLIDE_EFFECTS.length]
         : SLIDE_EFFECTS.includes(galleryInfo.effect) ? galleryInfo.effect : "fade";
       turns++;
+      shownAt = Date.now();
       el.classList.toggle("backwards", step < 0);
       const old = el.children[front];
       old.className = `out by-${effect}`;
@@ -3512,15 +3519,20 @@ function slideShow() {
     back.src = `${url}&backdrop=1`;
     later(galleryInfo.seconds);
   }
-  return {
+  const show = {
     el,
-    start() { if (!running) { running = true; go(1); } },
+    hold: null,
+    // how long the picture has been there, and how long until the next one is due
+    shownFor: () => shownAt ? Date.now() - shownAt : 0,
+    dueIn: () => dueAt - Date.now(),
+    // started while it runs, it moves on: its picture was at its end when the slide show was held
+    start() { if (running) return go(1); running = true; go(1); },
     // Stopped, both layers go and the next start fades in afresh: otherwise the picture left over from
     // last time flashed up for a moment and was wiped away at once.
     stop() {
       running = false;
       clearTimeout(timer);
-      turns = 0;
+      turns = shownAt = 0;
       calls++;
       for (const one of el.children) {
         const [back, still, film] = one.children;
@@ -3531,6 +3543,7 @@ function slideShow() {
     },
     next: () => go(1), previous: () => go(-1),
   };
+  return show;
 }
 
 // The tile: nothing but the pictures. Header and bar leave after a moment; a tap in the middle
@@ -4027,52 +4040,86 @@ function nightNow() {
   if (pref("night", "dim") === "none") return false;
   return from > to ? hour >= from || hour < to : hour >= from && hour < to;
 }
-let idleNight = false;
+let idleNight = false, idleCalls = 0;
+const IDLE_FADE = 700, pause = ms => new Promise(done => setTimeout(done, ms));   // the fades of style.css, and a little more
+// One kind follows the other softly: what is written fades out, then the new comes in. Between
+// pictures and the rest the lights fade in over the picture, or out again to uncover the next one.
 async function showIdleKind(kind, skipped = 0) {
+  const call = ++idleCalls, stale = () => idle.hidden || call !== idleCalls;
+  const plain = () => { idle.classList.remove("pictures", "news", "told", "blank"); idleSlides.stop(); };
   idleKind = kind;
   idleSince = Date.now();
-  idle.classList.remove("pictures", "news", "blank");
-  idleSlides.stop();
   drawIdle();
   idleNight = nightNow();
   const night = idleNight && kind !== "reminder" ? pref("night", "dim") : "none";
   if (night === "off" || night === "dim") {   // nothing but the clock, dimmed, or no light at all
+    plain();
     idle.classList.toggle("blank", night === "off");
     dim(night === "off" ? "off" : true);
     return;
   }
   const lit = () => dim(night === "same");     // pictures and news keep the display bright by day, not at night
+  idle.classList.remove("blank");
+  if (idle.classList.contains("told")) {
+    idle.classList.remove("told");
+    await pause(IDLE_FADE);
+    if (stale()) return;
+  }
   if (kind === "gallery") {
     // What is known of the gallery decides the layout at once: waiting for the service first showed
     // the plain clock in the middle for a moment, which then jumped into the corner.
-    if (galleryInfo && galleryInfo.count) idle.classList.add("pictures");
+    const known = galleryInfo && galleryInfo.count;
+    if (known) idle.classList.add("pictures");
     await loadGallery();
-    if (idle.hidden || idleKind !== kind) return;
-    idle.classList.remove("pictures");
+    if (stale()) return;
     if (galleryInfo && galleryInfo.count) {
       idle.classList.add("pictures");
+      idle.classList.remove("news");
       idleSlides.start();
       lit();
       return;
     }
+    if (known) idle.classList.remove("pictures");
   } else if (idleFill[kind]) {
-    idle.classList.add("news");   // shown first: fitting the entries needs their real sizes
+    const over = idle.classList.contains("pictures");   // the picture stays until the lights have covered it
+    if (!over) idle.classList.add("news");   // shown first: fitting the entries needs their real sizes
     $("idle-news").replaceChildren();
     const found = await idleFill[kind]();
-    if (idle.hidden || idleKind !== kind) return;
+    if (stale()) return;
     if (found) {
+      idle.classList.add("news", "told");
       lit();
+      if (over) {
+        await pause(IDLE_FADE + 300);
+        if (stale()) return;
+        idle.classList.remove("pictures");
+        idleSlides.stop();
+      }
       return;
     }
-    idle.classList.remove("news");
+    if (!over) idle.classList.remove("news");
   }
   const kinds = state.idle_contents || ["clock"];
   if (kind !== "clock" && kind !== "reminder" && kinds.includes(kind) && skipped < kinds.length - 1) {
     idleTurn = (kinds.indexOf(kind) + 1) % kinds.length;
     return showIdleKind(kinds[idleTurn], skipped + 1);
   }
+  plain();
   dim(true);
 }
+function nextIdleKind() {
+  const kinds = state.idle_contents || ["clock"];
+  idleTurn = (idleTurn + 1) % kinds.length;
+  showIdleKind(kinds[idleTurn]);
+}
+const idleTimeUp = () => (state.idle_contents || []).length > 1 && !idleNight && Date.now() - idleSince > idleMinutes(idleKind) * 60e3;
+// The gallery is left where a picture ends, even if that is some seconds after its time: left by
+// the clock alone, a picture that had just come was seen for half a second before the next kind.
+idleSlides.hold = () => {
+  if (idle.hidden || idleKind !== "gallery" || !idleTimeUp()) return false;
+  nextIdleKind();
+  return true;
+};
 function showIdle() {
   idle.hidden = false;
   const kinds = state.idle_contents || ["clock"];
@@ -4084,7 +4131,8 @@ function showIdle() {
 }
 function hideIdle() {
   idle.hidden = true;
-  idle.classList.remove("pictures", "news", "blank");
+  idleCalls++;
+  idle.classList.remove("pictures", "news", "told", "blank");
   idleSlides.stop();
 }
 
@@ -4181,9 +4229,10 @@ setInterval(() => {
     const kinds = state.idle_contents || ["clock"];
     if (nightNow() !== idleNight) showIdle();   // night begins or ends
     else if (idleNight || idleKind === "reminder") { /* stays: no turns at night, and a reminder until acknowledged */ }
-    else if (kinds.length > 1 && Date.now() - idleSince > idleMinutes(idleKind) * 60e3) {   // on to the next kind
-      idleTurn = (idleTurn + 1) % kinds.length;
-      showIdleKind(kinds[idleTurn]);
+    else if (idleTimeUp()) {   // on to the next kind
+      // the gallery goes where its picture ends (hold above); only a picture that stays much longer is cut short, once it has been seen
+      const waits = idleKind === "gallery" && idle.classList.contains("pictures") && !(idleSlides.dueIn() > 30e3 && idleSlides.shownFor() > 5e3);
+      if (!waits) nextIdleKind();
     } else if (idle.classList.contains("news") && Date.now() - idleNewsAt > 60e3 && idleFill[idleKind]) idleFill[idleKind]();
   }
 }, 1000);

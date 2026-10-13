@@ -319,8 +319,10 @@ body:has(.keys) footer, body:has(.keys) #warn, body:has(.keys) #remind { display
 @keyframes slides-turn-away { from { visibility: visible; transform: perspective(1800px) rotateY(0); }
   to { visibility: hidden; transform: perspective(1800px) rotateY(92deg); } }
 @keyframes slides-turn-in { from { transform: perspective(1800px) rotateY(92deg); } to { transform: perspective(1800px) rotateY(0); } }
-#idle .slides { display: none; }
-#idle.pictures .slides { display: block; }
+/* One kind of the idle screen follows the other softly: pictures, lights and what is written fade in and out.
+   Hidden once faded out, so nothing is drawn for what is not seen. */
+#idle .slides, #idle-glow { opacity: 0; visibility: hidden; transition: opacity .7s, visibility 0s .7s; }
+#idle.pictures .slides, #idle.news #idle-glow { opacity: 1; visibility: visible; transition: opacity .7s; }
 /* over a picture the clock moves into the corner and gets a shadow to stay readable */
 /* Where the idle screen shows something besides the clock, the clock keeps its size and moves to the
    bottom: the time on the left, date, weather and station beside it on the right. */
@@ -339,8 +341,8 @@ body:has(.keys) footer, body:has(.keys) #warn, body:has(.keys) #remind { display
 @property --glow-b { syntax: "<color>"; inherits: true; initial-value: #5a2f9a; }
 @property --glow-c { syntax: "<color>"; inherits: true; initial-value: #12686e; }
 #idle { transition: --glow-a 6s, --glow-b 6s, --glow-c 6s; }
-#idle-glow { display: none; position: absolute; inset: 0; overflow: hidden; background: #06080d; }
-#idle.news #idle-glow { display: block; }
+#idle-glow { position: absolute; inset: 0; overflow: hidden; background: #06080d; }
+#idle:not(.news) #idle-glow i { animation-play-state: paused; }
 #idle-glow i { position: absolute; width: 110vmax; height: 110vmax; border-radius: 50%; opacity: .5; will-change: transform; }
 #idle-glow i:nth-child(1) { left: -45vmax; top: -55vmax; background: radial-gradient(closest-side, var(--glow-a), transparent); animation: glow-1 140s steps(560) infinite alternate; }
 #idle-glow i:nth-child(2) { right: -50vmax; top: -30vmax; background: radial-gradient(closest-side, var(--glow-b), transparent); animation: glow-2 190s steps(760) infinite alternate; }
@@ -348,13 +350,14 @@ body:has(.keys) footer, body:has(.keys) #warn, body:has(.keys) #remind { display
 @keyframes glow-1 { to { transform: translate(38vmax, 22vmax) scale(1.25); } }
 @keyframes glow-2 { to { transform: translate(-42vmax, 26vmax) scale(.8); } }
 @keyframes glow-3 { to { transform: translate(-30vmax, -24vmax) scale(1.3); } }
-#idle-news { display: none; }
+#idle-news { display: none; opacity: 0; transition: opacity .6s; }
+#idle.told #idle-news { opacity: 1; }
 /* the entries share the room above the clock evenly; how far that reaches is measured from the clock */
-#idle.news #idle-news { display: flex; flex-direction: column; justify-content: space-between; position: absolute;
+#idle:is(.news, .pictures) #idle-news { display: flex; flex-direction: column; justify-content: space-between; position: absolute;
   left: 28px; right: 28px; top: 14px; bottom: 40vh; overflow: hidden; text-align: left; color: #fff; }
 #idle-news div { flex: none; padding-bottom: min(1vh, 5px); }
 /* fewer than three articles stand together at the top; spread out, two would leave a hole in the middle */
-#idle.news #idle-news.few { justify-content: flex-start; gap: min(4vh, 22px); }
+#idle:is(.news, .pictures) #idle-news.few { justify-content: flex-start; gap: min(4vh, 22px); }
 /* beside the clock the line for what is playing stays one line, or the clock's box grows and takes room from the articles */
 #idle.pictures #idle-title, #idle.news #idle-title { font-size: 21px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #idle-news p { margin: 2px 0; font-size: min(3.6vh, 19px); line-height: 1.3; color: #c9d1da; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
