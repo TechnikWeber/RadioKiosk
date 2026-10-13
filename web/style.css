@@ -364,7 +364,8 @@ body:has(.keys) footer, body:has(.keys) #warn, body:has(.keys) #remind { display
 #idle-news .spot { padding-bottom: min(1.6vh, 9px); }
 #idle-news .spot b { font-size: min(4.2vh, 22px); font-variant-numeric: tabular-nums; -webkit-line-clamp: 1; }
 #idle-news .spot small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#idle.news #idle-text { display: none; }
+/* the empty last line would lift the others by its margin over a picture, and the date would jump between the kinds */
+#idle.pictures #idle-text, #idle.news #idle-text { display: none; }
 /* the weather: now, large, and the days ahead side by side */
 #idle-news .forecast { margin: auto 0; display: flex; flex-direction: column; gap: min(5vh, 30px); }
 #idle-news .forecast .now { display: flex; align-items: center; gap: 24px; padding: 0; }

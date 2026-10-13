@@ -3823,7 +3823,7 @@ function drawIdle() {
   $("idle-time").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   $("idle-date").textContent = now.toLocaleDateString(lang, { weekday: "long", day: "numeric", month: "long" });
   $("idle-extra").textContent = [
-    idleWeather && !idle.classList.contains("weather") ? [idleWeather.place, `${Math.round(idleWeather.temperature)}°`, describe(idleWeather.code)].filter(Boolean).join(" ") : null,
+    idleWeather ? [idleWeather.place, `${Math.round(idleWeather.temperature)}°`, describe(idleWeather.code)].filter(Boolean).join(" ") : null,
     showMoon() ? moonLine() : null,
     showSpace() && spaceWeather ? spaceLine(spaceWeather) : null,
     unreadAlerts().length ? `⚠ ${clipped(alertHeadline(unreadAlerts()[0]))}` : null,
@@ -3977,7 +3977,7 @@ let idleNight = false;
 async function showIdleKind(kind, skipped = 0) {
   idleKind = kind;
   idleSince = Date.now();
-  idle.classList.remove("pictures", "news", "blank", "weather");
+  idle.classList.remove("pictures", "news", "blank");
   idleSlides.stop();
   drawIdle();
   idleNight = nightNow();
@@ -4007,11 +4007,10 @@ async function showIdleKind(kind, skipped = 0) {
     const found = await idleFill[kind]();
     if (idle.hidden || idleKind !== kind) return;
     if (found) {
-      idle.classList.toggle("weather", kind === "weather");   // the line beside the clock would say the same again
       lit();
       return;
     }
-    idle.classList.remove("news", "weather");
+    idle.classList.remove("news");
   }
   const kinds = state.idle_contents || ["clock"];
   if (kind !== "clock" && kind !== "reminder" && kinds.includes(kind) && skipped < kinds.length - 1) {
@@ -4031,7 +4030,7 @@ function showIdle() {
 }
 function hideIdle() {
   idle.hidden = true;
-  idle.classList.remove("pictures", "news", "blank", "weather");
+  idle.classList.remove("pictures", "news", "blank");
   idleSlides.stop();
 }
 
