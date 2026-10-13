@@ -3794,8 +3794,23 @@ function clipped(text) {
 }
 const TITLE_TURN = 8;   // seconds the idle screen shows the station, then the song, in turn
 
+// The colours of the lights behind weather, news and verse: two from the time of day, the third from the weather.
+const GLOW_TIMES = { dawn: ["#b8487a", "#d9793b", "#3b5fb8"], day: ["#2f7fd0", "#22a39a", "#d6a23a"],
+  evening: ["#d0612f", "#b33a78", "#5a3fb0"], night: ["#243c9a", "#5a2f9a", "#12686e"] };
+const GLOW_WEATHER = [[95, "#7a3fd0"], [85, "#9fc4dc"], [80, "#3f58c9"], [71, "#9fc4dc"], [51, "#3f58c9"], [45, "#6f7a86"], [2, "#5c7088"]];   // WMO code and up
+function glowColors() {
+  const hour = new Date().getHours();
+  const colors = [...GLOW_TIMES[hour < 5 ? "night" : hour < 9 ? "dawn" : hour < 17 ? "day" : hour < 21 ? "evening" : "night"]];
+  const sky = idleWeather && GLOW_WEATHER.find(([code]) => idleWeather.code >= code);
+  if (sky) colors[2] = sky[1];
+  return colors;
+}
+
 function drawIdle() {
   const now = new Date();
+  glowColors().forEach((color, i) => {
+    if (idle.style.getPropertyValue(`--glow-${"abc"[i]}`) !== color) idle.style.setProperty(`--glow-${"abc"[i]}`, color);
+  });
   $("idle-time").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   $("idle-date").textContent = now.toLocaleDateString(lang, { weekday: "long", day: "numeric", month: "long" });
   $("idle-extra").textContent = [
