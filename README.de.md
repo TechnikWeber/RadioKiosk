@@ -11,10 +11,11 @@ Ein Radio fürs Küchenregal, ein digitaler Bilderrahmen und mit einem RTL-SDR-S
 | | |
 |---|---|
 | ![Startbildschirm eines Küchenradios: nur Hören und Alltag](docs/screenshots/kitchen.png) | ![Ruhebildschirm als Bilderrahmen, mit Uhr, Wetter und dem, was läuft](docs/screenshots/idle.png) |
+| ![Ruhebildschirm mit dem Wetter und den nächsten Tagen, dahinter weiche Lichter](docs/screenshots/idle-weather.png) | ![Ruhebildschirm mit dem Bibelvers des Tages](docs/screenshots/idle-verse.png) |
 | ![Startbildschirm mit allen Kacheln, auch dem Funk-Hobby](docs/screenshots/home.png) | ![UKW mit Sendername und Wasserfall](docs/screenshots/fm.png) |
 | ![Freier Empfänger auf dem 2-m-Amateurfunkband](docs/screenshots/receiver.png) | ![Live-Flugzeugkarte](docs/screenshots/aircraft.png) |
 
-> Version 0.24: Alles hier Aufgeführte ist gebaut, aber nicht alles auf jeder Art von Hardware ausprobiert. Was ungetestet ist, steht in den Release-Notizen.
+> Version 0.25: Alles hier Aufgeführte ist gebaut, aber nicht alles auf jeder Art von Hardware ausprobiert. Was ungetestet ist, steht in den Release-Notizen.
 
 ## Installation
 

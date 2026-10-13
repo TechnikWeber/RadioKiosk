@@ -11,10 +11,11 @@ A radio for the kitchen shelf, a digital picture frame, and with an RTL-SDR stic
 | | |
 |---|---|
 | ![Start screen of a kitchen radio: listening and everyday tiles only](docs/screenshots/kitchen.png) | ![Idle screen as a picture frame, with clock, weather and what is playing](docs/screenshots/idle.png) |
+| ![Idle screen with the weather and the days ahead, soft lights behind it](docs/screenshots/idle-weather.png) | ![Idle screen with the Bible verse of the day](docs/screenshots/idle-verse.png) |
 | ![Start screen with every tile, radio hobby included](docs/screenshots/home.png) | ![FM with station name and waterfall](docs/screenshots/fm.png) |
 | ![Free receiver on the 2 m amateur band](docs/screenshots/receiver.png) | ![Live aircraft map](docs/screenshots/aircraft.png) |
 
-> Version 0.24: everything listed here is built, but not all of it has been tried on every kind of hardware. The release notes say what is untested.
+> Version 0.25: everything listed here is built, but not all of it has been tried on every kind of hardware. The release notes say what is untested.
 
 ## Install
 
