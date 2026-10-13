@@ -158,6 +158,9 @@ body[data-tiles="large"] { --tile: 1.25; }
 .thumbs button.on { border-color: var(--accent); }
 .thumbs button.on img { opacity: .55; }
 .thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* a clip among the pictures */
+.thumbs button.clip { position: relative; }
+.thumbs button.clip::after { content: "▶"; position: absolute; right: 6px; bottom: 6px; padding: 2px 8px; border-radius: 8px; background: #000a; color: #fff; font-size: 14px; }
 .sheet { white-space: pre-wrap; font-size: 22px; line-height: 1.35; padding: 8px 12px; margin: 0; overflow-wrap: anywhere; }
 .due { border: 2px solid var(--accent); border-radius: 14px; padding: 12px; margin: 0 0 10px; display: flex; flex-direction: column; gap: 6px; }
 .due b { font-size: 22px; overflow-wrap: anywhere; }
@@ -291,7 +294,7 @@ body:has(.keys) footer, body:has(.keys) #warn, body:has(.keys) #remind { display
 .slides { position: absolute; inset: 0; background: #000; overflow: hidden; isolation: isolate; }
 /* two layers, each a picture over its own blurred backdrop; one comes in while the other goes */
 .slides > div { position: absolute; inset: 0; background: #000; visibility: hidden; overflow: hidden; }
-.slides img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.slides img, .slides video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .slides img.back { object-fit: cover; }
 .slides > .in { visibility: visible; z-index: 2; animation: 1.2s both; }
 .slides > .out { z-index: 1; animation: slides-stay 1.2s both; }

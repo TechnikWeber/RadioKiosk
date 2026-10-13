@@ -79,7 +79,7 @@ Ein kleiner Python-Dienst steuert Player und Empfänger und liefert eine Webober
 | Nachrichten | RSS- und Atom-Feeds als Liste der neuesten Artikel |
 | Wetter | aktuelles Wetter, Vorhersage für vier Tage, amtliche Warnungen |
 | Kalender | die nächsten Termine von Kalendern, die woanders geführt werden, gelesen über ihre iCal-Adresse (Google, Apple, Abfallkalender, Schulferien) |
-| Galerie | Diashow eines Ordners; Bilder lassen sich in der Oberfläche hinzufügen und löschen, auch vom Handy |
+| Galerie | Diashow eines Ordners; Bilder und kurze Videoclips lassen sich in der Oberfläche hinzufügen und löschen, auch vom Handy |
 | Smart Home | Schalter, die beim Antippen eine Adresse aufrufen (ein Webhook von Home Assistant, eine Shelly-Steckdose), und Werte, die zeigen, was eine Adresse antwortet |
 | Wecker, Timer | wecken mit einem Sender oder einem Ton; Küchentimer und Stoppuhr |
 | Notizen, Erinnerungen | kurze Notizen; Erinnerungen für einen Tag, die bleiben, bis sie quittiert sind |
@@ -104,7 +104,7 @@ Einstellungen und Ausschalten sind zwei kleine Knöpfe am Ende der Favoritenzeil
 
 Nach einer Weile ohne Berührung übernimmt der Ruhebildschirm. Er zeigt die Uhr auf Schwarz mit abgedunkeltem Display, oder eines oder mehrere davon im Wechsel: die Galerie hinter der Uhr, das Wetter mit den nächsten Tagen, die neuesten Nachrichten, den DX-Cluster, einen Bibelvers für den Tag. Wie lange jedes bleibt, lässt sich einzeln einstellen, etwa drei Minuten Bilder, dann eine Minute Wetter und eine Minute Nachrichten. Uhr, Datum, Wetter und das, was läuft, bleiben im Blick.
 
-Als Bilderrahmen zeigt die Galerie jeden Ordner, den der Rechner lesen kann. Ein Bild, das den Bildschirm nicht füllt, bekommt statt schwarzer Ränder sich selbst unscharf als Hintergrund, oder es wird beschnitten und schwenkt langsam durch; der Wechsel zwischen Bildern blendet über, wischt, blättert oder zoomt. Bis du einen Ordner wählst, laufen Beispielbilder (gemeinfrei, siehe [demo-pictures/CREDITS.md](demo-pictures/CREDITS.md)).
+Als Bilderrahmen zeigt die Galerie jeden Ordner, den der Rechner lesen kann. Ein Bild, das den Bildschirm nicht füllt, bekommt statt schwarzer Ränder sich selbst unscharf als Hintergrund, oder es wird beschnitten und schwenkt langsam durch; der Wechsel zwischen Bildern blendet über, wischt, blättert oder zoomt. Ein Video, das du in der Oberfläche hinzufügst (fast jedes Format, auch direkt vom Handy), wird zu einem kurzen, stummen Clip von höchstens 30 Sekunden, klein genug für einen Raspberry Pi; zwischen den Bildern läuft er in Schleife, bis die Diashow weitergeht. Bis du einen Ordner wählst, laufen Beispielbilder (gemeinfrei, siehe [demo-pictures/CREDITS.md](demo-pictures/CREDITS.md)).
 
 Nachts lässt sich der Ruhebildschirm abdunkeln, auf die abgedunkelte Uhr reduzieren oder das Display ausschalten (**Einstellungen › Ruhebildschirm**). Damit ein vergessenes Radio nicht tagelang läuft, stoppt die Wiedergabe nach acht Stunden ohne Berührung von selbst (**Einstellungen › Wiedergabe**).
 

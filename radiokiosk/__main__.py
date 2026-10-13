@@ -23,7 +23,7 @@ from .sources.tuner import BANDS, Tuner
 from .sources.webradio import Webradio
 from .schedule import Schedule
 from .feeds import Feeds
-from .gallery import MAX_UPLOAD, Gallery, subfolders
+from .gallery import MAX_UPLOAD, MAX_VIDEO, UPLOADS, Gallery, is_video, subfolders
 from .qsolog import BANDS as LOG_BANDS, MODES as LOG_MODES, QsoLog
 from .sources.survey import RANGES, Survey, as_text
 from .spaceweather import SpaceWeather
@@ -471,6 +471,8 @@ def build(cfg):
         part = await (await request.multipart()).next()
         if part is None or not part.filename:
             raise ValueError("this is not a picture")
+        if is_video(part.filename):
+            return await gallery_video(part)
         data = bytearray()
         while chunk := await part.read_chunk(256 * 1024):
             data += chunk
@@ -481,6 +483,37 @@ def build(cfg):
             save_setting(cfg, "gallery", {**gallery.settings, "folder": folder})
         await asyncio.to_thread(gallery.refresh, True)
         return ok(folder=folder)
+
+    converting = asyncio.Lock()   # one video at a time: a small computer has enough to do with one
+
+    async def gallery_video(part):
+        """A video goes to the disk as it comes in, never into the memory, and leaves as a short silent clip."""
+        UPLOADS.mkdir(parents=True, exist_ok=True)
+        async with converting:
+            for left_over in UPLOADS.iterdir():   # of an upload the service did not live to finish
+                left_over.unlink(missing_ok=True)
+            source, size = UPLOADS / f"video{Path(part.filename).suffix.lower()}", 0
+            try:
+                with source.open("wb") as file:
+                    while chunk := await part.read_chunk(1024 * 1024):
+                        size += len(chunk)
+                        if size > MAX_VIDEO:
+                            raise ValueError("this video is too large")
+                        await asyncio.to_thread(file.write, chunk)
+                folder = await asyncio.to_thread(gallery.add_video, part.filename, source)
+            finally:
+                source.unlink(missing_ok=True)
+        if not gallery.settings["folder"]:
+            save_setting(cfg, "gallery", {**gallery.settings, "folder": folder})
+        await asyncio.to_thread(gallery.refresh, True)
+        return ok(folder=folder)
+
+    @routes.get("/api/gallery/clip/{index}")
+    async def gallery_clip(request):
+        file = await asyncio.to_thread(gallery.clip, int(request.match_info["index"]))
+        if file is None:
+            raise web.HTTPNotFound()
+        return web.FileResponse(file)
 
     @routes.post("/api/gallery/delete")
     async def gallery_delete(request):

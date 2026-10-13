@@ -105,3 +105,69 @@ class ManagingPictures(unittest.TestCase):
         demo = self.gallery_module.Gallery({"gallery": {}})
         with self.assertRaises(ValueError):
             demo.remove(demo.listing()[0]["name"])
+
+
+class Clips(unittest.TestCase):
+    """Videos added through the interface become short silent clips among the pictures."""
+
+    def setUp(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+        from radiokiosk import gallery
+        self.module = gallery
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.folder = Path(folder.name) / "pictures"
+        self.folder.mkdir()
+        cache = mock.patch.object(gallery, "SCALED", Path(folder.name) / "cache")
+        cache.start()
+        self.addCleanup(cache.stop)
+        self.gallery = gallery.Gallery({"gallery": {"folder": str(self.folder)}})
+
+    def test_a_clip_takes_its_turn_among_the_pictures_and_a_plain_video_does_not(self):
+        for name in ("a.jpg", "b.clip.mp4", "c.mp4", ".d.clip.mp4.part"):
+            (self.folder / name).write_bytes(b"")
+        self.assertEqual([p.name for p in self.module.find_pictures(self.folder)], ["a.jpg", "b.clip.mp4"])
+        self.assertEqual(self.gallery.info()["clips"], [1])
+        self.assertEqual([p["clip"] for p in self.gallery.listing()], [False, True])
+        self.assertIsNone(self.gallery.clip(0))
+        self.assertEqual(self.gallery.clip(1), self.folder / "b.clip.mp4")
+
+    def test_many_kinds_of_video_are_taken_and_pictures_stay_pictures(self):
+        for name in ("a.MOV", "b.mkv", "c.avi", "d.3gp", "e.MTS", "f.webm", "g.wmv", "h.mpg"):
+            self.assertTrue(self.module.is_video(name), name)
+        for name in ("a.jpg", "b.gif", "c.txt", "noending"):
+            self.assertFalse(self.module.is_video(name), name)
+
+    def test_the_clip_is_cut_silent_and_small(self):
+        command = self.module.clip_command("in.mov", "out.mp4")
+        self.assertEqual(command[command.index("-t") + 1], "30")
+        self.assertIn("-an", command)
+        self.assertIn("fps=20", command[command.index("-vf") + 1])
+
+    @unittest.skipUnless(__import__("shutil").which("ffmpeg") and __import__("shutil").which("ffprobe"), "needs ffmpeg")
+    def test_a_video_becomes_a_clip_and_what_is_no_video_leaves_nothing_behind(self):
+        import subprocess
+        source = self.folder.parent / "long holiday.mkv"
+        subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "testsrc2=size=1280x720:rate=30:duration=33",
+                        "-f", "lavfi", "-i", "sine=duration=33", "-c:v", "mpeg4", "-q:v", "20", "-c:a", "mp2", str(source)], check=True)
+        self.gallery.add_video(source.name, source)
+        self.gallery.add_video(source.name, source)   # the same name again never replaces the first
+        self.assertEqual(sorted(p.name for p in self.folder.iterdir()), ["long holiday-2.clip.mp4", "long holiday.clip.mp4"])
+        probe = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "stream=codec_type,width,height:format=duration", "-of", "default=nw=1",
+             str(self.folder / "long holiday.clip.mp4")], capture_output=True, text=True).stdout
+        self.assertNotIn("audio", probe)
+        self.assertIn("width=960", probe)
+        self.assertIn("height=540", probe)
+        self.assertIn("duration=30.0", probe)
+        # as a picture a clip is its first one: thumbnail and backdrop
+        self.gallery.refresh(True)
+        with self.module.Image.open(self.gallery.picture(0, 240, 240)) as picture:
+            self.assertEqual(picture.size, (320, 180))
+        broken = self.folder.parent / "broken.mp4"
+        broken.write_text("no video")
+        with self.assertRaises(ValueError):
+            self.gallery.add_video(broken.name, broken)
+        self.assertEqual(len(list(self.folder.iterdir())), 2)

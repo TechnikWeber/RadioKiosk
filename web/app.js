@@ -34,6 +34,9 @@ const STRINGS = {
     updateFailed: v => `The update to ${v} did not start and was turned back. The version before it is running.`,
     noSelfUpdate: "This copy was not set up by the installer and does not update itself.",
     toneLabel: "Sound", toneNames: { tick: "Ticking", knock: "Knocking", bell: "Bell", beeps: "Beeps" },
+    addVideo: "Add a video", videoSending: percent => `Sending the video: ${percent} %`,
+    videoConverting: "Making the clip… On a small computer this takes a few minutes.", videoAdded: "Video added",
+    videoHint: "A video is cut to its first 30 seconds and kept small and without sound. It runs in a loop until the slide show moves on.",
     managePictures: "Manage pictures", addPictures: "Add pictures", uploading: (n, of) => `Sending picture ${n} of ${of}…`,
     picturesAdded: n => `${n} added`, picturesFailed: n => `${n} could not be added`, deleteChosen: n => n === 1 ? "Delete the chosen picture" : `Delete the ${n} chosen`,
     manageHint: "Tap pictures to choose them for deleting. Adding works from this device's files, so most easily from a phone or computer through the remote control.",
@@ -217,6 +220,9 @@ const STRINGS = {
     updateFailed: v => `Das Update auf ${v} ist nicht gestartet und wurde zurückgenommen. Die Version davor läuft weiter.`,
     noSelfUpdate: "Diese Kopie wurde nicht vom Installer eingerichtet und aktualisiert sich nicht selbst.",
     toneLabel: "Ton", toneNames: { tick: "Ticken", knock: "Klopfen", bell: "Glocke", beeps: "Piepen" },
+    addVideo: "Video hinzufügen", videoSending: percent => `Sende das Video: ${percent} %`,
+    videoConverting: "Erstelle den Clip … Auf einem kleinen Rechner dauert das einige Minuten.", videoAdded: "Video hinzugefügt",
+    videoHint: "Ein Video wird auf seine ersten 30 Sekunden gekürzt und klein und ohne Ton behalten. Es läuft in Schleife, bis die Diashow weitergeht.",
     managePictures: "Bilder verwalten", addPictures: "Bilder hinzufügen", uploading: (n, of) => `Sende Bild ${n} von ${of}…`,
     picturesAdded: n => `${n} hinzugefügt`, picturesFailed: n => `${n} ließen sich nicht hinzufügen`, deleteChosen: n => n === 1 ? "Das gewählte Bild löschen" : `Die ${n} gewählten löschen`,
     manageHint: "Tippe Bilder an, um sie zum Löschen auszuwählen. Hinzufügen geht aus den Dateien dieses Geräts, also am einfachsten vom Handy oder PC über die Fernbedienung.",
@@ -399,6 +405,10 @@ const MESSAGES_DE = [
   [/^this is not a picture$/, "Das ist kein Bild"],
   [/^this picture is too large$/, "Dieses Bild ist zu groß (mehr als 40 MB)"],
   [/^this is not a picture of the gallery$/, "Das ist kein Bild der Galerie"],
+  [/^this video cannot be read$/, "Dieses Video lässt sich nicht lesen"],
+  [/^this video is too large$/, "Dieses Video ist zu groß (mehr als 2 GB)"],
+  [/^this video takes too long to convert$/, "Dieses Video zu wandeln dauert zu lange"],
+  [/^ffmpeg is not installed$/, "ffmpeg ist nicht installiert"],
   [/^the demo pictures belong to RadioKiosk and stay$/, "Die Beispielbilder gehören zu RadioKiosk und bleiben"],
   [/^a reminder needs some text$/, "Eine Erinnerung braucht etwas Text"],
   [/^this is not a date$/, "Das ist kein Datum"],
@@ -2711,8 +2721,11 @@ function askPower() {
 // Add and delete pictures through the interface, so it also works from a phone or another
 // computer by remote control. Pictures are sent one at a time: a phone's photo has several
 // megabytes, and one that fails should not take the others with it.
+// what the file chooser offers for a video; some endings no browser counts among the videos by itself
+const VIDEO_FILES = "video/*,.mkv,.mov,.avi,.wmv,.flv,.3gp,.mts,.m2ts,.ts,.mpg,.mpeg,.vob,.ogv,.webm,.m4v,.divx,.mxf";
 const galleryManage = {
   title: t.managePictures,
+  busy: false,
   list: [],
   chosen: new Set(),
   confirm: false,
@@ -2741,11 +2754,33 @@ const galleryManage = {
       this.note = [t.picturesAdded(added), added < files.length ? t.picturesFailed(files.length - added) : ""].filter(Boolean).join(" · ");
       this.render();
     } });
+    // A video goes alone, and with its progress: it has many times the size of a picture, and the
+    // service then needs a while to make the clip of it.
+    const video = h("input", { type: "file", accept: VIDEO_FILES, hidden: true, onchange: () => {
+      const [chosen] = video.files, form = new FormData(), request = new XMLHttpRequest();
+      if (!chosen) return;
+      const tell = text => { this.note = text; const line = $("gallery-note"); if (line) line.textContent = text; else this.draw(); };
+      form.append("file", chosen, chosen.name);
+      this.busy = true;
+      tell(t.videoSending(0));
+      request.upload.onprogress = e => { if (e.lengthComputable) tell(t.videoSending(Math.floor(e.loaded / e.total * 100))); };
+      request.upload.onload = () => tell(t.videoConverting);
+      request.onloadend = () => {
+        let reply = {};
+        try { reply = JSON.parse(request.responseText); } catch (e) { /* no answer at all */ }
+        this.busy = false;
+        this.note = request.status === 200 ? t.videoAdded : say(reply.error || "a service on the internet cannot be reached");
+        if (current === this) this.render();
+      };
+      request.open("POST", "/api/gallery/upload");
+      request.send(form);
+    } });
     const top = view.scrollTop;
     view.replaceChildren(
       h("p", { className: "label", textContent: demo ? t.demoPictures : `${g.folder} · ${this.list.length} ${t.pictures}` }),
-      h("div", { className: "toolbar wrap" }, file,
-        h("button", { className: "primary", textContent: t.addPictures, onclick: () => file.click() }),
+      h("div", { className: "toolbar wrap" }, file, video,
+        h("button", { className: "primary", textContent: t.addPictures, disabled: this.busy, onclick: () => file.click() }),
+        ...(g && g.video ? [h("button", { textContent: t.addVideo, disabled: this.busy, onclick: () => video.click() })] : []),
         ...(this.chosen.size ? [h("button", { className: this.confirm ? "primary" : "", textContent: this.confirm ? t.sure : t.deleteChosen(this.chosen.size),
           onclick: async () => {
             if (!this.confirm) { this.confirm = true; return this.draw(); }
@@ -2755,10 +2790,10 @@ const galleryManage = {
             this.note = "";
             this.render();
           } })] : [])),
-      ...(this.note ? [h("p", { className: "label", textContent: this.note })] : []),
-      h("p", { className: "explain", textContent: demo ? t.manageDemo : t.manageHint }),
+      ...(this.note ? [h("p", { className: "label", id: "gallery-note", textContent: this.note })] : []),
+      h("p", { className: "explain", textContent: [demo ? t.manageDemo : t.manageHint, g && g.video ? t.videoHint : ""].filter(Boolean).join(" ") }),
       h("div", { className: "thumbs" }, ...this.list.map(p => h("button", {
-        className: this.chosen.has(p.name) ? "on" : "", title: p.name, disabled: demo,
+        className: [this.chosen.has(p.name) ? "on" : "", p.clip ? "clip" : ""].join(" ").trim(), title: p.name, disabled: demo,
         onclick: () => { this.chosen[this.chosen.has(p.name) ? "delete" : "add"](p.name); this.confirm = false; this.draw(); },
       }, h("img", { src: `/api/gallery/picture/${p.index}?w=240&h=240&v=${encodeURIComponent(p.name)}`, loading: "lazy", alt: p.name })))));
     view.scrollTop = top;
@@ -3406,11 +3441,14 @@ async function loadGallery() {
 // One slide show for the gallery tile and the idle screen: two layers, one coming in while the
 // other goes. A picture is shown only once it has loaded, so a slow folder never shows half of one.
 // Where a picture leaves the screen's edges free, a blurred copy of itself lies behind it.
+// A clip takes its turn like a picture: silent, in a loop until the next one comes, however long it is.
+const quiet = film => { film.pause(); film.removeAttribute("src"); film.load(); };   // lets go of the decoder
 const SLIDE_EFFECTS = ["fade", "slide", "flip", "zoom"];
 function slideShow() {
-  const layer = () => h("div", {}, h("img", { className: "back", alt: "" }), h("img", { alt: "" }));
+  const layer = () => h("div", {}, h("img", { className: "back", alt: "" }), h("img", { alt: "" }),
+    h("video", { muted: true, loop: true, playsInline: true, preload: "auto", hidden: true }));
   const el = h("div", { className: "slides" }, layer(), layer());
-  let front = 0, order = [], at = -1, timer = null, running = false, turns = 0;
+  let front = 0, order = [], at = -1, timer = null, running = false, turns = 0, calls = 0;
   const later = seconds => { clearTimeout(timer); if (running) timer = setTimeout(() => go(1), seconds * 1000); };
   function go(step) {
     if (!galleryInfo || !galleryInfo.count) return;
@@ -3425,10 +3463,14 @@ function slideShow() {
       at = -1;
     }
     at = (Math.max(at, 0) + (at < 0 ? 0 : step) + order.length) % order.length;
-    const next = el.children[1 - front], [back, picture] = next.children;
-    picture.onload = () => {
+    const next = el.children[1 - front], [back, still, film] = next.children, call = ++calls;
+    const clip = (galleryInfo.clips || []).includes(order[at]);
+    const reveal = (picture, shape) => {
+      still.hidden = picture !== still;
+      film.hidden = picture !== film;
+      if (picture === still) quiet(film);
       // "smart" crops a picture to the screen only where that costs less than a seventh of it
-      const shape = picture.naturalWidth / picture.naturalHeight, screen = el.clientWidth / el.clientHeight;
+      const screen = el.clientWidth / el.clientHeight;
       const little = Math.min(shape, screen) / Math.max(shape, screen) > 0.85;
       const cover = galleryInfo.fit === "fill" || (galleryInfo.fit === "smart" && little);
       picture.getAnimations().forEach(running => running.cancel());
@@ -3438,7 +3480,7 @@ function slideShow() {
       // A picture taller than the screen travels from one end to the other while it is shown, so all of
       // it is seen. It gets its full size and is moved, which the graphics chip does without redrawing.
       const height = el.clientWidth / shape, travel = el.clientHeight - height;
-      if (cover && galleryInfo.pan !== "off" && travel < -2) {
+      if (cover && picture === still && galleryInfo.pan !== "off" && travel < -2) {
         Object.assign(picture.style, { height: `${height}px`, objectFit: "fill" });
         // evenly and for as long as the picture is seen, both changes included; by default it leaves
         // a tenth at either end unvisited, which is calmer and loses little
@@ -3452,15 +3494,20 @@ function slideShow() {
         : SLIDE_EFFECTS.includes(galleryInfo.effect) ? galleryInfo.effect : "fade";
       turns++;
       el.classList.toggle("backwards", step < 0);
-      el.children[front].className = `out by-${effect}`;
+      const old = el.children[front];
+      old.className = `out by-${effect}`;
       next.className = `in by-${effect}`;
       front = 1 - front;
+      // a clip that has left the screen stops playing, unless its layer is in use again by then
+      setTimeout(() => { if (calls === call) quiet(old.lastChild); }, 1500);
     };
-    picture.onerror = () => later(1);   // unreadable picture: on to the next one
+    still.onload = () => reveal(still, still.naturalWidth / still.naturalHeight);
+    film.onloadeddata = () => { film.play().catch(() => {}); reveal(film, film.videoWidth / film.videoHeight); };
+    still.onerror = film.onerror = () => later(1);   // unreadable: on to the next one
     // the service scales to the screen, so it needs to know its size
     const url = `/api/gallery/picture/${order[at]}?w=${Math.round(innerWidth * devicePixelRatio)}&h=${Math.round(innerHeight * devicePixelRatio)}`;
     // the backdrop first, so that it is there when the picture appears; without one the edges stay black
-    back.onload = back.onerror = () => { picture.src = url; };
+    back.onload = back.onerror = () => { if (clip) film.src = `/api/gallery/clip/${order[at]}`; else still.src = url; };
     back.src = `${url}&backdrop=1`;
     later(galleryInfo.seconds);
   }
@@ -3473,7 +3520,13 @@ function slideShow() {
       running = false;
       clearTimeout(timer);
       turns = 0;
-      for (const one of el.children) { one.className = ""; one.lastChild.onload = null; }
+      calls++;
+      for (const one of el.children) {
+        const [back, still, film] = one.children;
+        one.className = "";
+        back.onload = back.onerror = still.onload = film.onloadeddata = film.onerror = null;
+        quiet(film);
+      }
     },
     next: () => go(1), previous: () => go(-1),
   };

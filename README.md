@@ -79,7 +79,7 @@ A small Python service controls players and receivers and serves a web interface
 | News | RSS and Atom feeds as a list of the newest articles |
 | Weather | current weather, a four-day forecast, official warnings |
 | Calendar | the coming dates of calendars kept elsewhere, read from their iCal address (Google, Apple, waste collection, school holidays) |
-| Gallery | slide show of a folder; pictures can be added and deleted in the interface, also from a phone |
+| Gallery | slide show of a folder; pictures and short video clips can be added and deleted in the interface, also from a phone |
 | Smart home | switches that call an address when tapped (a webhook of Home Assistant, a Shelly plug) and values that show what an address answers |
 | Alarm, Timer | wake with a station or a sound; kitchen timer and stopwatch |
 | Notes, Reminders | short notes; reminders for a day that stay up until acknowledged |
@@ -104,7 +104,7 @@ Settings and switching off are two small buttons at the end of the favourites ro
 
 After a while without a touch the idle screen takes over. It shows the clock on black with the display dimmed, or one or several of these in turn: the gallery behind the clock, the weather with the days ahead, the newest news, the DX cluster, a Bible verse for the day. How long each one stays is set one by one, such as three minutes of pictures, then a minute of weather and a minute of news. Clock, date, weather and what is playing stay in view.
 
-As a picture frame the gallery shows any folder the computer can read. A picture that does not fill the screen gets a blurred copy of itself behind it instead of black bars, or it is cropped and pans slowly across; the change between pictures fades, wipes, turns the page or zooms. Until you choose a folder, sample pictures are shown (public domain, see [demo-pictures/CREDITS.md](demo-pictures/CREDITS.md)).
+As a picture frame the gallery shows any folder the computer can read. A picture that does not fill the screen gets a blurred copy of itself behind it instead of black bars, or it is cropped and pans slowly across; the change between pictures fades, wipes, turns the page or zooms. A video added through the interface (nearly any format, also straight from a phone) becomes a short silent clip of at most 30 seconds, small enough for a Raspberry Pi; among the pictures it runs in a loop until the slide show moves on. Until you choose a folder, sample pictures are shown (public domain, see [demo-pictures/CREDITS.md](demo-pictures/CREDITS.md)).
 
 At night the idle screen can be dimmed, reduced to the dimmed clock, or the display switched off (**Settings › Idle screen**). So that a forgotten radio does not play for days, playback stops by itself after eight hours without a touch (**Settings › Playback**).
 

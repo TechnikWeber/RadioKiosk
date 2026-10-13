@@ -66,7 +66,7 @@ fi
 # Listening and everyday use come without asking; the radio hobby is for those who ask for it.
 [ "$HAM" -eq 1 ] && OPTIONAL+=("${HOBBY[@]}")
 [ "$WITH_SDRANGEL" -eq 1 ] && OPTIONAL+=(sdrangel)
-# ffmpeg encodes the network stream. Fedora offers two packages that exclude each
+# ffmpeg encodes the network stream and makes the gallery's clips out of videos. Fedora offers two packages that exclude each
 # other, so only install one where none is present.
 command -v ffmpeg >/dev/null || OPTIONAL+=("$FFMPEG")
 
