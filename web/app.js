@@ -3145,7 +3145,7 @@ const idleContentsView = {
     if (current === this && !this.located) this.draw();
   },
   draw() {
-    const chosen = state.idle_contents || ["clock"], ROTATE = [1, 2, 3, 5, 10, 15, 30, 60];
+    const chosen = state.idle_contents || ["clock"], ROTATE = [0.25, 0.5, 1, 2, 3, 5, 10, 15, 30, 60];
     view.replaceChildren(h("p", { className: "explain", textContent: t.idleContentsHint }),
       h("div", { className: "toolbar wrap" }, ...Object.keys(t.idleContents).map(kind => h("button", {
         className: chosen.includes(kind) ? "on" : "", textContent: `${t.idleContents[kind]}: ${chosen.includes(kind) ? t.on : t.off}`,
@@ -3158,7 +3158,8 @@ const idleContentsView = {
         h("div", { className: "toolbar wrap" }, h("button", { textContent: `${t.location}: ${t.locationUnset}`, onclick: () => show(locationPicker) }))] : []),
       ...(chosen.length < 2 ? [] : [h("h2", { className: "section", textContent: t.idleTimes }),
         h("div", { className: "toolbar wrap" }, ...chosen.map(kind => h("button", {
-          textContent: `${t.idleContents[kind]}: ${idleMinutes(kind)} ${t.minutes}`,
+          // below a minute the time is told in seconds
+          textContent: `${t.idleContents[kind]}: ${idleMinutes(kind) < 1 ? `${idleMinutes(kind) * 60} ${t.seconds}` : `${idleMinutes(kind)} ${t.minutes}`}`,
           onclick: () => api("/api/settings", { key: "idle_times",
             value: { [kind]: ROTATE[(ROTATE.indexOf(idleMinutes(kind)) + 1) % ROTATE.length] } }),
         })))]));

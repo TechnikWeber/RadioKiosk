@@ -12,7 +12,7 @@ WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 # what the idle screen can show, in the order it goes through them, and the minutes one of them can stay
 IDLE_KINDS = ("clock", "gallery", "weather", "feed", "spots", "verse")
-IDLE_MINUTES = (1, 2, 3, 5, 10, 15, 30, 60)
+IDLE_MINUTES = (0.25, 0.5, 1, 2, 3, 5, 10, 15, 30, 60)   # the first two are 15 and 30 seconds
 
 DEFAULTS = {
     # The service listens on the network but only answers this computer unless
