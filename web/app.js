@@ -4044,27 +4044,41 @@ let idleNight = false, idleCalls = 0;
 const IDLE_FADE = 700, pause = ms => new Promise(done => setTimeout(done, ms));   // the fades of style.css, and a little more
 // One kind follows the other softly: what is written fades out, then the new comes in. Between
 // pictures and the rest the lights fade in over the picture, or out again to uncover the next one.
-async function showIdleKind(kind, skipped = 0) {
+// The clock stands in the middle when alone and in the corner beside anything else: on its way
+// from one place to the other it is faded out ("moving"), so it never jumps.
+async function showIdleKind(kind) {
   const call = ++idleCalls, stale = () => idle.hidden || call !== idleCalls;
-  const plain = () => { idle.classList.remove("pictures", "news", "told", "blank"); idleSlides.stop(); };
+  await idleChange(kind, stale, 0);
+  if (!stale()) idle.classList.remove("moving");
+}
+async function idleChange(kind, stale, skipped) {
+  const cornered = () => idle.classList.contains("pictures") || idle.classList.contains("news");
+  // back to the clock alone: what was there fades out first, the pictures stop once they are gone
+  const plain = async () => {
+    idle.classList.remove("pictures", "news", "told");
+    await pause(IDLE_FADE);
+    if (!stale() && !idle.classList.contains("pictures")) idleSlides.stop();
+  };
   idleKind = kind;
   idleSince = Date.now();
   drawIdle();
   idleNight = nightNow();
   const night = idleNight && kind !== "reminder" ? pref("night", "dim") : "none";
-  if (night === "off" || night === "dim") {   // nothing but the clock, dimmed, or no light at all
-    plain();
-    idle.classList.toggle("blank", night === "off");
-    dim(night === "off" ? "off" : true);
-    return;
-  }
-  const lit = () => dim(night === "same");     // pictures and news keep the display bright by day, not at night
-  idle.classList.remove("blank");
-  if (idle.classList.contains("told")) {
-    idle.classList.remove("told");
+  const alone = kind === "clock" || night === "off" || night === "dim";
+  const told = idle.classList.contains("told"), moves = cornered() === alone && !idle.classList.contains("moving");
+  idle.classList.remove("told");
+  if (moves) idle.classList.add("moving");
+  if (told || moves) {
     await pause(IDLE_FADE);
     if (stale()) return;
   }
+  if (night === "off" || night === "dim") {   // nothing but the clock, dimmed, or no light at all
+    idle.classList.toggle("blank", night === "off");
+    dim(night === "off" ? "off" : true);
+    return plain();
+  }
+  const lit = () => dim(night === "same");     // pictures and news keep the display bright by day, not at night
+  idle.classList.remove("blank");
   if (kind === "gallery") {
     // What is known of the gallery decides the layout at once: waiting for the service first showed
     // the plain clock in the middle for a moment, which then jumped into the corner.
@@ -4088,13 +4102,14 @@ async function showIdleKind(kind, skipped = 0) {
     if (stale()) return;
     if (found) {
       idle.classList.add("news", "told");
+      idle.classList.remove("moving");
       lit();
       if (over) {
         await pause(IDLE_FADE + 300);
         if (stale()) return;
         idle.classList.remove("pictures");
-        idleSlides.stop();
       }
+      idleSlides.stop();
       return;
     }
     if (!over) idle.classList.remove("news");
@@ -4102,10 +4117,15 @@ async function showIdleKind(kind, skipped = 0) {
   const kinds = state.idle_contents || ["clock"];
   if (kind !== "clock" && kind !== "reminder" && kinds.includes(kind) && skipped < kinds.length - 1) {
     idleTurn = (kinds.indexOf(kind) + 1) % kinds.length;
-    return showIdleKind(kinds[idleTurn], skipped + 1);
+    return idleChange(kinds[idleTurn], stale, skipped + 1);
   }
-  plain();
+  if (cornered() && !idle.classList.contains("moving")) {   // a kind with nothing to show after all
+    idle.classList.add("moving");
+    await pause(IDLE_FADE);
+    if (stale()) return;
+  }
   dim(true);
+  return plain();
 }
 function nextIdleKind() {
   const kinds = state.idle_contents || ["clock"];
@@ -4121,6 +4141,8 @@ idleSlides.hold = () => {
   return true;
 };
 function showIdle() {
+  // appearing, the clock fades in where it belongs instead of starting in the middle
+  if (idle.hidden) idle.classList.add("moving");
   idle.hidden = false;
   const kinds = state.idle_contents || ["clock"];
   idleTurn %= kinds.length;
@@ -4132,7 +4154,7 @@ function showIdle() {
 function hideIdle() {
   idle.hidden = true;
   idleCalls++;
-  idle.classList.remove("pictures", "news", "told", "blank");
+  idle.classList.remove("pictures", "news", "told", "blank", "moving");
   idleSlides.stop();
 }
 

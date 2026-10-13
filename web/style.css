@@ -403,7 +403,9 @@ a.button { display: inline-flex; align-items: center; min-height: var(--touch); 
 .article small { color: var(--muted); word-break: break-all; }
 body.immersive header, body.immersive footer, body.immersive #warn, body.immersive #remind { display: none; }
 .toolbar.center { justify-content: center; }
-#idle-box { max-width: 92%; transition: transform 2s; }
+#idle-box { max-width: 92%; transition: transform 2s, opacity .6s; }
+/* on its way between the middle and the corner the clock is not seen */
+#idle.moving #idle-box { opacity: 0; }
 #idle-time { font-size: min(34vh, 26vw); font-weight: 200; line-height: 1; font-variant-numeric: tabular-nums; color: #fff; }
 #idle-date { font-size: 24px; margin-top: 6px; }
 #idle-extra { font-size: 20px; margin-top: 6px; color: var(--muted); min-height: 1.3em; }
