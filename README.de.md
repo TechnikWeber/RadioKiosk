@@ -102,7 +102,7 @@ Einstellungen und Ausschalten sind zwei kleine Knöpfe am Ende der Favoritenzeil
 
 ### Bilderrahmen und Ruhebildschirm
 
-Nach einer Weile ohne Berührung übernimmt der Ruhebildschirm. Er zeigt die Uhr auf Schwarz mit abgedunkeltem Display, oder eines oder mehrere davon im Wechsel: die Galerie hinter der Uhr, die neuesten Nachrichten, den DX-Cluster, einen Bibelvers für den Tag. Uhr, Datum, Wetter und das, was läuft, bleiben im Blick.
+Nach einer Weile ohne Berührung übernimmt der Ruhebildschirm. Er zeigt die Uhr auf Schwarz mit abgedunkeltem Display, oder eines oder mehrere davon im Wechsel: die Galerie hinter der Uhr, das Wetter mit den nächsten Tagen, die neuesten Nachrichten, den DX-Cluster, einen Bibelvers für den Tag. Wie lange jedes bleibt, lässt sich einzeln einstellen, etwa drei Minuten Bilder, dann eine Minute Wetter und eine Minute Nachrichten. Uhr, Datum, Wetter und das, was läuft, bleiben im Blick.
 
 Als Bilderrahmen zeigt die Galerie jeden Ordner, den der Rechner lesen kann. Ein Bild, das den Bildschirm nicht füllt, bekommt statt schwarzer Ränder sich selbst unscharf als Hintergrund, oder es wird beschnitten und schwenkt langsam durch; der Wechsel zwischen Bildern blendet über, wischt, blättert oder zoomt. Bis du einen Ordner wählst, laufen Beispielbilder (gemeinfrei, siehe [demo-pictures/CREDITS.md](demo-pictures/CREDITS.md)).
 

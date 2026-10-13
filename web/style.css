@@ -349,6 +349,16 @@ body:has(.keys) footer, body:has(.keys) #warn, body:has(.keys) #remind { display
 #idle-news .spot b { font-size: min(4.2vh, 22px); font-variant-numeric: tabular-nums; -webkit-line-clamp: 1; }
 #idle-news .spot small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #idle.news #idle-text { display: none; }
+/* the weather: now, large, and the days ahead side by side */
+#idle-news .forecast { margin: auto 0; display: flex; flex-direction: column; gap: min(5vh, 30px); }
+#idle-news .forecast .now { display: flex; align-items: center; gap: 24px; padding: 0; }
+#idle-news .forecast .now strong { font-size: min(22vh, 120px); font-weight: 200; line-height: 1; font-variant-numeric: tabular-nums; }
+#idle-news .forecast .now b { display: block; font-size: min(6vh, 34px); }
+#idle-news .forecast .days { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0; }
+#idle-news .forecast .days div { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 0 0 0 12px; border-left: 1px solid #333; }
+#idle-news .forecast .days b { display: block; font-size: min(4.2vh, 22px); }
+#idle-news .forecast .days span { font-size: min(4.2vh, 22px); font-variant-numeric: tabular-nums; }
+#idle-news .forecast small { display: block; font-size: min(3.4vh, 19px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .big { text-align: center; font-size: min(26vh, 20vw); font-weight: 200; line-height: 1.1; font-variant-numeric: tabular-nums; margin: 4px 0 12px; }
 .figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; margin-bottom: 12px; }
 .figures div { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 10px 6px; text-align: center; }
@@ -424,6 +434,7 @@ body.immersive header, body.immersive footer, body.immersive #warn, body.immersi
 #stop .hold { display: none; stroke: var(--danger); stroke-dasharray: 100; stroke-dashoffset: 100; }
 #stop.holding .hold { display: inline; animation: stop-hold .9s linear forwards; }
 #stop.holding { border-color: var(--danger); }
+.toolbar button.holding { border-color: var(--danger); }
 @keyframes stop-hold { to { stroke-dashoffset: 0; } }
 #mute .cross, #mute.on .sound { display: none; }
 #mute.on .cross { display: inline; }

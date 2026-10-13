@@ -10,6 +10,10 @@ CACHE_DIR = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / APP
 RUNTIME_DIR = Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / APP
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
+# what the idle screen can show, in the order it goes through them, and the minutes one of them can stay
+IDLE_KINDS = ("clock", "gallery", "weather", "feed", "spots", "verse")
+IDLE_MINUTES = (1, 2, 3, 5, 10, 15, 30, 60)
+
 DEFAULTS = {
     # The service listens on the network but only answers this computer unless
     # "remote" is on; then phones and PCs in the local network may control it.
@@ -41,11 +45,13 @@ DEFAULTS = {
     "receivers_on": [],
     # slide show, see gallery.py; None until something is set
     "gallery": None,
-    # what the idle screen shows: "clock" (black and dimmed), "gallery" or "feed" (the newest article)
+    # what the idle screen shows: "clock" (black and dimmed), "gallery", "weather", "feed" (the newest articles), ...
     # one or several; with several the idle screen changes between them every idle_rotate minutes
     "idle_contents": None,
     "idle_content": "clock",   # the single choice of earlier versions, taken over where idle_contents is not set
     "idle_rotate": 5,
+    # minutes each kind stays before the next one, by kind; one not named here stays idle_rotate minutes
+    "idle_times": {},
     # tiles taken off the start screen, by their id
     "hidden_tiles": [],
     # podcast directory: "fyyd", "apple" or "podcastindex"; only the last needs key and secret

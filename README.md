@@ -102,7 +102,7 @@ Settings and switching off are two small buttons at the end of the favourites ro
 
 ### Picture frame and idle screen
 
-After a while without a touch the idle screen takes over. It shows the clock on black with the display dimmed, or one or several of these in turn: the gallery behind the clock, the newest news, the DX cluster, a Bible verse for the day. Clock, date, weather and what is playing stay in view.
+After a while without a touch the idle screen takes over. It shows the clock on black with the display dimmed, or one or several of these in turn: the gallery behind the clock, the weather with the days ahead, the newest news, the DX cluster, a Bible verse for the day. How long each one stays is set one by one, such as three minutes of pictures, then a minute of weather and a minute of news. Clock, date, weather and what is playing stay in view.
 
 As a picture frame the gallery shows any folder the computer can read. A picture that does not fill the screen gets a blurred copy of itself behind it instead of black bars, or it is cropped and pans slowly across; the change between pictures fades, wipes, turns the page or zooms. Until you choose a folder, sample pictures are shown (public domain, see [demo-pictures/CREDITS.md](demo-pictures/CREDITS.md)).
 

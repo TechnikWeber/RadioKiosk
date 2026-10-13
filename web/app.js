@@ -94,9 +94,9 @@ const STRINGS = {
     ais: "Ships", aisSub: "Live map (AIS)", shipsSeen: "ships received",
     timer: "Timer", timerSub: "and stopwatch", stopwatch: "Stopwatch", start: "Start", stopIt: "Stop", reset: "Reset", cancel: "Cancel", ok: "OK",
     timeUp: "Time is up",
-    idleContent: "Shows", idleContents: { clock: "clock", gallery: "gallery", feed: "news", spots: "DX cluster", verse: "Bible verse" },
+    idleContent: "Shows", idleContents: { clock: "clock", gallery: "gallery", weather: "weather", feed: "news", spots: "DX cluster", verse: "Bible verse" },
     idleContentsHint: "Switch on what the idle screen is to show. With more than one it changes between them. The clock alone is black and dims the display; everything else keeps it bright.",
-    idleRotate: "Changes every",
+    idleTimes: "How long each one stays", sleepHold: "Hold the button to switch the sleep timer off.",
     galleryFit: "Pictures", galleryFits: { whole: "whole picture", smart: "zoom slightly", fill: "fill the screen" },
     galleryPan: "Pan over cropped pictures", galleryPans: { up: "from the bottom up", down: "from the top down", off: "off" },
     galleryPanRange: "Pan covers", galleryPanRanges: { 80: "most of the picture (calm)", 100: "all of the picture", 50: "the middle half (very calm)" },
@@ -276,9 +276,9 @@ const STRINGS = {
     ais: "Schiffe", aisSub: "Live-Karte (AIS)", shipsSeen: "Schiffe empfangen",
     timer: "Timer", timerSub: "und Stoppuhr", stopwatch: "Stoppuhr", start: "Start", stopIt: "Stopp", reset: "Zurücksetzen", cancel: "Abbrechen", ok: "OK",
     timeUp: "Die Zeit ist um",
-    idleContent: "Zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", feed: "Nachrichten", spots: "DX-Cluster", verse: "Bibelvers" },
+    idleContent: "Zeigt", idleContents: { clock: "Uhr", gallery: "Galerie", weather: "Wetter", feed: "Nachrichten", spots: "DX-Cluster", verse: "Bibelvers" },
     idleContentsHint: "Schalte ein, was der Ruhebildschirm zeigen soll. Bei mehr als einem wechselt er zwischen ihnen. Die Uhr allein ist schwarz und dunkelt das Display ab; alles andere lässt es hell.",
-    idleRotate: "Wechsel alle",
+    idleTimes: "So lange bleibt jedes", sleepHold: "Taste halten schaltet den Sleep-Timer aus.",
     galleryFit: "Bilder", galleryFits: { whole: "ganzes Bild", smart: "leicht zoomen", fill: "Bildschirm füllen" },
     galleryPan: "Schwenk über beschnittene Bilder", galleryPans: { up: "von unten nach oben", down: "von oben nach unten", off: "aus" },
     galleryPanRange: "Schwenk zeigt", galleryPanRanges: { 80: "fast das ganze Bild (ruhig)", 100: "das ganze Bild", 50: "die mittlere Hälfte (sehr ruhig)" },
@@ -3097,12 +3097,13 @@ const surveyView = {
 
 /* ---------- what the idle screen shows ---------- */
 
-// One kind or several. With several the idle screen changes between them after a set time.
+// One kind or several. With several the idle screen changes between them; how long each one stays is set per kind.
+const idleMinutes = kind => (state.idle_times || {})[kind] || state.idle_rotate;
 const idleContentsView = {
   title: t.idle,
   render() { this.draw(); },
   draw() {
-    const chosen = state.idle_contents || ["clock"], ROTATE = [1, 2, 5, 10, 15, 30, 60];
+    const chosen = state.idle_contents || ["clock"], ROTATE = [1, 2, 3, 5, 10, 15, 30, 60];
     view.replaceChildren(h("p", { className: "explain", textContent: t.idleContentsHint }),
       h("div", { className: "toolbar wrap" }, ...Object.keys(t.idleContents).map(kind => h("button", {
         className: chosen.includes(kind) ? "on" : "", textContent: `${t.idleContents[kind]}: ${chosen.includes(kind) ? t.on : t.off}`,
@@ -3111,10 +3112,12 @@ const idleContentsView = {
         onclick: () => api("/api/settings", { key: "idle_contents",
           value: chosen.includes(kind) ? chosen.filter(k => k !== kind) : [...chosen, kind] }),
       }))),
-      h("div", { className: "toolbar wrap" }, h("button", {
-        textContent: `${t.idleRotate}: ${state.idle_rotate} ${t.minutes}`, disabled: chosen.length < 2,
-        onclick: () => api("/api/settings", { key: "idle_rotate", value: ROTATE[(ROTATE.indexOf(state.idle_rotate) + 1) % ROTATE.length] }),
-      })));
+      ...(chosen.length < 2 ? [] : [h("h2", { className: "section", textContent: t.idleTimes }),
+        h("div", { className: "toolbar wrap" }, ...chosen.map(kind => h("button", {
+          textContent: `${t.idleContents[kind]}: ${idleMinutes(kind)} ${t.minutes}`,
+          onclick: () => api("/api/settings", { key: "idle_times",
+            value: { [kind]: ROTATE[(ROTATE.indexOf(idleMinutes(kind)) + 1) % ROTATE.length] } }),
+        })))]));
   },
   onState() { this.draw(); },
   back() { show(settings); return true; },
@@ -3615,6 +3618,9 @@ const receiverView = {
   back() { show(settings); return true; },
 };
 
+let sleepHold = null, sleepHeld = false;
+const endSleepHold = event => { clearTimeout(sleepHold); event.currentTarget.classList.remove("holding"); };
+
 const settings = {
   title: t.settings,
   async render() {
@@ -3639,7 +3645,23 @@ const settings = {
       ...section(t.sectionPlayback,
         h("button", {
           textContent: `${t.sleepTimer}: ${left ? left + " " + t.minutes : t.off}`,
+          title: left ? t.sleepHold : "",
+          // held like the stop button, a running timer is off at once instead of after stepping through every choice
+          onpointerdown: event => {
+            sleepHeld = false;
+            if (!left) return;
+            const button = event.currentTarget;
+            button.classList.add("holding");
+            sleepHold = setTimeout(async () => {
+              sleepHeld = true;
+              await api("/api/sleep", { minutes: 0 }).catch(() => {});
+              setTimeout(() => this.render(), 150);
+            }, HOLD_TO_STOP);
+          },
+          onpointerup: endSleepHold, onpointerleave: endSleepHold, onpointercancel: endSleepHold,
+          oncontextmenu: event => event.preventDefault(),
           onclick: async () => {
+            if (sleepHeld) { sleepHeld = false; return; }   // the tap that ends a hold has done its work already
             const current = SLEEP.findIndex(m => m >= left);
             await api("/api/sleep", { minutes: left ? SLEEP[(current + 1) % SLEEP.length] : SLEEP[1] });
             setTimeout(() => this.render(), 150);
@@ -3777,7 +3799,7 @@ function drawIdle() {
   $("idle-time").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   $("idle-date").textContent = now.toLocaleDateString(lang, { weekday: "long", day: "numeric", month: "long" });
   $("idle-extra").textContent = [
-    idleWeather ? [idleWeather.place, `${Math.round(idleWeather.temperature)}°`, describe(idleWeather.code)].filter(Boolean).join(" ") : null,
+    idleWeather && !idle.classList.contains("weather") ? [idleWeather.place, `${Math.round(idleWeather.temperature)}°`, describe(idleWeather.code)].filter(Boolean).join(" ") : null,
     showMoon() ? moonLine() : null,
     showSpace() && spaceWeather ? spaceLine(spaceWeather) : null,
     unreadAlerts().length ? `⚠ ${clipped(alertHeadline(unreadAlerts()[0]))}` : null,
@@ -3880,6 +3902,25 @@ async function idleVerse() {
     return true;
   } catch (e) { return $("idle-news").children.length > 0; }
 }
+// The weather: what it is like now, large, and the days ahead in a row below.
+async function idleForecast() {
+  idleNewsAt = Date.now();
+  try {
+    const w = await api("/api/weather"), box = $("idle-news");
+    box.style.bottom = `${$("idle-box").offsetHeight + 26}px`;
+    box.classList.remove("tight", "few");
+    box.replaceChildren(h("div", { className: "forecast" },
+      h("div", { className: "now" }, h("strong", { textContent: `${Math.round(w.now.temperature)}°` }),
+        h("span", {}, h("b", { textContent: describe(w.now.code) }),
+          h("small", { textContent: [w.place, `${t.wind} ${Math.round(w.now.wind)} km/h`].filter(Boolean).join(" · ") }))),
+      h("div", { className: "days" }, ...w.days.map((d, i) => h("div", {},
+        h("b", { textContent: i ? new Date(d.date).toLocaleDateString(lang, { weekday: "short" }) : t.today }),
+        h("span", { textContent: `${Math.round(d.min)}° / ${Math.round(d.max)}°` }),
+        h("small", { textContent: describe(d.code) }),
+        h("small", { textContent: d.rain === null ? "" : `${t.rain} ${d.rain} %` }))))));
+    return true;
+  } catch (e) { return $("idle-news").children.length > 0; }   // no location: the plain clock
+}
 // Reminders that are due, set like the verse: large while short, smaller until all of it fits.
 async function idleReminders() {
   idleNewsAt = Date.now();
@@ -3897,6 +3938,7 @@ async function idleReminders() {
 // Five kinds, a setting: the classic clock on black with the display dimmed, the gallery
 // behind the clock, or the newest article. The last two keep the display bright.
 let idleKind = null, idleSince = 0, idleTurn = 0;
+const idleFill = { feed: idleNews, spots: idleSpots, verse: idleVerse, weather: idleForecast, reminder: idleReminders };
 // Bring one kind onto the idle screen. One that has nothing to show (no feed chosen, no
 // connection) leaves the plain clock in its place.
 // At night the idle screen is the plain clock, dimmed, or the display is switched off: a picture
@@ -3910,7 +3952,7 @@ let idleNight = false;
 async function showIdleKind(kind) {
   idleKind = kind;
   idleSince = Date.now();
-  idle.classList.remove("pictures", "news", "blank");
+  idle.classList.remove("pictures", "news", "blank", "weather");
   idleSlides.stop();
   drawIdle();
   idleNight = nightNow();
@@ -3934,16 +3976,17 @@ async function showIdleKind(kind) {
       lit();
       return;
     }
-  } else if (kind === "feed" || kind === "spots" || kind === "verse" || kind === "reminder") {
+  } else if (idleFill[kind]) {
     idle.classList.add("news");   // shown first: fitting the entries needs their real sizes
     $("idle-news").replaceChildren();
-    const found = await ({ spots: idleSpots, verse: idleVerse, reminder: idleReminders }[kind] || idleNews)();
+    const found = await idleFill[kind]();
     if (idle.hidden || idleKind !== kind) return;
     if (found) {
+      idle.classList.toggle("weather", kind === "weather");   // the line beside the clock would say the same again
       lit();
       return;
     }
-    idle.classList.remove("news");
+    idle.classList.remove("news", "weather");
   }
   dim(true);
 }
@@ -3958,7 +4001,7 @@ function showIdle() {
 }
 function hideIdle() {
   idle.hidden = true;
-  idle.classList.remove("pictures", "news", "blank");
+  idle.classList.remove("pictures", "news", "blank", "weather");
   idleSlides.stop();
 }
 
@@ -4055,10 +4098,10 @@ setInterval(() => {
     const kinds = state.idle_contents || ["clock"];
     if (nightNow() !== idleNight) showIdle();   // night begins or ends
     else if (idleNight || idleKind === "reminder") { /* stays: no turns at night, and a reminder until acknowledged */ }
-    else if (kinds.length > 1 && Date.now() - idleSince > state.idle_rotate * 60e3) {   // on to the next kind
+    else if (kinds.length > 1 && Date.now() - idleSince > idleMinutes(idleKind) * 60e3) {   // on to the next kind
       idleTurn = (idleTurn + 1) % kinds.length;
       showIdleKind(kinds[idleTurn]);
-    } else if (idle.classList.contains("news") && Date.now() - idleNewsAt > 60e3) ({ spots: idleSpots, verse: idleVerse }[idleKind] || idleNews)();
+    } else if (idle.classList.contains("news") && Date.now() - idleNewsAt > 60e3 && idleFill[idleKind]) idleFill[idleKind]();
   }
 }, 1000);
 

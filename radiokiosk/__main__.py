@@ -12,7 +12,7 @@ from aiohttp import web
 
 from . import __version__, audio, bluetooth, device, network_audio, tones
 from .alarm import Alarm
-from .config import WEB_DIR, load_config, save_setting
+from .config import IDLE_KINDS, IDLE_MINUTES, WEB_DIR, load_config, save_setting
 from .core import Core
 from .sources.adsb import Adsb
 from .sources.apps import Apps
@@ -367,12 +367,20 @@ def build(cfg):
     async def settings_set(request):
         body = await request.json()
         if body["key"] == "idle_contents":
-            kinds = ("clock", "gallery", "feed", "spots", "verse")
+            kinds = IDLE_KINDS
             if not isinstance(body["value"], list) or not body["value"] or any(k not in kinds for k in body["value"]):
                 raise ValueError("unknown setting")
             # kept in the order of the list above, whatever order they were tapped in
             save_setting(cfg, "idle_contents", [k for k in kinds if k in body["value"]])
             await core._broadcast()   # every open interface learns what its idle screen shows now
+            return ok()
+        if body["key"] == "idle_times":
+            # how long each kind stays where the idle screen changes between several: {"gallery": 3, "weather": 1}
+            times = body["value"]
+            if not isinstance(times, dict) or any(k not in IDLE_KINDS or m not in IDLE_MINUTES for k, m in times.items()):
+                raise ValueError("unknown setting")
+            save_setting(cfg, "idle_times", {**cfg["idle_times"], **times})
+            await core._broadcast()
             return ok()
         if body["key"] == "hidden_tiles":
             # the settings tile is the way back, so it cannot be hidden
@@ -413,7 +421,7 @@ def build(cfg):
             save_setting(cfg, body["key"], body["value"].strip())
             return ok()
         allowed = {"fm_backend": CHOICES, "tuner_backend": CHOICES, "remote": (True, False),
-                   "idle_rotate": (1, 2, 5, 10, 15, 30, 60), "podcast_provider": PROVIDERS, "swl": (True, False),
+                   "idle_rotate": IDLE_MINUTES, "podcast_provider": PROVIDERS, "swl": (True, False),
                    "ham": (True, False)}
         if body["value"] not in allowed.get(body["key"], ()):
             raise ValueError("unknown setting")
