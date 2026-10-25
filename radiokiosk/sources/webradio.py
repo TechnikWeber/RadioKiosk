@@ -1,5 +1,7 @@
 """Internet radio: station directory from radio-browser.info, playback through mpv."""
 
+from urllib.parse import urlparse
+
 import aiohttp
 
 from ..config import load_json, save_json
@@ -9,6 +11,7 @@ HEADERS = {"User-Agent": "RadioKiosk/0.1"}
 KEEP_SEARCHES = 30
 PAGE = 60   # stations per page; the next page comes with "load more"
 MANY_TAGS = 20   # a station with more tags than this puts itself into every genre; real ones have up to about 15
+PER_PROVIDER = 3   # in a genre, the stations of one provider beyond this many go to the end of the list
 
 # Genres as the directory's tags. Stations tag themselves, so one genre asks for the usual spellings,
 # and a tag matches as a part ("rock" finds "classic rock"); one with "=" must match whole ("ard", not "standard").
@@ -46,6 +49,28 @@ GENRES = {
 LANGUAGES = {"de": "german", "en": "english"}
 
 
+REGISTRY_LEVELS = {"co", "com", "org", "net", "ac", "gov", "or", "ne", "gv"}
+
+
+def provider(station):
+    """Who runs a station: the domain of its homepage, or of its stream where it names no homepage."""
+    host = (urlparse(station.get("homepage") or "").hostname or urlparse(station.get("url") or "").hostname or "").removeprefix("www.")
+    parts = host.split(".")
+    # "rm.fm", "bbc.co.uk": two parts, three where the country's registry has a level of its own
+    return ".".join(parts[-3:] if len(parts) > 2 and parts[-2] in REGISTRY_LEVELS else parts[-2:])
+
+
+def spread(rows):
+    """Rows in the same order, where the stations of one provider beyond PER_PROVIDER follow all others,
+    so that one provider with many channels does not fill the top of a genre. Gives the rows and how many moved."""
+    count, first, later = {}, [], []
+    for s in rows:
+        key = provider(s)
+        count[key] = count.get(key, 0) + 1
+        (first if not key or count[key] <= PER_PROVIDER else later).append(s)
+    return first + later, len(later)
+
+
 class Webradio:
     name = "webradio"
 
@@ -76,7 +101,8 @@ class Webradio:
         key = "|".join([query.lower(), genre, base.get("countrycode", ""), base.get("language", ""), str(page)])
         # Each ask brings its first pages in full, so the page asked for is right in the merged list as well.
         # One genre's tags are mixed by popularity; a search keeps the names before the genres. Stations
-        # in every genre are left out where a genre is asked for; when that leaves a page short, ask for more.
+        # in every genre are left out where a genre is asked for, and a provider's many channels go to its end;
+        # when that leaves a page short, ask for more.
         end, limit = PAGE * (page + 1), PAGE * (page + 1) * 5 // 4 + 10
         async with aiohttp.ClientSession(headers=HEADERS, timeout=aiohttp.ClientTimeout(total=8)) as http:
             for _ in range(3):
@@ -93,11 +119,13 @@ class Webradio:
                             continue
                         seen.add(s["stationuuid"])
                         rows.append(s)
-                if len(rows) >= end or all(len(a) < limit for a in answers):
+                if genre:
+                    rows, crowded = spread(sorted(rows, key=lambda s: -s.get("clickcount", 0)))
+                else:
+                    crowded = 0
+                if len(rows) - crowded >= end or all(len(a) < limit for a in answers):
                     break
                 limit *= 2
-        if genre:
-            rows.sort(key=lambda s: -s.get("clickcount", 0))
         found = [{
             "id": s["stationuuid"],
             "name": s["name"].strip(),
