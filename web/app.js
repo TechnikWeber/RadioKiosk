@@ -16,6 +16,14 @@ const STRINGS = {
   en: {
     webradio: "Web radio", dab: "DAB+", fm: "FM", settings: "Settings",
     favorites: "Favorites", popular: "Popular", search: "Search", go: "Go",
+    genresTab: "Genres", loadMore: "Load more", allGenres: "Genres", searchStations: "Station or genre",
+    scopeLanguage: "In English", scopeWorld: "Worldwide",
+    genres: { pop: "Pop", rock: "Rock", charts: "Charts & hits", news: "News", talk: "Talk & culture", public: "Public radio",
+      schlager: "Schlager", folk_de: "German folk", oldies: "Oldies", "70s": "70s", "80s": "80s", "90s": "90s", "2000s": "2000s",
+      dance: "Dance & electronic", chill: "Chillout & lounge", hiphop: "Hip-hop & rap", alternative: "Alternative & indie",
+      metal: "Metal", jazz: "Jazz", soul: "Soul, funk & blues", classical: "Classical", country: "Country & folk",
+      world: "Reggae & Latin", christian: "Christian", kids: "Kids", sport: "Sport", comedy: "Comedy & audio drama",
+      regional: "Regional & local", christmas: "Christmas" },
     noFavorites: "No favorites yet. Tap the star next to a station.",
     noResults: "No stations found.", loading: "Loading…",
     scan: "Scan for stations", scanning: "Scanning block", found: "found",
@@ -204,6 +212,14 @@ const STRINGS = {
   de: {
     webradio: "Webradio", dab: "DAB+", fm: "UKW", settings: "Einstellungen",
     favorites: "Favoriten", popular: "Beliebt", search: "Suche", go: "Los",
+    genresTab: "Genres", loadMore: "Mehr laden", allGenres: "Genres", searchStations: "Sender oder Genre",
+    scopeLanguage: "Deutschsprachig", scopeWorld: "Weltweit",
+    genres: { pop: "Pop", rock: "Rock", charts: "Charts & Hits", news: "Nachrichten", talk: "Wort & Kultur", public: "Öffentlich-rechtlich",
+      schlager: "Schlager", folk_de: "Volksmusik", oldies: "Oldies", "70s": "70er", "80s": "80er", "90s": "90er", "2000s": "2000er",
+      dance: "Dance & Elektro", chill: "Chillout & Lounge", hiphop: "Hip-Hop & Rap", alternative: "Alternative & Indie",
+      metal: "Metal", jazz: "Jazz", soul: "Soul, Funk & Blues", classical: "Klassik", country: "Country & Folk",
+      world: "Reggae & Latin", christian: "Christlich", kids: "Kinder", sport: "Sport", comedy: "Comedy & Hörspiel",
+      regional: "Regional & Lokal", christmas: "Weihnachten" },
     noFavorites: "Noch keine Favoriten. Tippe auf den Stern neben einem Sender.",
     noResults: "Keine Sender gefunden.", loading: "Lädt…",
     scan: "Sendersuchlauf", scanning: "Suche in Block", found: "gefunden",
@@ -862,42 +878,106 @@ const home = {
 
 /* ---------- web radio ---------- */
 
+// Popular stations, a genre or a search, each by popularity: from the country set, in the language
+// of the display, or from the whole world; sixty at a time, and more on request.
+const RADIO_SCOPES = ["country", "language", "world"];
+const christmasTime = (d = new Date()) => d.getMonth() === 10 || d.getMonth() === 11 || (d.getMonth() === 0 && d.getDate() <= 6);
 const webradio = {
   title: t.webradio,
   tab: "favorites",
   typing: false,
   results: [],
   query: "",
+  genre: null,
+  page: 0,
+  more: false,
+  country: null,
   async render() {
     if (!this.starred().length && this.tab === "favorites") this.tab = "popular";
     this.draw();
-    if (this.tab === "popular") this.load("");
+    if (this.tab === "popular" || (this.tab === "genres" && this.genre)) this.load();
+    if (!this.country) {
+      this.country = (await api("/api/settings").catch(() => ({}))).country || "DE";
+      if (current === this) this.draw();
+    }
   },
   starred() { return favorites.filter(f => f.kind === "webradio").map(f => f.station); },
-  async load(query) {
-    this.results = null;
+  scopeKey() { return this.tab === "search" ? "radio_search_scope" : "radio_scope"; },
+  scope() { return pref(this.scopeKey(), this.tab === "search" ? "world" : "country"); },
+  scopeName(scope) {
+    if (scope === "language") return t.scopeLanguage;
+    if (scope === "world") return t.scopeWorld;
+    try { return new Intl.DisplayNames([lang], { type: "region" }).of(this.country || "DE"); } catch (e) { return this.country; }
+  },
+  url(page) {
+    const q = new URLSearchParams({ scope: this.scope(), lang, page });
+    if (this.tab === "search") q.set("q", this.query);
+    if (this.tab === "genres") q.set("genre", this.genre);
+    return "/api/webradio/stations?" + q;
+  },
+  async load() {
+    Object.assign(this, { results: null, error: null, page: 0, more: false });
     this.draw();
+    const asked = this.url(0);
     try {
-      this.results = await api("/api/webradio/stations?q=" + encodeURIComponent(query));
+      const found = await api(asked);
+      if (asked !== this.url(0)) return;   // something else was chosen meanwhile
+      Object.assign(this, { results: found, more: found.length >= 60 });
     } catch (e) {
-      this.results = [];
-      this.error = e.message;
+      Object.assign(this, { results: [], error: e.message });
     }
     if (current === this) this.draw();
   },
+  async loadMore(button) {
+    button.disabled = true;
+    button.textContent = t.loading;
+    const asked = this.url(this.page + 1);
+    try {
+      const found = await api(asked);
+      if (asked !== this.url(this.page + 1)) return;
+      const known = new Set(this.results.map(s => s.id));
+      this.page++;
+      this.results.push(...found.filter(s => !known.has(s.id)));
+      this.more = found.length >= 60;
+    } catch (e) { /* the button comes back for another try */ }
+    if (current === this) this.draw();
+  },
   draw() {
-    const tabButton = id => h("button", {
-      className: this.tab === id ? "on" : "", textContent: t[id],
+    const tabButton = (id, label = t[id]) => h("button", {
+      className: this.tab === id ? "on" : "", textContent: label,
       onclick: () => {
-        Object.assign(this, { tab: id, results: [], error: null, typing: id === "search" });
+        Object.assign(this, { tab: id, results: [], error: null, more: false, typing: id === "search" });
+        if (id === "genres") this.genre = null;
         this.draw();
-        if (id === "popular") this.load("");
+        if (id === "popular") this.load();
       },
     });
-    const parts = [h("div", { className: "tabs" }, tabButton("favorites"), tabButton("popular"), tabButton("search"))];
+    const parts = [h("div", { className: "tabs" }, tabButton("favorites"), tabButton("popular"), tabButton("genres", t.genresTab), tabButton("search"))];
+    const scopeButton = () => h("button", {
+      textContent: this.scopeName(this.scope()),
+      onclick: () => {
+        setPref(this.scopeKey(), RADIO_SCOPES[(RADIO_SCOPES.indexOf(this.scope()) + 1) % RADIO_SCOPES.length]);
+        if (this.tab !== "search" || this.query) this.load(); else this.draw();
+      },
+    });
+    if (this.tab === "popular") parts.push(h("div", { className: "toolbar" }, scopeButton()));
+    if (this.tab === "genres" && !this.genre) {
+      parts.push(h("div", { className: "toolbar" }, scopeButton()),
+        h("div", { className: "genres" }, ...Object.entries(t.genres).filter(([id]) => id !== "christmas" || christmasTime())
+          .map(([id, name]) => h("button", { textContent: name, onclick: () => { this.genre = id; this.load(); } }))));
+      const top = view.scrollTop;
+      view.replaceChildren(...parts);
+      view.scrollTop = top;
+      return;
+    }
+    if (this.tab === "genres") {
+      parts.push(h("div", { className: "toolbar" },
+        h("button", { textContent: `‹ ${t.allGenres}`, onclick: () => { Object.assign(this, { genre: null, results: [], more: false }); this.draw(); } }),
+        h("button", { className: "on grow", textContent: t.genres[this.genre] || this.genre, disabled: true }), scopeButton()));
+    }
     if (this.tab === "search") {
-      const input = h("input", { type: "search", value: this.query, placeholder: t.search, enterKeyHint: "search" });
-      const run = () => { this.query = input.value.trim(); this.typing = false; if (this.query) this.load(this.query); else this.draw(); };
+      const input = h("input", { type: "search", value: this.query, placeholder: t.searchStations, enterKeyHint: "search" });
+      const run = () => { this.query = input.value.trim(); this.typing = false; if (this.query) this.load(); else this.draw(); };
       input.oninput = () => { this.query = input.value; };
       input.onkeydown = e => { if (e.key === "Enter") run(); };
       parts.push(h("div", { className: "toolbar" }, input, h("button", { className: "primary", textContent: t.go, onclick: run })));
@@ -909,12 +989,13 @@ const webradio = {
         }
         input.onfocus = () => { this.typing = true; this.draw(); };
       }
+      parts.push(h("div", { className: "toolbar" }, scopeButton()));
     }
     const list = this.tab === "favorites" ? this.starred() : this.results;
     if (list === null) parts.push(hint(t.loading));
     else if (this.error) parts.push(hint(say(this.error)));
     else if (!list.length && this.tab === "favorites") parts.push(hint(t.noFavorites));
-    else if (!list.length && this.tab === "search" && this.query) parts.push(hint(t.noResults));
+    else if (!list.length && (this.tab === "genres" || (this.tab === "search" && this.query))) parts.push(hint(t.noResults));
     else for (const s of list) {
       parts.push(stationRow({
         title: s.name, info: s.info,
@@ -924,6 +1005,11 @@ const webradio = {
         starred: isStarred({ kind: "webradio", station: s }),
         onStar: () => toggleStar({ kind: "webradio", title: s.name, station: s }),
       }));
+    }
+    if (list && list.length && this.more && this.tab !== "favorites") {
+      const more = h("button", { className: "more", textContent: t.loadMore });
+      more.onclick = () => this.loadMore(more);
+      parts.push(more);
     }
     const top = view.scrollTop;
     view.replaceChildren(...parts);

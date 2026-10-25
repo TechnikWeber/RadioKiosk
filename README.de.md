@@ -63,7 +63,7 @@ Ein kleiner Python-Dienst steuert Player und Empfänger und liefert eine Webober
 
 | Kachel | Was du bekommst |
 |---|---|
-| Webradio | Sendersuche, beliebte Sender, Logos |
+| Webradio | beliebte Sender und knapp 30 Genres nach Beliebtheit, aus dem eigenen Land, deutschsprachig oder weltweit; Suche nach Name oder Genre; Logos |
 | DAB+ | Suchlauf, Senderliste, Lauftext und die Bilder, die Sender mitschicken |
 | UKW | Stereo, Sendernamen und Radiotext (RDS), Suchlauf, Wasserfall |
 | Empfänger | freies Abstimmen in FM, AM und Seitenband mit Bandplan: Lang-, Mittel- und Kurzwelle, Amateurfunk, PMR446, Freenet, CB; auf den Rundfunkbändern steht, wer gerade sendet |

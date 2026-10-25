@@ -176,6 +176,12 @@ body[data-tiles="large"] { --tile: 1.25; }
 .toolbar.wrap { flex-wrap: wrap; }
 .toolbar button.on { border-color: var(--accent); color: var(--accent); }
 .tabs button.on { border-color: var(--accent); color: var(--accent); }
+/* web radio: the genres as a grid of buttons, the button for the next page across the whole width */
+.genres { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.genres button { min-height: var(--touch); }
+button.more { display: block; width: 100%; margin: 4px 0 12px; }
+.toolbar .grow { flex: 1; }
+.toolbar button.on:disabled { opacity: 1; }
 .toolbar input {
   flex: 1;
   min-width: 0;

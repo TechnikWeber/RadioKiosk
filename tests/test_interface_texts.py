@@ -53,3 +53,12 @@ class Texts(unittest.TestCase):
     def test_both_languages_have_the_same_keys(self):
         english, german = (set(top_level_keys(block)) for block in self.blocks())
         self.assertEqual(sorted(english ^ german), [])
+
+    def test_every_genre_has_a_name(self):
+        # read from the source, so the test needs none of the service's libraries
+        source = (Path(__file__).resolve().parent.parent / "radiokiosk" / "sources" / "webradio.py").read_text()
+        genres = re.findall(r'^    "([\w]+)": \[', source[source.index("GENRES = {"):source.index("\n}\n", source.index("GENRES = {"))], re.M)
+        self.assertGreater(len(genres), 20)
+        for block in self.blocks():
+            named = block[block.index("genres: {") + len("genres: {"):]
+            self.assertEqual(top_level_keys(named[:named.index("},")]), genres)

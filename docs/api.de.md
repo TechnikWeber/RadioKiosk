@@ -58,7 +58,7 @@ curl -X POST -H 'Content-Type: application/json' \
   http://radio.local:8080/api/webradio/play
 ```
 
-`GET /api/webradio/stations?q=<Wörter>` sucht im Senderverzeichnis; ein Eintrag der Antwort lässt sich unverändert an `/api/webradio/play` schicken.
+`GET /api/webradio/stations?q=<Wörter>` sucht im Senderverzeichnis nach Name und Genre; ein Eintrag der Antwort lässt sich unverändert an `/api/webradio/play` schicken. Ohne `q` kommen die beliebtesten Sender, mit `genre=<id>` (etwa `pop`, `schlager`, `classical`, siehe `GENRES` in `radiokiosk/sources/webradio.py`) die beliebtesten eines Genres. `scope=country` beschränkt auf das eingestellte Land, `scope=language` auf Sender in der Sprache aus `lang=de` oder `lang=en`, ohne `scope` zählt die ganze Welt. Eine Antwort enthält bis zu 60 Sender; `page=1`, `page=2` … bringen die nächsten.
 
 ## Das Gerät
 

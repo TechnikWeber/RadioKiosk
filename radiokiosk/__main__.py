@@ -350,7 +350,7 @@ def build(cfg):
 
     @routes.get("/api/settings")
     async def settings_get(request):
-        return web.json_response({"fm_backend": cfg["fm_backend"], "tuner_backend": cfg["tuner_backend"],
+        return web.json_response({"fm_backend": cfg["fm_backend"], "tuner_backend": cfg["tuner_backend"], "country": cfg["country"],
                                   "fm_backend_used": fm.backend_id(), "tuner_backend_used": tuner.backend_id(),
                                   "fm_stereo": cfg["fm_stereo"],
                                   "remote": cfg["remote"], "addresses": addresses(cfg["port"]),
@@ -557,7 +557,10 @@ def build(cfg):
 
     @routes.get("/api/webradio/stations")
     async def stations(request):
-        return web.json_response(await webradio.search(request.query.get("q", "").strip()))
+        q = request.query
+        page = max(0, min(int(q.get("page", 0)), 20))   # 20 pages of 60 are more than anybody scrolls
+        return web.json_response(await webradio.search(q.get("q", "").strip(), q.get("genre", ""),
+                                                       q.get("scope", ""), q.get("lang", "de"), page))
 
     @routes.get("/api/favorites")
     async def favorites_get(request):

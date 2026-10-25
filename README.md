@@ -63,7 +63,7 @@ A small Python service controls players and receivers and serves a web interface
 
 | Tile | What you get |
 |---|---|
-| Web radio | station search, popular stations, logos |
+| Web radio | popular stations and close to 30 genres by popularity, from your country, in your language or worldwide; search by name or genre; logos |
 | DAB+ | scan, station list, scrolling text and the pictures stations send |
 | FM | stereo, station names and radio text (RDS), band scan, waterfall |
 | Receiver | free tuning in FM, AM and sideband with a band plan: long, medium and shortwave, amateur radio, PMR446, Freenet, CB; on the broadcast bands it lists who is on the air now |
