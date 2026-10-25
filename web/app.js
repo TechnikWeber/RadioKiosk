@@ -553,6 +553,9 @@ const ICONS = {
   star: '<path d="M12 4l2.5 5.2 5.5.8-4 4 1 5.6-5-2.7-5 2.7 1-5.6-4-4 5.5-.8z"/>',
 };
 const icon = name => `<svg viewBox="0 0 24 24">${ICONS[name]}</svg>`;
+// where web radio stations come from: a pin for the country, a speech bubble for the language, the globe for the world
+const SCOPE_ICONS = { country: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  language: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>', world: ICONS.webradio };
 
 const $ = id => document.getElementById(id);
 const view = $("view");
@@ -953,13 +956,18 @@ const webradio = {
       },
     });
     const parts = [h("div", { className: "tabs" }, tabButton("favorites"), tabButton("popular"), tabButton("genres", t.genresTab), tabButton("search"))];
-    const scopeButton = () => h("button", {
-      textContent: this.scopeName(this.scope()),
-      onclick: () => {
-        setPref(this.scopeKey(), RADIO_SCOPES[(RADIO_SCOPES.indexOf(this.scope()) + 1) % RADIO_SCOPES.length]);
-        if (this.tab !== "search" || this.query) this.load(); else this.draw();
-      },
-    });
+    // the choice of where stations come from, with its own symbol, so it is not taken for another tab
+    const scopeButton = () => {
+      const button = h("button", {
+        className: "scope", innerHTML: `<svg viewBox="0 0 24 24">${SCOPE_ICONS[this.scope()]}</svg><span></span>`,
+        onclick: () => {
+          setPref(this.scopeKey(), RADIO_SCOPES[(RADIO_SCOPES.indexOf(this.scope()) + 1) % RADIO_SCOPES.length]);
+          if (this.tab !== "search" || this.query) this.load(); else this.draw();
+        },
+      });
+      button.lastChild.textContent = this.scopeName(this.scope());
+      return button;
+    };
     if (this.tab === "popular") parts.push(h("div", { className: "toolbar" }, scopeButton()));
     if (this.tab === "genres" && !this.genre) {
       parts.push(h("div", { className: "toolbar" }, scopeButton()),

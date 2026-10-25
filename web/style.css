@@ -181,6 +181,8 @@ body[data-tiles="large"] { --tile: 1.25; }
 .genres button { min-height: var(--touch); }
 button.more { display: block; width: 100%; margin: 4px 0 12px; }
 .toolbar .grow { flex: 1; }
+button.scope { display: inline-flex; align-items: center; gap: 8px; border-style: dashed; padding-left: 12px; }
+button.scope svg { width: 22px; height: 22px; color: var(--accent); flex: none; }
 .toolbar button.on:disabled { opacity: 1; }
 .toolbar input {
   flex: 1;
