@@ -116,7 +116,9 @@ const STRINGS = {
     minutesAgo: "min ago", noSonde: "No ionosonde nearby has reported lately; set your location for the MUF.",
     propagationCredit: "Figures and band conditions: N0NBH (hamqsl.com). MUF: KC2G from the GIRO ionosondes.",
     moon: "Moon", moonLit: "lit", nextFull: "Full moon", nextNew: "New moon", showMoon: "Moon", showSpace: "Propagation",
-    extrasHint: "Moon and propagation appear on the idle screen and in the weather tile.",
+    sun: "Sun", sunrise: "Sunrise", sunset: "Sunset", daylight: "Daylight", showSun: "Sunrise and sunset",
+    sunDown: "The sun does not rise today", sunUp: "The sun does not set today",
+    extrasHint: "Sun, moon and propagation appear on the idle screen and in the weather tile. Sunrise and sunset need the location.",
     moonPhases: ["New moon", "Waxing crescent", "First quarter", "Waxing gibbous", "Full moon", "Waning gibbous", "Last quarter", "Waning crescent"],
     qso: "QSO log", qsoSub: "Logbook", newQso: "New entry", myCall: "My call sign", listener: "Listener (SWL)",
     exportAdif: "Save as ADIF", exportCsv: "Save as CSV", savedTo: "Saved to", download: "Download", noQsos: "The log is empty.",
@@ -302,7 +304,9 @@ const STRINGS = {
     minutesAgo: "min", noSonde: "Keine Ionosonde in der Nähe hat zuletzt gemeldet; für die MUF muss der Standort festgelegt sein.",
     propagationCredit: "Werte und Bandbedingungen: N0NBH (hamqsl.com). MUF: KC2G aus den Ionosonden des GIRO-Netzes.",
     moon: "Mond", moonLit: "beleuchtet", nextFull: "Vollmond", nextNew: "Neumond", showMoon: "Mond", showSpace: "Funkwetter",
-    extrasHint: "Mond und Funkwetter erscheinen im Ruhebildschirm und in der Wetter-Kachel.",
+    sun: "Sonne", sunrise: "Aufgang", sunset: "Untergang", daylight: "Tageslänge", showSun: "Sonnenauf- und -untergang",
+    sunDown: "Die Sonne geht heute nicht auf", sunUp: "Die Sonne geht heute nicht unter",
+    extrasHint: "Sonne, Mond und Funkwetter erscheinen im Ruhebildschirm und in der Wetter-Kachel. Sonnenauf- und -untergang brauchen den Standort.",
     moonPhases: ["Neumond", "Zunehmende Sichel", "Erstes Viertel", "Zunehmender Mond", "Vollmond", "Abnehmender Mond", "Letztes Viertel", "Abnehmende Sichel"],
     qso: "QSO-Log", qsoSub: "Logbuch", newQso: "Neuer Eintrag", myCall: "Mein Rufzeichen", listener: "Hörer (SWL)",
     exportAdif: "Als ADIF speichern", exportCsv: "Als CSV speichern", savedTo: "Gespeichert unter", download: "Herunterladen", noQsos: "Das Log ist leer.",
@@ -1392,6 +1396,8 @@ const weather = {
       h("small", { textContent: d.rain === null ? "" : `${t.rain} ${d.rain} %` }));
     $("heading").textContent = data.place ? `${t.weather} · ${data.place}` : t.weather;
     const m = moon(), space = showSpace() ? await loadSpaceWeather() : null;
+    const where = showSun() ? (await api("/api/location").catch(() => ({}))).location : null, sun = where ? sunTimes(where) : null;
+    const daylight = sun && sun.rise ? Math.round((sun.set - sun.rise) / 60e3) : null;
     if (current !== this) return;
     view.replaceChildren(
       h("div", { className: "dial", innerHTML: `${Math.round(data.now.temperature)}° <small>${describe(data.now.code)}</small>` }),
@@ -1401,6 +1407,10 @@ const weather = {
         h("p", { textContent: a[`description_${lang}`] || a.description_de }),
         h("small", { textContent: [a.until ? `${t.until} ${timeOf(a.until)}` : null, a[`instruction_${lang}`] || a.instruction_de].filter(Boolean).join(" · ") }))),
       ...data.days.map(day),
+      ...(sun ? [h("div", { className: "day extra" }, h("b", { innerHTML: `${sunIcon(true, 28)} ${t.sun}` }),
+        h("span", { textContent: sun.rise ? `${t.sunrise} ${clockOf(sun.rise)}` : sun.up ? t.sunUp : t.sunDown }),
+        h("span", { textContent: sun.set ? `${t.sunset} ${clockOf(sun.set)}` : "" }),
+        h("small", { textContent: daylight === null ? "" : `${t.daylight} ${Math.floor(daylight / 60)} h ${daylight % 60} min` }))] : []),
       ...(showMoon() ? [h("div", { className: "day extra" }, h("b", { innerHTML: `${moonIcon(m.phase)} ${t.moon}` }),
         h("span", { textContent: `${m.name}, ${m.lit} % ${t.moonLit}` }),
         h("span", { textContent: `${t.nextFull} ${shortDay(m.full)}` }), h("small", { textContent: `${t.nextNew} ${shortDay(m.newMoon)}` }))] : []),
@@ -1420,6 +1430,8 @@ const locationPicker = {
     const save = h("button", { className: "primary map-action", textContent: t.locationSave, onclick: async () => {
       const centre = this.map.getCenter();
       await api("/api/location", { lat: centre.lat, lon: centre.lng });
+      sunPlace = [centre.lat, centre.lng];
+      idleWeatherAt = 0;
       show(settings);
     } });
     view.classList.add("flush");
@@ -2294,6 +2306,36 @@ function moonIcon(phase, size = 28) {
 const moonLine = () => { const m = moon(); return `${m.name} ${m.lit} %`; };
 const shortDay = date => date.toLocaleDateString(lang, { weekday: "short", day: "numeric", month: "short" });
 const showMoon = () => pref("show_moon", "off") === "on", showSpace = () => pref("show_space", "off") === "on";
+
+/* ---------- sun ---------- */
+
+// Sunrise and sunset of the day for a place, from the sunrise equation: the sun's path through the year,
+// and the moment its upper edge crosses the horizon, light bent by the air included. Good to a minute or two.
+// Where the sun stays below or above the horizon all day, rise and set are null and up says which.
+function sunTimes([lat, lon], date = new Date()) {
+  const rad = Math.PI / 180, noon = new Date(date);
+  noon.setHours(12, 0, 0, 0);
+  const day = Math.round(noon / 864e5 + 2440587.5 - 2451545);   // days since noon of 1 January 2000
+  const mean = day - lon / 360;
+  const anomaly = (357.5291 + 0.98560028 * mean) % 360;
+  const centre = 1.9148 * Math.sin(anomaly * rad) + 0.02 * Math.sin(2 * anomaly * rad) + 0.0003 * Math.sin(3 * anomaly * rad);
+  const longitude = (anomaly + centre + 180 + 102.9372) % 360;
+  const transit = 2451545 + mean + 0.0053 * Math.sin(anomaly * rad) - 0.0069 * Math.sin(2 * longitude * rad);
+  const declination = Math.asin(Math.sin(longitude * rad) * Math.sin(23.4397 * rad));
+  const cosHour = (Math.sin(-0.833 * rad) - Math.sin(lat * rad) * Math.sin(declination)) / (Math.cos(lat * rad) * Math.cos(declination));
+  if (Math.abs(cosHour) > 1) return { rise: null, set: null, up: cosHour < -1 };
+  const hour = Math.acos(cosHour) / rad / 360, moment = julian => new Date((julian - 2440587.5) * 864e5);
+  return { rise: moment(transit - hour), set: moment(transit + hour) };
+}
+// A sun on the horizon, with an arrow up for the morning or down for the evening.
+function sunIcon(rising, size = 24) {
+  return `<svg viewBox="0 0 24 24" style="width:${size}px;height:${size}px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">`
+    + `<path d="M6 17a6 6 0 0 1 12 0" stroke="#f2b544"/><path d="M2 21h20" stroke="currentColor"/>`
+    + `<path d="${rising ? "M12 2v6M9 5l3-3 3 3" : "M12 2v6M9 5l3 3 3-3"}" stroke="#f2b544"/></svg>`;
+}
+const showSun = () => pref("show_sun", "on") === "on";
+const clockOf = date => date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+let sunPlace = null, sunPlaceAt = 0;   // the location, asked for again every quarter of an hour
 
 /* ---------- propagation ---------- */
 
@@ -3796,6 +3838,7 @@ const settings = {
         cycle(t.nightMode, "night", "dim", t.nightModes, () => { if (!idle.hidden) showIdle(); }),
         cycle(t.nightFrom, "night_from", "23", Object.fromEntries([20, 21, 22, 23, 0, 1].map(h => [h, t.oclock(h)]))),
         cycle(t.nightTo, "night_to", "6", Object.fromEntries([5, 6, 7, 8, 9].map(h => [h, t.oclock(h)]))),
+        cycle(t.showSun, "show_sun", "on", { on: t.on, off: t.off }, () => { if (!idle.hidden) drawIdle(); }),
         cycle(t.showMoon, "show_moon", "off", { off: t.off, on: t.on }),
         cycle(t.showSpace, "show_space", "off", { off: t.off, on: t.on })),
       h("p", { className: "label", textContent: t.nightHint }),
@@ -3889,6 +3932,12 @@ function drawIdle() {
   });
   $("idle-time").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   $("idle-date").textContent = now.toLocaleDateString(lang, { weekday: "long", day: "numeric", month: "long" });
+  // sunrise and sunset under the clock; without a location there is nothing to show, the settings say why
+  const sun = showSun() && sunPlace ? sunTimes(sunPlace, now) : null;
+  const sunLine = !sun ? "" : sun.rise ? `${sunIcon(true)}<span>${clockOf(sun.rise)}</span>${sunIcon(false)}<span>${clockOf(sun.set)}</span>`
+    : `<span>${sun.up ? t.sunUp : t.sunDown}</span>`;
+  if ($("idle-sun").dataset.line !== sunLine) $("idle-sun").innerHTML = $("idle-sun").dataset.line = sunLine;
+  idle.classList.toggle("sun", Boolean(sunLine));
   $("idle-extra").textContent = [
     idleWeather ? [idleWeather.place, `${Math.round(idleWeather.temperature)}°`, describe(idleWeather.code)].filter(Boolean).join(" ") : null,
     showMoon() ? moonLine() : null,
@@ -3910,6 +3959,10 @@ function drawIdle() {
   if (Date.now() - idleWeatherAt > 15 * 60e3) {
     idleWeatherAt = Date.now();
     api("/api/weather").then(w => { idleWeather = { ...w.now, place: w.place }; }, () => { idleWeather = null; });   // no location: no weather
+  }
+  if (Date.now() - sunPlaceAt > 15 * 60e3) {
+    sunPlaceAt = Date.now();
+    api("/api/location").then(l => { sunPlace = l.location; }, () => { /* keep the one known */ });
   }
 }
 

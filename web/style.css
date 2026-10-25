@@ -328,10 +328,10 @@ body:has(.keys) footer, body:has(.keys) #warn, body:has(.keys) #remind { display
    bottom: the time on the left, date, weather and station beside it on the right. */
 /* the margins leave room for the little shift against burn-in */
 #idle.pictures #idle-box, #idle.news #idle-box { position: absolute; left: 44px; right: 44px; bottom: 20px; max-width: none;
-  display: grid; grid-template-columns: auto 1fr; grid-template-rows: 1fr repeat(4, auto); column-gap: 24px; text-align: right; }
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: 1fr repeat(5, auto); column-gap: 24px; text-align: right; }
 #idle.pictures #idle-time, #idle.news #idle-time { grid-row: 1 / -1; align-self: end; text-align: left; line-height: .86; }
 #idle.pictures #idle-box > :not(#idle-time), #idle.news #idle-box > :not(#idle-time) { grid-column: 2; margin-top: 2px; min-height: 0; }
-#idle-date { grid-row: 2; } #idle-extra { grid-row: 3; } #idle-title { grid-row: 4; } #idle-text { grid-row: 5; }
+#idle-date { grid-row: 2; } #idle-sun { grid-row: 3; } #idle-extra { grid-row: 4; } #idle-title { grid-row: 5; } #idle-text { grid-row: 6; }
 #idle.pictures #idle-box { color: #fff; text-shadow: 0 1px 8px #000, 0 0 2px #000; }
 #idle.pictures #idle-extra, #idle.pictures #idle-text { color: #fff; }
 /* Behind weather, news and verse the black gives way to three soft lights that drift very slowly; their
@@ -407,6 +407,13 @@ body.immersive header, body.immersive footer, body.immersive #warn, body.immersi
 /* on its way between the middle and the corner the clock is not seen */
 #idle.moving #idle-box { opacity: 0; }
 #idle-time { font-size: min(34vh, 26vw); font-weight: 200; line-height: 1; font-variant-numeric: tabular-nums; color: #fff; }
+/* with sunrise and sunset below it the clock is a little smaller, so the whole stays the same height */
+#idle.sun #idle-time { font-size: min(30vh, 23vw); }
+#idle-sun { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 22px; font-variant-numeric: tabular-nums; }
+#idle-sun:empty { display: none; }
+#idle-sun span + svg { margin-left: 18px; }
+#idle.pictures #idle-sun, #idle.news #idle-sun { justify-content: flex-end; font-size: 20px; }
+#idle.pictures #idle-sun svg { filter: drop-shadow(0 1px 4px #000); }
 #idle-date { font-size: 24px; margin-top: 6px; }
 #idle-extra { font-size: 20px; margin-top: 6px; color: var(--muted); min-height: 1.3em; }
 #idle-title { font-size: 26px; font-weight: 600; margin-top: 18px; color: var(--accent); }
