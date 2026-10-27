@@ -1,7 +1,5 @@
 # Controlling RadioKiosk from outside
 
-[Deutsch](api.de.md)
-
 RadioKiosk is operated through a small interface over HTTP, the same one its own display uses. A home automation (Home Assistant, ioBroker, Node-RED), a script or a button on the wall can use it too: stop the radio when the door closes, start a station in the morning, lower the volume when the phone rings.
 
 ## Access

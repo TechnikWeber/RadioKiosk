@@ -1,5 +1,3 @@
-**English** · [Deutsch](README.de.md)
-
 # RadioKiosk
 
 A radio for the kitchen shelf, a digital picture frame, and with an RTL-SDR stick a world receiver for the shack: RadioKiosk turns a Linux computer into all three. It is built for a touch display, but runs just as well on a laptop or desktop with mouse and keyboard.
