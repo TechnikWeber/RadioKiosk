@@ -18,6 +18,7 @@ from .config import load_json, save_json
 HEADERS = {"User-Agent": "RadioKiosk/0.1"}
 REFRESH_AFTER = 300     # seconds a fetched feed is trusted
 ARTICLES = 60           # newest articles kept over all feeds
+EACH = 5                # newest articles of every feed that are kept however busy the others are
 # Feeds the reader offers with one tap, in three groups. They are the public feeds
 # these sites publish for readers like this one; shown are headline and teaser as the
 # feed carries them. This list is the one thing here that cannot keep itself current,
@@ -39,7 +40,11 @@ SUGGESTIONS = [
     {"url": "https://www.arrl.org/arrl.rss", "title": "ARRL News", "group": "radio"},
     {"url": "https://rsgb.org/main/feed/", "title": "RSGB", "group": "radio"},
     {"url": "https://www.rtl-sdr.com/feed/", "title": "rtl-sdr.com", "group": "radio"},
+    {"url": "https://technikweber.github.io/feed.xml", "title": "Philipps Blog", "group": "tech"},
 ]
+# The feed a new device starts with: the blog of RadioKiosk's author. It can be removed like any other
+# and stays among the suggestions to be added back.
+DEFAULT = {"url": "https://technikweber.github.io/feed.xml", "title": "Philipps Blog"}
 CHECK_AFTER = 24 * 3600   # seconds until a suggestion is tried again
 FIRST_WAIT = 4            # seconds the first list waits for the checks before it shows what is known
 
@@ -127,6 +132,19 @@ def parse_feed(data):
     return result
 
 
+def merge(lists, limit=ARTICLES, each=EACH):
+    """Articles of several feeds, newest first and at most `limit` of them.
+
+    Every feed keeps its newest `each`, so a feed that posts once a week is not
+    pushed out by news feeds that post every few minutes; the rest of the room
+    goes to whatever is newest.
+    """
+    newest = [sorted(articles, key=lambda a: -a["date"]) for articles in lists]
+    kept = [a for articles in newest for a in articles[:each]]
+    rest = sorted((a for articles in newest for a in articles[each:]), key=lambda a: -a["date"])
+    return sorted(kept + rest[:max(0, limit - len(kept))], key=lambda a: -a["date"])
+
+
 async def fetch_feed(url):
     try:
         async with aiohttp.ClientSession(headers=HEADERS, timeout=aiohttp.ClientTimeout(total=15)) as http:
@@ -139,8 +157,8 @@ async def fetch_feed(url):
 
 class Feeds:
     def __init__(self, cfg):
-        # nothing is read until the user picks a feed; the suggestions are an offer, not a choice made for them
-        self.feeds = load_json("feeds.json", [])
+        # a new device starts with the project's own blog; everything else is the user's choice
+        self.feeds = load_json("feeds.json", [dict(DEFAULT)])
         self.fetched = {}   # url -> (time, articles)
         self.working = load_json("feed_suggestions.json", {"checked": 0, "urls": []})
         self.checking = None
@@ -161,9 +179,7 @@ class Feeds:
 
     async def articles(self):
         """The newest articles of all feeds, newest first."""
-        lists = await asyncio.gather(*(self._articles(feed) for feed in self.feeds))
-        merged = sorted((a for articles in lists for a in articles), key=lambda a: -a["date"])
-        return merged[:ARTICLES]
+        return merge(await asyncio.gather(*(self._articles(feed) for feed in self.feeds)))
 
     async def _check(self):
         """Try every suggestion and note which ones deliver a feed."""

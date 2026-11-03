@@ -1,6 +1,6 @@
 import unittest
 
-from radiokiosk.feeds import parse_feed, plain, real_text, seconds
+from radiokiosk.feeds import merge, parse_feed, plain, real_text, seconds
 from radiokiosk.sources.sensors import reading
 
 RSS = b"""<?xml version="1.0"?><rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
@@ -46,6 +46,15 @@ class FeedTest(unittest.TestCase):
         self.assertEqual(plain("a&nbsp;b <br> c"), "a b c")
         self.assertEqual(plain("one two three four", 9), "one two …")
         self.assertEqual([seconds("3723"), seconds("62:03"), seconds("soon")], [3723, 3723, 0])
+
+    def test_a_quiet_feed_is_not_pushed_out_by_busy_ones(self):
+        busy = [{"source": "news", "date": 1000 + i} for i in range(100)]
+        quiet = [{"source": "blog", "date": 10}, {"source": "blog", "date": 5}]
+        merged = merge([busy, quiet], limit=20, each=5)
+        self.assertEqual(len(merged), 20)
+        self.assertEqual([a["date"] for a in merged if a["source"] == "blog"], [10, 5])
+        self.assertEqual([a["date"] for a in merged], sorted((a["date"] for a in merged), reverse=True))
+        self.assertEqual(merged[0]["date"], 1099)
 
 
 class SensorTest(unittest.TestCase):
