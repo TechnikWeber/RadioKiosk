@@ -78,7 +78,7 @@ const STRINGS = {
     location: "Location", locationHint: "Move the map until the cross marks your place.", locationSave: "Use this place",
     locationSet: "set", locationUnset: "not set", sleepTimer: "Sleep timer", minutes: "min",
     language: "Language", languages: { en: "English", de: "Deutsch" },
-    manage: "Manage favorites", clearAll: "Remove all", clearSure: "Really remove all?",
+    manage: "Manage favorites", moveUp: "Move up", moveDown: "Move down", clearAll: "Remove all", clearSure: "Really remove all?",
     kinds2: { webradio: "Web radio", dab: "DAB+", fm: "FM", tuner: "Receiver" },
     list: "List", remote: "Remote control", remoteOn: "on", remoteHint: "Phones and computers in your network can now open:",
     remoteWarning: "There is no password: everyone in this network can operate the radio.",
@@ -274,7 +274,7 @@ const STRINGS = {
     location: "Standort", locationHint: "Verschiebe die Karte, bis das Kreuz auf deinem Ort liegt.", locationSave: "Diesen Ort übernehmen",
     locationSet: "festgelegt", locationUnset: "nicht festgelegt", sleepTimer: "Sleep-Timer", minutes: "min",
     language: "Sprache", languages: { en: "English", de: "Deutsch" },
-    manage: "Favoriten verwalten", clearAll: "Alle entfernen", clearSure: "Wirklich alle entfernen?",
+    manage: "Favoriten verwalten", moveUp: "Nach oben", moveDown: "Nach unten", clearAll: "Alle entfernen", clearSure: "Wirklich alle entfernen?",
     kinds2: { webradio: "Webradio", dab: "DAB+", fm: "UKW", tuner: "Empfänger" },
     list: "Liste", remote: "Fernbedienung", remoteOn: "an", remoteHint: "Handys und Rechner in deinem Netz können jetzt öffnen:",
     remoteWarning: "Es gibt kein Passwort: Jeder in diesem Netz kann das Radio bedienen.",
@@ -550,6 +550,8 @@ const ICONS = {
   weather: '<circle cx="8" cy="8" r="3"/><path d="M8 2v1M2 8h1M3.8 3.8l.7.7M12.2 3.8l-.7.7M8 20h9a4 4 0 000-8 6 6 0 00-11 2 3 3 0 002 6z"/>',
   bluetooth: '<path d="M7 7l10 10-5 4V3l5 4L7 17"/>',
   settings: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+  up: '<path d="M6 15l6-6 6 6"/>',
+  down: '<path d="M6 9l6 6 6-6"/>',
   star: '<path d="M12 4l2.5 5.2 5.5.8-4 4 1 5.6-5-2.7-5 2.7 1-5.6-4-4 5.5-.8z"/>',
 };
 const icon = name => `<svg viewBox="0 0 24 24">${ICONS[name]}</svg>`;
@@ -645,10 +647,19 @@ const favoritesView = {
   draw() {
     view.replaceChildren(
       ...(favorites.length ? [] : [hint(t.noFavorites)]),
-      ...favorites.map(f => stationRow({
-        title: f.title, info: t.kinds2[f.kind], starred: true,
-        onPlay: () => api("/api/favorites/play", f), onStar: () => toggleStar(f),
-      })),
+      ...favorites.map((f, i) => {
+        const row = stationRow({
+          title: f.title, info: t.kinds2[f.kind], starred: true,
+          onPlay: () => api("/api/favorites/play", f), onStar: () => toggleStar(f),
+        });
+        // the order here is the order on the start screen: the most loved one goes to the top
+        const move = (name, label, step, off) => h("button", {
+          className: "icon", innerHTML: icon(name), ariaLabel: label, disabled: off,
+          onclick: async () => { favorites = await api("/api/favorites/move", { entry: f, step }); this.draw(); },
+        });
+        row.prepend(move("up", t.moveUp, -1, i === 0), move("down", t.moveDown, 1, i === favorites.length - 1));
+        return row;
+      }),
       ...(favorites.length ? [h("div", { className: "toolbar" }, h("button", {
         textContent: this.sure ? t.clearSure : t.clearAll,
         onclick: async () => {

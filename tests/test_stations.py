@@ -23,6 +23,16 @@ class FavoritesTest(unittest.TestCase):
         favorites.retitle(("fm", "94.30"), "SWR3 · 94.30 MHz")
         self.assertEqual(favorites.items[0]["title"], "SWR3 · 94.30 MHz")
 
+    def test_move_changes_the_order_and_stops_at_the_ends(self):
+        favorites = Favorites()
+        favorites.clear()
+        for mhz in (91.8, 94.3, 101.1):
+            favorites.toggle({"kind": "fm", "title": f"{mhz} MHz", "mhz": mhz})
+        favorites.move({"kind": "fm", "mhz": 101.1}, -1)
+        self.assertEqual([f["mhz"] for f in favorites.items], [91.8, 101.1, 94.3])
+        favorites.move({"kind": "fm", "mhz": 91.8}, -1)
+        self.assertEqual([f["mhz"] for f in favorites.items], [91.8, 101.1, 94.3])
+
 
 class FmScanTest(unittest.TestCase):
     def test_stations_are_the_peaks_above_the_noise(self):

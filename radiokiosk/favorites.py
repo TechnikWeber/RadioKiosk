@@ -52,6 +52,15 @@ class Favorites:
         self._save()
         return self.items
 
+    def move(self, entry, step):
+        """Moves a favourite up (step -1) or down (step 1); the start screen shows them in this order."""
+        wanted = key(entry)
+        at = next((i for i, item in enumerate(self.items) if key(item) == wanted), None)
+        if at is not None and 0 <= at + step < len(self.items):
+            self.items.insert(at + step, self.items.pop(at))
+            self._save()
+        return self.items
+
     def clear(self, kind=None):
         self.items = [item for item in self.items if kind and item["kind"] != kind]
         self._save()

@@ -575,6 +575,11 @@ def build(cfg):
         await core.play(await request.json())
         return ok()
 
+    @routes.post("/api/favorites/move")
+    async def favorites_move(request):
+        body = await request.json()
+        return web.json_response(core.favorites.move(body["entry"], -1 if int(body["step"]) < 0 else 1))
+
     @routes.post("/api/favorites/clear")
     async def favorites_clear(request):
         return web.json_response(core.favorites.clear((await request.json()).get("kind")))

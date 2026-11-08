@@ -48,6 +48,8 @@ curl -X POST -H 'Content-Type: application/json' \
   http://radio.local:8080/api/favorites/play
 ```
 
+`POST /api/favorites/move` with `{"entry": <favourite>, "step": -1}` moves a favourite one place up (`1`: down) and answers with the new list; the start screen shows them in this order.
+
 Any stream address plays without being a favourite:
 
 ```sh
