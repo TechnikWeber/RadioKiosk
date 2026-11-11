@@ -22,6 +22,8 @@ A radio for the kitchen shelf, a digital picture frame, and with an RTL-SDR stic
 
 > Version 0.25: everything listed here is built, but not all of it has been tried on every kind of hardware. The release notes say what is untested.
 
+**Contents:** [Install](#install) · [Hardware](#hardware) · [What it does](#what-it-does) · [Updating](#updating) · [Run from source](#run-from-source) · [Settings file](#settings-file) · [License](#license)
+
 ## Install
 
 ```sh
