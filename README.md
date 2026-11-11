@@ -4,7 +4,6 @@
   <img alt="Status: stable" src="https://img.shields.io/badge/status-stable-brightgreen">
   <a href="https://github.com/TechnikWeber/RadioKiosk/releases/latest"><img alt="Download" src="https://img.shields.io/github/v/release/TechnikWeber/RadioKiosk?include_prereleases&label=download&color=2ea44f"></a>
   <a href="https://github.com/TechnikWeber/RadioKiosk/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/TechnikWeber/RadioKiosk/total?color=blue"></a>
-  <a href="https://github.com/TechnikWeber/RadioKiosk/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/TechnikWeber/RadioKiosk?style=flat&color=yellow"></a>
   <a href="https://github.com/TechnikWeber/RadioKiosk/actions/workflows/tests.yml"><img alt="tests" src="https://img.shields.io/github/actions/workflow/status/TechnikWeber/RadioKiosk/tests.yml?branch=main&label=tests"></a>
   <img alt="Platform: Linux | Raspberry Pi" src="https://img.shields.io/badge/platform-Linux%20%7C%20Raspberry%20Pi-blue">
   <img alt="UI: English | Deutsch" src="https://img.shields.io/badge/UI-English%20%7C%20Deutsch-informational">
